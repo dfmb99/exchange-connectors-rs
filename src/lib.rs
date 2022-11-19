@@ -29,6 +29,6 @@ pub mod userstream;
 pub mod websockets;
 pub mod ws_usdt_futures;
 pub mod ws_usdt_futures_data;
-pub mod binance_interface;
+pub mod interface_usdt_futures_;
 
 pub mod futures;

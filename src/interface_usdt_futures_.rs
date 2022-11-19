@@ -1,0 +1,8 @@
+
+struct UsdtFuturesInterface {
+
+}
+
+impl UsdtFuturesInterface {
+
+}
