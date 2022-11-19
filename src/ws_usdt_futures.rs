@@ -1,17 +1,17 @@
-use crate::ws_fut_data::WsData;
-use binance::api::Binance;
-use binance::config::Config;
-use binance::futures::userstream::FuturesUserStream;
-use binance::futures::websockets::{FuturesMarket, FuturesWebSockets, FuturesWebsocketEvent};
-use binance::model::{EventBalance, EventPosition};
-use binance::errors::{BinanceContentError, Error};
-use binance::errors::ErrorKind::BinanceError;
-use log::{debug, error, info, trace, warn};
+use log::{debug, error, warn};
 use std::sync::atomic::AtomicBool;
 use std::sync::mpsc;
 use std::sync::mpsc::Receiver;
 use std::thread;
 use std::time::Duration;
+use crate::api::Binance;
+use crate::config::Config;
+use crate::errors::{BinanceContentError, Error};
+use crate::errors::ErrorKind::BinanceError;
+use crate::futures::userstream::FuturesUserStream;
+use crate::futures::websockets::{FuturesMarket, FuturesWebsocketEvent, FuturesWebSockets};
+use crate::model::{EventBalance, EventPosition};
+use crate::ws_usdt_futures_data::WsData;
 
 pub struct WsInterface {
     symbol: String,

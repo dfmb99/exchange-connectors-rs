@@ -1,5 +1,5 @@
 use binance::config::Config;
-use binance_connector_rs::ws::WsInterface;
+use binance::ws_usdt_futures::WsInterface;
 use dotenv::dotenv;
 use std::thread;
 

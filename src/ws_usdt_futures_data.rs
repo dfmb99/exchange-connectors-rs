@@ -1,12 +1,7 @@
-use binance::futures::model::{OrderTradeEvent, OrderUpdate};
-use binance::model::{
-    AccountUpdateEvent, AggrTradesEvent, BalanceUpdateEvent, EventBalance, EventPosition,
-    IndexPriceEvent, LiquidationEvent, LiquidationOrder, MarkPriceEvent,
-};
 use indexmap::IndexMap;
-use serde_json::{from_value, Value};
-use std::collections::HashMap;
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use crate::futures::model::OrderUpdate;
+use crate::model::{AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder};
 
 type MarkPriceWs = Arc<RwLock<Option<IndexPriceEvent>>>;
 type MarkPriceSnapsWs = Arc<RwLock<Vec<IndexPriceEvent>>>;

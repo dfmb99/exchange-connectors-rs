@@ -1,10 +1,13 @@
-#![deny(
+/*#![deny(
     unstable_features,
     unused_must_use,
     unused_mut,
     unused_imports,
     unused_import_braces
 )]
+#![allow(clippy::needless_doctest_main)]
+*/
+
 #![allow(clippy::needless_doctest_main)]
 
 #[macro_use]
@@ -24,5 +27,8 @@ pub mod market;
 pub mod savings;
 pub mod userstream;
 pub mod websockets;
+pub mod ws_usdt_futures;
+pub mod ws_usdt_futures_data;
+pub mod binance_interface;
 
 pub mod futures;
