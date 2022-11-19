@@ -487,16 +487,16 @@ pub struct OrderUpdate {
     pub time_in_force: String,
 
     #[serde(rename = "q")]
-    pub qty: f64,
+    pub qty: String,
 
     #[serde(rename = "p")]
-    pub price: f64,
+    pub price: String,
 
     #[serde(rename = "ap")]
-    pub average_price: f64,
+    pub average_price: String,
 
     #[serde(rename = "sp")]
-    pub stop_price: f64,
+    pub stop_price: String,
 
     #[serde(rename = "x")]
     pub execution_type: String,
@@ -508,13 +508,13 @@ pub struct OrderUpdate {
     pub order_id: u64,
 
     #[serde(rename = "l")]
-    pub qty_last_filled_trade: f64,
+    pub qty_last_filled_trade: String,
 
     #[serde(rename = "z")]
-    pub accumulated_qty_filled_trades: f64,
+    pub accumulated_qty_filled_trades: String,
 
     #[serde(rename = "L")]
-    pub price_last_filled_trade: f64,
+    pub price_last_filled_trade: String,
 
     #[serde(skip, rename = "N")]
     pub asset_commisioned: Option<String>,
@@ -529,10 +529,10 @@ pub struct OrderUpdate {
     pub trade_id: i64,
 
     #[serde(rename = "b")]
-    pub bids_notional: f64,
+    pub bids_notional: String,
 
     #[serde(rename = "a")]
-    pub ask_notional: f64,
+    pub ask_notional: String,
 
     #[serde(rename = "m")]
     pub is_buyer_maker: bool,
@@ -553,7 +553,7 @@ pub struct OrderUpdate {
     pub close_all: Option<bool>,
 
     #[serde(rename = "AP")]
-    pub activation_price: Option<f64>,
+    pub activation_price: Option<String>,
 
     #[serde(rename = "cr")]
     pub callback_rate: Option<String>,
@@ -568,7 +568,7 @@ pub struct OrderUpdate {
     pub ss_ignore: i32,
 
     #[serde(rename = "rp")]
-    pub realized_profit: f64,
+    pub realized_profit: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

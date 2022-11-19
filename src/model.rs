@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{from_value, Value};
 use std::convert::TryFrom;
-use crate::errors::*;
+use crate::errors::{Error, ErrorKind, Result};
 
 #[derive(Deserialize, Clone)]
 pub struct Empty {}
@@ -442,11 +442,11 @@ pub struct EventPosition {
     #[serde(rename = "pa")]
     pub position_amount: String,
     #[serde(rename = "ep")]
-    pub entry_price: f64,
+    pub entry_price: String,
     #[serde(rename = "cr")]
-    pub accumulated_realized: f64, // (Pre-fee) Accumulated Realized
+    pub accumulated_realized: String, // (Pre-fee) Accumulated Realized
     #[serde(rename = "up")]
-    pub unrealized_pnl: f64,
+    pub unrealized_pnl: String,
     #[serde(rename = "mt")]
     pub margin_type: String,
     #[serde(rename = "iw")]
@@ -496,10 +496,10 @@ pub struct OrderTradeEvent {
     pub time_in_force: String,
 
     #[serde(rename = "q")]
-    pub qty: f64,
+    pub qty: String,
 
     #[serde(rename = "p")]
-    pub price: f64,
+    pub price: String,
 
     #[serde(skip, rename = "P")]
     pub p_ignore: String,
@@ -526,13 +526,13 @@ pub struct OrderTradeEvent {
     pub order_id: u64,
 
     #[serde(rename = "l")]
-    pub qty_last_filled_trade: f64,
+    pub qty_last_filled_trade: String,
 
     #[serde(rename = "z")]
-    pub accumulated_qty_filled_trades: f64,
+    pub accumulated_qty_filled_trades: String,
 
     #[serde(rename = "L")]
-    pub price_last_filled_trade: f64,
+    pub price_last_filled_trade: String,
 
     #[serde(rename = "n")]
     pub commission: String,
@@ -565,7 +565,7 @@ pub struct OrderTradeEvent {
 ///
 /// Update Speed: Real-time
 ///
-/// https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md#aggregate-trade-streams
+/// <https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md#aggregate-trade-streams>
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AggrTradesEvent {
@@ -582,10 +582,10 @@ pub struct AggrTradesEvent {
     pub aggregated_trade_id: u64,
 
     #[serde(rename = "p")]
-    pub price: f64,
+    pub price: String,
 
     #[serde(rename = "q")]
-    pub qty: f64,
+    pub qty: String,
 
     #[serde(rename = "f")]
     pub first_break_trade_id: u64,
@@ -609,7 +609,7 @@ pub struct AggrTradesEvent {
 ///
 /// Update Speed: Real-time
 ///
-/// https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md#trade-streams
+/// <https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md#trade-streams>
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TradeEvent {
@@ -626,10 +626,10 @@ pub struct TradeEvent {
     pub trade_id: u64,
 
     #[serde(rename = "p")]
-    pub price: f64,
+    pub price: String,
 
     #[serde(rename = "q")]
-    pub qty: f64,
+    pub qty: String,
 
     #[serde(rename = "b")]
     pub buyer_order_id: u64,
@@ -660,7 +660,7 @@ pub struct IndexPriceEvent {
     pub pair: String,
 
     #[serde(rename = "p")]
-    pub price: f64,
+    pub price: String,
 }
 // https://binance-docs.github.io/apidocs/futures/en/#mark-price-stream
 // https://binance-docs.github.io/apidocs/delivery/en/#mark-price-stream
@@ -671,7 +671,7 @@ pub struct MarkPriceEvent {
     pub event_time: u64,
 
     #[serde(rename = "P")]
-    pub estimate_settle_price: f64,
+    pub estimate_settle_price: String,
 
     #[serde(rename = "T")]
     pub next_funding_time: u64,
@@ -680,13 +680,13 @@ pub struct MarkPriceEvent {
     pub event_type: String,
 
     #[serde(rename = "i")]
-    pub index_price: Option<f64>,
+    pub index_price: Option<String>,
 
     #[serde(rename = "p")]
-    pub mark_price: f64,
+    pub mark_price: String,
 
     #[serde(rename = "r")]
-    pub funding_rate: f64,
+    pub funding_rate: String,
 
     #[serde(rename = "s")]
     pub symbol: String,
@@ -727,19 +727,19 @@ pub struct LiquidationOrder {
     pub original_quantity: String,
 
     #[serde(rename = "p")]
-    pub price: f64,
+    pub price: String,
 
     #[serde(rename = "ap")]
-    pub average_price: f64,
+    pub average_price: String,
 
     #[serde(rename = "X")]
     pub order_status: String,
 
     #[serde(rename = "l")]
-    pub order_last_filled_quantity: f64,
+    pub order_last_filled_quantity: String,
 
     #[serde(rename = "z")]
-    pub order_filled_accumulated_quantity: f64,
+    pub order_filled_accumulated_quantity: String,
 
     #[serde(rename = "T")]
     pub order_trade_time: u64,
@@ -780,49 +780,49 @@ pub struct DayTickerEvent {
     pub symbol: String,
 
     #[serde(rename = "p")]
-    pub price_change: f64,
+    pub price_change: String,
 
     #[serde(rename = "P")]
-    pub price_change_percent: f64,
+    pub price_change_percent: String,
 
     #[serde(rename = "w")]
-    pub average_price: f64,
+    pub average_price: String,
 
     #[serde(rename = "x")]
-    pub prev_close: f64,
+    pub prev_close: String,
 
     #[serde(rename = "c")]
-    pub current_close: f64,
+    pub current_close: String,
 
     #[serde(rename = "Q")]
-    pub current_close_qty: f64,
+    pub current_close_qty: String,
 
     #[serde(rename = "b")]
-    pub best_bid: f64,
+    pub best_bid: String,
 
     #[serde(rename = "B")]
-    pub best_bid_qty: f64,
+    pub best_bid_qty: String,
 
     #[serde(rename = "a")]
-    pub best_ask: f64,
+    pub best_ask: String,
 
     #[serde(rename = "A")]
-    pub best_ask_qty: f64,
+    pub best_ask_qty: String,
 
     #[serde(rename = "o")]
-    pub open: f64,
+    pub open: String,
 
     #[serde(rename = "h")]
-    pub high: f64,
+    pub high: String,
 
     #[serde(rename = "l")]
-    pub low: f64,
+    pub low: String,
 
     #[serde(rename = "v")]
-    pub volume: f64,
+    pub volume: String,
 
     #[serde(rename = "q")]
-    pub quote_volume: f64,
+    pub quote_volume: String,
 
     #[serde(rename = "O")]
     pub open_time: u64,
@@ -954,8 +954,8 @@ pub struct KlineSummary {
 fn get_value(row: &[Value], index: usize, name: &'static str) -> Result<Value> {
     Ok(row
         .get(index)
-        .ok_or(ErrorKind::KlineValueMissingError(index, name))?
-        .to_owned())
+        .ok_or_else(|| ErrorKind::KlineValueMissingError(index, name))?
+        .clone())
 }
 
 impl TryFrom<&Vec<Value>> for KlineSummary {
@@ -1421,6 +1421,6 @@ fn test_account_update_event() {
 
     let res = r#"AccountUpdateEvent { event_type: "ACCOUNT_UPDATE", event_time: 1564745798939, data: AccountUpdateDataEvent { reason: "ORDER", balances: [EventBalance { asset: "USDT", wallet_balance: "122624.12345678", cross_wallet_balance: "100.12345678", balance_change: "50.12345678" }, EventBalance { asset: "BUSD", wallet_balance: "1.00000000", cross_wallet_balance: "0.00000000", balance_change: "-49.12345678" }], positions: [EventPosition { symbol: "BTCUSDT", position_amount: "0", entry_price: "0.00000", accumulated_realized: "200", unrealized_pnl: "0", margin_type: "isolated", isolated_wallet: "0.00000000", position_side: "BOTH" }, EventPosition { symbol: "BTCUSDT", position_amount: "20", entry_price: "6563.66500", accumulated_realized: "0", unrealized_pnl: "2850.21200", margin_type: "isolated", isolated_wallet: "13200.70726908", position_side: "LONG" }, EventPosition { symbol: "BTCUSDT", position_amount: "-10", entry_price: "6563.86000", accumulated_realized: "-45.04000000", unrealized_pnl: "-1423.15600", margin_type: "isolated", isolated_wallet: "6570.42511771", position_side: "SHORT" }] } }"#;
     let v: AccountUpdateEvent = serde_json::from_str(json).unwrap();
-    assert_eq!(format!("{v:?}"), res);
+    assert_eq!(format!("{:?}", v), res);
     //let event =  from_value::<AccountUpdateEvent>(json).unwrap();
 }
