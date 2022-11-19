@@ -427,11 +427,11 @@ pub struct EventBalance {
     #[serde(rename = "a")]
     pub asset: String,
     #[serde(rename = "wb")]
-    pub wallet_balance: String,
+    pub wallet_balance: f64,
     #[serde(rename = "cw")]
-    pub cross_wallet_balance: String,
+    pub cross_wallet_balance: f64,
     #[serde(rename = "bc")]
-    pub balance_change: String, // Balance Change except PnL and Commission
+    pub balance_change: f64, // Balance Change except PnL and Commission
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -440,7 +440,7 @@ pub struct EventPosition {
     #[serde(rename = "s")]
     pub symbol: String,
     #[serde(rename = "pa")]
-    pub position_amount: String,
+    pub position_amount: f64,
     #[serde(rename = "ep")]
     pub entry_price: f64,
     #[serde(rename = "cr")]
@@ -450,7 +450,7 @@ pub struct EventPosition {
     #[serde(rename = "mt")]
     pub margin_type: String,
     #[serde(rename = "iw")]
-    pub isolated_wallet: String,
+    pub isolated_wallet: f64,
     #[serde(rename = "ps")]
     pub position_side: String,
 }
@@ -724,7 +724,7 @@ pub struct LiquidationOrder {
     pub time_in_force: String,
 
     #[serde(rename = "q")]
-    pub original_quantity: String,
+    pub original_quantity: f64,
 
     #[serde(rename = "p")]
     pub price: f64,
