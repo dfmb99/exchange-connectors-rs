@@ -4,6 +4,8 @@ use binance::config::Config;
 use binance::futures::userstream::FuturesUserStream;
 use binance::futures::websockets::{FuturesMarket, FuturesWebSockets, FuturesWebsocketEvent};
 use binance::model::{EventBalance, EventPosition};
+use binance::errors::{BinanceContentError, Error};
+use binance::errors::ErrorKind::BinanceError;
 use log::{debug, error, info, trace, warn};
 use std::sync::atomic::AtomicBool;
 use std::sync::mpsc;
@@ -68,7 +70,7 @@ fn user_stream_websocket(
                 let listen_key = answer.listen_key;
                 let (tx, rx) = mpsc::channel();
 
-                // luanches thread to keep alive user streamn
+                // launches thread to keep alive user streamn
                 user_stream_keep_alive(rx, user_stream.to_owned(), listen_key.to_owned());
 
                 let mut web_socket: FuturesWebSockets<'_> =
@@ -99,8 +101,16 @@ fn user_stream_websocket(
                             FuturesWebsocketEvent::OrderTrade(trade) => {
                                 ws_data.add_order(trade.order);
                             }
+                            FuturesWebsocketEvent::UserDataStreamExpiredEvent(user_stream_expired) => {
+                                debug!("Received UserDataStreamExpiredEvent : {:?}", user_stream_expired);
+                                let err = BinanceContentError {
+                                    code: -32768,
+                                    msg: "User data listen key is expired".to_string(),
+                                };
+                                return Err(Error(BinanceError(err), Default::default()));
+                            }
                             _ => {
-                                debug!("Received unhandled event : {:?}", event)
+                                warn!("Received unhandled event : {:?}", event)
                             }
                         };
 
@@ -173,7 +183,7 @@ fn market_websocket(symbol: String, config: Config, ws_data: WsData) {
                             ws_data.add_liquidation(liquidation.liquidation_order);
                         }
                         _ => {
-                            debug!("Received unhandled event : {:?}", event)
+                            warn!("Received unhandled event : {:?}", event)
                         }
                     };
 
