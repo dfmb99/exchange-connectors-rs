@@ -199,34 +199,34 @@ fn test_order_update() {
         "S": "BUY",
         "o": "LIMIT",
         "f": "GTC",
-        "q": 0.010,
-        "p": 15000,
-        "ap": 0,
-        "sp": 0,
+        "q": "0.010",
+        "p": "15000",
+        "ap": "0",
+        "sp": "0",
         "x": "NEW",
         "X": "NEW",
         "i": 3252769662,
-        "l": 0,
-        "z": 0,
-        "L": 0,
+        "l": "0",
+        "z": "0",
+        "L": "0",
         "N": "",
         "n": "",
         "T": 1668814069559,
         "t": 0,
-        "b": 150,
-        "a": 0,
+        "b": "150",
+        "a": "0",
         "m": false,
         "R": false,
         "wt": "CONTRACT_PRICE",
         "ot": "LIMIT",
         "ps": "LONG",
         "cp": false,
-        "AP": 0,
+        "AP": "0",
         "cr": "",
         "pP": false,
         "si": 0,
         "ss": 0,
-        "rp": 0 }"#;
+        "rp": "0" }"#;
     let v: OrderUpdate = serde_json::from_str(json).unwrap();
     let ws_data = WsData::default();
     ws_data.add_order(v.to_owned());
@@ -240,34 +240,34 @@ fn test_order_update() {
         "S": "BUY",
         "o": "LIMIT",
         "f": "GTC",
-        "q": 0.010,
-        "p": 15000,
-        "ap": 0,
-        "sp": 0,
+        "q": "0.010",
+        "p": "15000",
+        "ap": "0",
+        "sp": "0",
         "x": "FILLED",
         "X": "FILLED",
         "i": 3252769662,
-        "l": 0,
-        "z": 0,
-        "L": 0,
+        "l": "0",
+        "z": "0",
+        "L": "0",
         "N": "",
         "n": "",
         "T": 1668814069559,
         "t": 0,
-        "b": 150,
-        "a": 0,
+        "b": "150",
+        "a": "0",
         "m": false,
         "R": false,
         "wt": "CONTRACT_PRICE",
         "ot": "LIMIT",
         "ps": "LONG",
         "cp": false,
-        "AP": 0,
+        "AP": "0",
         "cr": "",
         "pP": false,
         "si": 0,
         "ss": 0,
-        "rp": 0 }"#;
+        "rp": "0"}"#;
     let v: OrderUpdate = serde_json::from_str(json).unwrap();
     ws_data.add_order(v.to_owned());
     assert_eq!(ws_data.get_open_orders().len(), 1);
@@ -280,34 +280,34 @@ fn test_order_update() {
         "S": "BUY",
         "o": "LIMIT",
         "f": "GTC",
-        "q": 0.010,
-        "p": 15000,
-        "ap": 0,
-        "sp": 0,
+        "q": "0.010",
+        "p": "15000",
+        "ap": "0",
+        "sp": "0",
         "x": "CANCELED",
         "X": "CANCELED",
         "i": 3252769662,
-        "l": 0,
-        "z": 0,
-        "L": 0,
+        "l": "0",
+        "z": "0",
+        "L": "0",
         "N": "",
         "n": "",
         "T": 1668814069559,
         "t": 0,
-        "b": 150,
-        "a": 0,
+        "b": "150",
+        "a": "0",
         "m": false,
         "R": false,
         "wt": "CONTRACT_PRICE",
         "ot": "LIMIT",
         "ps": "LONG",
         "cp": false,
-        "AP": 0,
+        "AP": "0",
         "cr": "",
         "pP": false,
         "si": 0,
         "ss": 0,
-        "rp": 0 }"#;
+        "rp": "0" }"#;
     let v: OrderUpdate = serde_json::from_str(json).unwrap();
     ws_data.add_order(v.to_owned());
     assert_eq!(ws_data.get_open_orders().len(), 1);
@@ -321,17 +321,20 @@ fn test_mark_price_update() {
         "e": "markPriceUpdate",
         "E": 1562305380000,
         "s": "BTCUSDT",
-        "p": 11794.15000000,
-        "i": 11784.62659091,
-        "P": 11784.25641265,
-        "r": 0.00038167,
+        "p": "11794.15000000",
+        "i": "11784.62659091",
+        "P": "11784.25641265",
+        "r": "0.00038167",
         "T": 1562306400000
     }"#;
     let ws_data = WsData::default();
     let v: MarkPriceEvent = serde_json::from_str(json).unwrap();
     ws_data.update_mark_price(v);
     assert!(ws_data.get_mark_price().is_some());
-    assert_eq!(ws_data.get_mark_price().unwrap().mark_price, 11794.15000000);
+    assert_eq!(
+        ws_data.get_mark_price().unwrap().mark_price,
+        "11794.15000000"
+    );
 }
 
 #[test]
@@ -340,10 +343,10 @@ fn test_mark_price_snaps_update() {
         "e": "markPriceUpdate",
         "E": 1562305380000,
         "s": "BTCUSDT",
-        "p": 11794.15000000,
-        "i": 11784.62659091,
-        "P": 11784.25641265,
-        "r": 0.00038167,
+        "p": "11794.15000000",
+        "i": "11784.62659091",
+        "P": "11784.25641265",
+        "r": "0.00038167",
         "T": 1562306400000
     }"#;
     let ws_data = WsData::default();
@@ -361,8 +364,8 @@ fn test_aggr_trades_update() {
         "E": 123456789,
         "s": "BTCUSDT",
         "a": 5933014,
-        "p": 0.001,
-        "q": 100,
+        "p": "0.001",
+        "q": "100",
         "f": 100,
         "l": 105,
         "T": 123456785,
@@ -386,12 +389,12 @@ fn test_liquidations_update() {
             "S":"SELL",
             "o":"LIMIT",
             "f":"IOC",
-            "q":0.014,
-            "p":9910,
-            "ap":9910,
+            "q":"0.014",
+            "p":"9910",
+            "ap":"9910",
             "X":"FILLED",
-            "l":0.014,
-            "z":0.014,
+            "l":"0.014",
+            "z":"0.014",
             "T":1568014460893
            }
     }"#;
@@ -415,20 +418,20 @@ fn test_account_update() {
             "B":[
             {
                 "a":"USDT",
-                "wb":122624.12345678,
-                "cw":100.12345678,
-                "bc":50.12345678
+                "wb":"122624.12345678",
+                "cw":"100.12345678",
+                "bc":"50.12345678"
             }
             ],
             "P":[
             {
                 "s":"BTCUSDT",
-                "pa":0,
-                "ep":0.00000,
-                "cr":200,
-                "up":0,
+                "pa":"0",
+                "ep":"0.00000",
+                "cr":"200",
+                "up":"0",
                 "mt":"isolated",
-                "iw":0.00000000,
+                "iw":"0.00000000",
                 "ps":"BOTH"
             }
             ]
@@ -449,8 +452,8 @@ fn test_max_data_size() {
         "E": 123456789,
         "s": "BTCUSDT",
         "a": 5933014,
-        "p": 0.001,
-        "q": 100,
+        "p": "0.001",
+        "q": "100",
         "f": 100,
         "l": 105,
         "T": 123456785,
