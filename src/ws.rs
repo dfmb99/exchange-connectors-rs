@@ -1,0 +1,190 @@
+use crate::ws_fut_data::WsData;
+use binance::api::Binance;
+use binance::config::Config;
+use binance::futures::userstream::FuturesUserStream;
+use binance::futures::websockets::{FuturesMarket, FuturesWebSockets, FuturesWebsocketEvent};
+use binance::model::{EventBalance, EventPosition};
+use log::{debug, info, trace, warn};
+use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
+use std::sync::atomic::AtomicBool;
+use std::sync::mpsc;
+use std::sync::mpsc::Receiver;
+use std::thread;
+use std::time::Duration;
+
+struct WsInterface {
+    symbol: String,
+    config: Config,
+    ws_data: WsData,
+}
+
+impl WsInterface {
+    pub fn new(
+        symbol: String,
+        api_key: Option<String>,
+        api_secret: Option<String>,
+        config: Config,
+    ) -> WsInterface {
+        let ws_data = WsData::default();
+        user_stream_websocket(
+            symbol.to_owned(),
+            api_key.to_owned(),
+            api_secret.to_owned(),
+            config.to_owned(),
+            ws_data.clone(),
+        );
+        market_websocket(symbol.to_owned(), config.to_owned(), ws_data.clone());
+        user_stream_websocket(
+            symbol.to_owned(),
+            api_key,
+            api_secret,
+            config.to_owned(),
+            ws_data.clone(),
+        );
+        let ws_int = WsInterface {
+            symbol,
+            config,
+            ws_data,
+        };
+        ws_int.wait_for_data();
+        ws_int
+    }
+
+    fn wait_for_data(&self) {
+        trace!("Waiting for data");
+        while self.ws_data.get_mark_price().is_none() {
+            thread::yield_now();
+        }
+    }
+}
+
+fn user_stream_websocket(
+    symbol: String,
+    api_key: Option<String>,
+    api_secret: Option<String>,
+    config: Config,
+    ws_data: WsData,
+) {
+    loop {
+        let user_stream: FuturesUserStream =
+            Binance::new_with_config(api_key.to_owned(), api_secret.to_owned(), &config);
+        let keep_running = AtomicBool::new(true); // Used to control the event loop
+
+        if let Ok(answer) = user_stream.start() {
+            let listen_key = answer.listen_key;
+            let (tx, rx) = mpsc::channel();
+
+            // luanches thread to keep alive user streamn
+            user_stream_keep_alive(rx, user_stream.to_owned(), listen_key.to_owned());
+
+            let mut web_socket: FuturesWebSockets<'_> =
+                FuturesWebSockets::new(|event: FuturesWebsocketEvent| {
+                    match event {
+                        FuturesWebsocketEvent::AccountUpdate(account_update) => {
+                            let positions: Vec<EventPosition> = account_update
+                                .data
+                                .positions
+                                .into_iter()
+                                .filter(|event| event.symbol == symbol)
+                                .collect();
+                            if !positions.is_empty() {
+                                ws_data.update_position(positions.get(0).unwrap().to_owned())
+                            }
+
+                            let balances: Vec<EventBalance> = account_update
+                                .data
+                                .balances
+                                .into_iter()
+                                .filter(|event| event.asset == "USDT")
+                                .collect();
+                            if !balances.is_empty() {
+                                ws_data.update_balance(balances.get(0).unwrap().to_owned())
+                            }
+                        }
+                        FuturesWebsocketEvent::OrderTrade(trade) => {
+                            ws_data.add_order(trade.order);
+                        }
+                        _ => (),
+                    };
+
+                    Ok(())
+                });
+
+            web_socket
+                .connect_with_config(FuturesMarket::USDM, &listen_key, &config)
+                .unwrap(); // check error
+            if let Err(e) = web_socket.event_loop(&keep_running) {
+                warn!("Error: {}", e);
+            }
+            user_stream.close(&listen_key);
+            web_socket.disconnect();
+            let _ = tx.send(());
+            trace!("User stream closed and disconnected");
+        } else {
+            trace!("Not able to start an User Stream (Check your API_KEY)");
+        }
+    }
+}
+
+fn user_stream_keep_alive(rx: Receiver<()>, user_stream: FuturesUserStream, listen_key: String) {
+    thread::spawn(move || {
+        loop {
+            // Keepalive a user data stream to prevent a time out. User data streams will close after 60 minutes. Loops every 50 minutes
+            thread::sleep(Duration::from_secs(3000));
+            match user_stream.keep_alive(&listen_key) {
+                Ok(msg) => trace!("Keepalive user data stream: {:?}", msg),
+                Err(e) => warn!("Error: {}", e),
+            }
+
+            match rx.recv() {
+                Ok(_) => {
+                    trace!("Working...");
+                }
+                Err(_) => {
+                    trace!("Terminating.");
+                    break;
+                }
+            }
+        }
+    });
+}
+
+fn market_websocket(symbol: String, config: Config, ws_data: WsData) {
+    loop {
+        let keep_running = AtomicBool::new(true);
+        let streams = vec![
+            // taken from https://binance-docs.github.io/apidocs/futures/en/#websocket-market-streams
+            symbol.to_owned().to_lowercase() + "@aggTrade",
+            symbol.to_owned().to_lowercase() + "@markPrice@1s",
+            symbol.to_owned().to_lowercase() + "@forceOrder",
+        ];
+
+        let mut web_socket: FuturesWebSockets<'_> =
+            FuturesWebSockets::new(|event: FuturesWebsocketEvent| {
+                match event {
+                    FuturesWebsocketEvent::AggrTrades(trade) => {
+                        ws_data.add_aggr_trades(trade);
+                    }
+                    FuturesWebsocketEvent::MarkPrice(mark_price) => {
+                        ws_data.update_mark_price(mark_price);
+                    }
+                    FuturesWebsocketEvent::Liquidation(liquidation) => {
+                        ws_data.add_liquidation(liquidation.liquidation_order);
+                    }
+                    _ => (),
+                };
+
+                Ok(())
+            });
+
+        web_socket
+            .connect_multiple_streams(FuturesMarket::USDM, &streams, &config)
+            .unwrap(); // check error
+        if let Err(e) = web_socket.event_loop(&keep_running) {
+            warn!("Error: {}", e);
+        }
+        web_socket.disconnect();
+        trace!("Market websocket disconnected");
+    }
+}
