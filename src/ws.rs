@@ -25,13 +25,13 @@ impl WsInterface {
         config: Config,
     ) -> WsInterface {
         let ws_data = WsData::default();
-        /*user_stream_websocket(
+        user_stream_websocket(
             symbol.to_owned(),
             api_key,
             api_secret,
             config.to_owned(),
             ws_data.clone(),
-        );*/
+        );
         market_websocket(symbol.to_owned(), config.to_owned(), ws_data.clone());
         let ws_int = WsInterface {
             symbol,
@@ -57,6 +57,7 @@ fn user_stream_websocket(
     config: Config,
     ws_data: WsData,
 ) {
+    // TODO: deal with UserDataStreamExpiredEvent events
     thread::spawn(move || {
         loop {
             let user_stream: FuturesUserStream =
@@ -98,7 +99,9 @@ fn user_stream_websocket(
                             FuturesWebsocketEvent::OrderTrade(trade) => {
                                 ws_data.add_order(trade.order);
                             }
-                            _ => (),
+                            _ => {
+                                debug!("Received unhandled event : {:?}", event)
+                            }
                         };
 
                         Ok(())
@@ -126,16 +129,18 @@ fn user_stream_keep_alive(rx: Receiver<()>, user_stream: FuturesUserStream, list
         loop {
             // Keepalive a user data stream to prevent a time out. User data streams will close after 60 minutes. Loops every 50 minutes
             thread::sleep(Duration::from_secs(3000));
-            match user_stream.keep_alive(&listen_key) {
-                Ok(msg) => debug!("Keepalive user data stream: {:?}", msg),
-                Err(e) => warn!("Error: {}", e),
-            }
 
-            match rx.recv() {
-                _ => {
+            match rx.recv_timeout(Duration::from_millis(300)) {
+                Ok(_) => {
                     debug!("Terminating.");
                     break;
                 }
+                Err(_) => {}
+            }
+
+            match user_stream.keep_alive(&listen_key) {
+                Ok(msg) => debug!("Keepalive user data stream: {:?}", msg),
+                Err(e) => warn!("Error: {}", e),
             }
         }
     });
@@ -154,21 +159,22 @@ fn market_websocket(symbol: String, config: Config, ws_data: WsData) {
 
             let mut web_socket: FuturesWebSockets<'_> =
                 FuturesWebSockets::new(|event: FuturesWebsocketEvent| {
-                    println!("Event : {:?}", event);
                     match event {
                         FuturesWebsocketEvent::AggrTrades(trade) => {
-                            println!("Received AggrTradesEvent : {:?}", trade);
+                            debug!("Received AggrTradesEvent : {:?}", trade);
                             ws_data.add_aggr_trades(trade);
                         }
-                        FuturesWebsocketEvent::MarkPrice(mark_price) => {
-                            println!("Received MarkPriceEvent : {:?}", mark_price);
+                        FuturesWebsocketEvent::IndexPrice(mark_price) => {
+                            debug!("Received IndexPrice : {:?}", mark_price);
                             ws_data.update_mark_price(mark_price);
                         }
                         FuturesWebsocketEvent::Liquidation(liquidation) => {
-                            println!("Received LiquidationEvent : {:?}", liquidation);
+                            debug!("Received LiquidationEvent : {:?}", liquidation);
                             ws_data.add_liquidation(liquidation.liquidation_order);
                         }
-                        _ => (),
+                        _ => {
+                            debug!("Received unhandled event : {:?}", event)
+                        }
                     };
 
                     Ok(())
