@@ -1,5 +1,8 @@
 use binance::futures::model::{OrderTradeEvent, OrderUpdate};
-use binance::model::{AccountUpdateEvent, AggrTradesEvent, BalanceUpdateEvent, EventBalance, EventPosition, LiquidationEvent, LiquidationOrder, MarkPriceEvent};
+use binance::model::{
+    AccountUpdateEvent, AggrTradesEvent, BalanceUpdateEvent, EventBalance, EventPosition,
+    LiquidationEvent, LiquidationOrder, MarkPriceEvent,
+};
 use indexmap::IndexMap;
 use serde_json::{from_value, Value};
 use std::collections::HashMap;
@@ -458,9 +461,8 @@ fn test_max_data_size() {
     let mut inserts: usize = 0;
     for _ in 0..=DATA_SIZE * 2 {
         ws_data.add_aggr_trades(v.to_owned());
-        inserts +=1;
+        inserts += 1;
     }
     assert!(inserts > DATA_SIZE);
     assert_eq!(ws_data.get_aggr_trades().len(), DATA_SIZE);
 }
-

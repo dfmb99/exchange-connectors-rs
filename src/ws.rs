@@ -4,7 +4,7 @@ use binance::config::Config;
 use binance::futures::userstream::FuturesUserStream;
 use binance::futures::websockets::{FuturesMarket, FuturesWebSockets, FuturesWebsocketEvent};
 use binance::model::{EventBalance, EventPosition};
-use log::{debug, info, trace, warn};
+use log::{debug, error, info, trace, warn};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use std::sync::atomic::AtomicBool;
@@ -115,14 +115,14 @@ fn user_stream_websocket(
                 .connect_with_config(FuturesMarket::USDM, &listen_key, &config)
                 .unwrap(); // check error
             if let Err(e) = web_socket.event_loop(&keep_running) {
-                warn!("Error: {}", e);
+                error!("Error: {}", e);
             }
             user_stream.close(&listen_key);
             web_socket.disconnect();
             let _ = tx.send(());
             trace!("User stream closed and disconnected");
         } else {
-            trace!("Not able to start an User Stream (Check your API_KEY)");
+            panic!("Not able to start an User Stream (Check your API_KEY)");
         }
     }
 }
@@ -182,7 +182,7 @@ fn market_websocket(symbol: String, config: Config, ws_data: WsData) {
             .connect_multiple_streams(FuturesMarket::USDM, &streams, &config)
             .unwrap(); // check error
         if let Err(e) = web_socket.event_loop(&keep_running) {
-            warn!("Error: {}", e);
+            error!("Error: {}", e);
         }
         web_socket.disconnect();
         trace!("Market websocket disconnected");
