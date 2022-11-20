@@ -163,13 +163,19 @@ impl Client {
         match response.status() {
             StatusCode::OK => Ok(response.json::<T>()?),
             StatusCode::INTERNAL_SERVER_ERROR => {
-                bail!("Internal Server Error");
+                let error: BinanceContentError = response.json()?;
+
+                Err(ErrorKind::BinanceError(error).into())
             }
             StatusCode::SERVICE_UNAVAILABLE => {
-                bail!("Service Unavailable");
+                let error: BinanceContentError = response.json()?;
+
+                Err(ErrorKind::BinanceError(error).into())
             }
             StatusCode::UNAUTHORIZED => {
-                bail!("Unauthorized");
+                let error: BinanceContentError = response.json()?;
+
+                Err(ErrorKind::BinanceError(error).into())
             }
             StatusCode::BAD_REQUEST => {
                 let error: BinanceContentError = response.json()?;

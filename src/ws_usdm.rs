@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use log::{debug, error, warn};
 use std::sync::atomic::AtomicBool;
 use std::sync::mpsc;
@@ -14,8 +15,8 @@ use crate::futures::websockets::{FuturesMarket, FuturesWebsocketEvent, FuturesWe
 use crate::model::{AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder};
 use crate::ws_usdm_data::WsData;
 
+#[derive(Clone)]
 pub struct WsInterface {
-    symbol: String,
     ws_data: WsData,
 }
 
@@ -31,18 +32,16 @@ impl WsInterface {
     ) -> WsInterface {
         let ws_data = WsData::default();
         user_stream_websocket(
-            symbol.to_owned(),
+            symbol.to_lowercase(),
             api_key,
             api_secret,
             config.to_owned(),
             ws_data.clone(),
         );
         market_websocket(symbol.to_owned(), config.to_owned(), ws_data.clone());
-        let ws_int = WsInterface {
-            symbol,
-            ws_data,
-        };
+        let ws_int = WsInterface { ws_data: ws_data.clone() };
         ws_int.wait_for_data();
+        fill_mark_price_snaps(ws_data);
         ws_int
     }
 
@@ -55,26 +54,26 @@ impl WsInterface {
 
     /// Get mark price
     pub fn get_mark_price(&self) -> Option<IndexPriceEvent> {
-         self.ws_data.get_mark_price_event()
+        self.ws_data.get_mark_price_event()
     }
 
     /// Get mark price snaps
-    pub fn get_mark_price_snaps(&self) -> Vec<IndexPriceEvent> {
+    pub fn get_mark_price_snaps(&self) -> VecDeque<IndexPriceEvent> {
         self.ws_data.get_mark_price_event_snaps()
     }
 
     /// Get aggr_trades
-    pub fn get_aggr_trades(&self) -> Vec<AggrTradesEvent> {
+    pub fn get_aggr_trades(&self) -> VecDeque<AggrTradesEvent> {
         self.ws_data.get_aggr_trades()
     }
 
     /// Get liquidations
-    pub fn get_liquidations(&self) -> Vec<LiquidationOrder> {
+    pub fn get_liquidations(&self) -> VecDeque<LiquidationOrder> {
         self.ws_data.get_liquidations()
     }
 
     /// Get position
-    pub fn get_position(&self) -> Option<EventPosition>  {
+    pub fn get_position(&self) -> Option<EventPosition> {
         self.ws_data.get_position_event()
     }
 
@@ -84,17 +83,17 @@ impl WsInterface {
     }
 
     /// Get open orders
-    pub fn get_open_orders(&self) -> Vec<OrderUpdate> {
+    pub fn get_open_orders(&self) -> VecDeque<OrderUpdate> {
         self.ws_data.get_open_orders()
     }
 
     /// Get filled orders
-    pub fn get_filled_orders(&self) -> Vec<OrderUpdate> {
+    pub fn get_filled_orders(&self) -> VecDeque<OrderUpdate> {
         self.ws_data.get_filled_orders()
     }
 
     /// Get canceled orders
-    pub fn get_canceled_orders(&self) -> Vec<OrderUpdate> {
+    pub fn get_canceled_orders(&self) -> VecDeque<OrderUpdate> {
         self.ws_data.get_canceled_orders()
     }
 
@@ -103,15 +102,14 @@ impl WsInterface {
     /// * `order_id` - id of order
     pub fn get_order(&self, order_id: u64) -> Option<OrderUpdate> {
         if let Some(order) = self.ws_data.get_open_order(order_id) {
-            return Some(order)
+            return Some(order);
         } else if let Some(order) = self.ws_data.get_filled_order(order_id) {
-            return Some(order)
-        }else if let Some(order) = self.ws_data.get_canceled_order(order_id) {
-            return Some(order)
+            return Some(order);
+        } else if let Some(order) = self.ws_data.get_canceled_order(order_id) {
+            return Some(order);
         }
         None
     }
-
 }
 
 fn user_stream_websocket(
@@ -140,7 +138,7 @@ fn user_stream_websocket(
                                     .data
                                     .positions
                                     .into_iter()
-                                    .filter(|event| event.symbol == symbol)
+                                    .filter(|event| event.symbol.to_lowercase() == symbol)
                                     .collect();
                                 if !positions.is_empty() {
                                     ws_data.update_position(positions.get(0).unwrap().to_owned())
@@ -157,6 +155,7 @@ fn user_stream_websocket(
                                 }
                             }
                             FuturesWebsocketEvent::OrderTrade(trade) => {
+                                debug!("Received OrderTradeEvent : {:?}", trade);
                                 ws_data.add_order(trade.order);
                             }
                             FuturesWebsocketEvent::UserDataStreamExpiredEvent(
@@ -186,10 +185,14 @@ fn user_stream_websocket(
                 if let Err(e) = web_socket.event_loop(&keep_running) {
                     error!("Error: {}", e);
                 }
-                user_stream.close(&listen_key);
-                web_socket.disconnect();
+                if let Err(e) = user_stream.close(&listen_key) {
+                    error!("Error closing user stream: {}", e);
+                }
+                if let Err(e) = web_socket.disconnect() {
+                    error!("Error disconnecting from websocket: {}", e);
+                }
                 let _ = tx.send(());
-                warn!("User stream closed and disconnected");
+                debug!("User stream closed and disconnected");
             } else {
                 panic!("Not able to start an User Stream (Check your API_KEY)");
             }
@@ -258,8 +261,23 @@ fn market_websocket(symbol: String, config: Config, ws_data: WsData) {
             if let Err(e) = web_socket.event_loop(&keep_running) {
                 error!("Error: {}", e);
             }
-            web_socket.disconnect();
+            if let Err(e) = web_socket.disconnect() {
+                error!("Error disconnecting from websocket: {}", e);
+            }
             debug!("Market websocket disconnected");
+        }
+    });
+}
+
+fn fill_mark_price_snaps(ws_data: WsData) {
+    thread::spawn(move || loop {
+        match ws_data.get_mark_price_event() {
+            Some(index_price) => {
+                ws_data.add_mark_price_snap(index_price.clone());
+                debug!("Added mark price snap {:?}", index_price);
+                thread::sleep(Duration::from_millis(15000));
+            }
+            None => { warn!("Unable to add mark price snap")}
         }
     });
 }

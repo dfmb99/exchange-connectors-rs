@@ -1,12 +1,13 @@
+use std::collections::VecDeque;
 use indexmap::IndexMap;
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use crate::futures::model::OrderUpdate;
 use crate::model::{AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder};
 
 type MarkPriceWs = Arc<RwLock<Option<IndexPriceEvent>>>;
-type MarkPriceSnapsWs = Arc<RwLock<Vec<IndexPriceEvent>>>;
-type AggrTradesWs = Arc<RwLock<Vec<AggrTradesEvent>>>;
-type LiquidationsWs = Arc<RwLock<Vec<LiquidationOrder>>>;
+type MarkPriceSnapsWs = Arc<RwLock<VecDeque<IndexPriceEvent>>>;
+type AggrTradesWs = Arc<RwLock<VecDeque<AggrTradesEvent>>>;
+type LiquidationsWs = Arc<RwLock<VecDeque<LiquidationOrder>>>;
 type PositionsWs = Arc<RwLock<Option<EventPosition>>>;
 type BalanceWs = Arc<RwLock<Option<EventBalance>>>;
 type OrdersWs = Arc<RwLock<IndexMap<u64, OrderUpdate>>>;
@@ -30,9 +31,9 @@ impl WsData {
     pub fn default() -> WsData {
         WsData {
             mark_price: Arc::new(RwLock::new(None)),
-            mark_price_snaps: Arc::new(RwLock::new(Vec::with_capacity(DATA_SIZE))),
-            aggr_trades: Arc::new(RwLock::new(Vec::with_capacity(DATA_SIZE))),
-            liquidations: Arc::new(RwLock::new(Vec::with_capacity(DATA_SIZE))),
+            mark_price_snaps: Arc::new(RwLock::new(VecDeque::with_capacity(DATA_SIZE))),
+            aggr_trades: Arc::new(RwLock::new(VecDeque::with_capacity(DATA_SIZE))),
+            liquidations: Arc::new(RwLock::new(VecDeque::with_capacity(DATA_SIZE))),
             position: Arc::new(RwLock::new(None)),
             balance: Arc::new(RwLock::new(None)),
             filled_orders: Arc::new(RwLock::new(IndexMap::with_capacity(DATA_SIZE))),
@@ -59,15 +60,15 @@ impl WsData {
         self.mark_price.read().unwrap().clone()
     }
 
-    pub fn get_mark_price_event_snaps(&self) -> Vec<IndexPriceEvent> {
+    pub fn get_mark_price_event_snaps(&self) -> VecDeque<IndexPriceEvent> {
         self.mark_price_snaps.read().unwrap().clone()
     }
 
-    pub fn get_aggr_trades(&self) -> Vec<AggrTradesEvent> {
+    pub fn get_aggr_trades(&self) -> VecDeque<AggrTradesEvent> {
         self.aggr_trades.read().unwrap().clone()
     }
 
-    pub fn get_liquidations(&self) -> Vec<LiquidationOrder> {
+    pub fn get_liquidations(&self) -> VecDeque<LiquidationOrder> {
         self.liquidations.read().unwrap().clone()
     }
 
@@ -79,7 +80,7 @@ impl WsData {
         self.balance.read().unwrap().clone()
     }
 
-    pub fn get_filled_orders(&self) -> Vec<OrderUpdate> {
+    pub fn get_filled_orders(&self) -> VecDeque<OrderUpdate> {
         self.filled_orders
             .read()
             .unwrap()
@@ -88,11 +89,11 @@ impl WsData {
             .collect()
     }
 
-    pub fn get_open_orders(&self) -> Vec<OrderUpdate> {
+    pub fn get_open_orders(&self) -> VecDeque<OrderUpdate> {
         self.open_orders.read().unwrap().values().cloned().collect()
     }
 
-    pub fn get_canceled_orders(&self) -> Vec<OrderUpdate> {
+    pub fn get_canceled_orders(&self) -> VecDeque<OrderUpdate> {
         self.canceled_orders
             .read()
             .unwrap()
@@ -176,10 +177,10 @@ fn remove_order_index_map(
     index_map.shift_remove(&order_id);
 }
 
-fn insert_vec<T>(mut vec: RwLockWriteGuard<Vec<T>>, value: T) {
-    vec.insert(0, value);
+fn insert_vec<T>(mut vec: RwLockWriteGuard<VecDeque<T>>, value: T) {
+    vec.push_back(value);
     if vec.len() > DATA_SIZE {
-        vec.pop();
+        vec.pop_front();
     }
 }
 
@@ -193,9 +194,14 @@ fn get_order(
     };
 }
 
-#[test]
-fn test_order_update() {
-    let mut json = r#"{
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::{AccountUpdateEvent, LiquidationEvent};
+
+    #[test]
+    fn test_order_update() {
+        let mut json = r#"{
         "s": "BTCUSDT",
         "c": "web_HWhZes7Aql5iv5R6dEaa",
         "S": "BUY",
@@ -229,14 +235,14 @@ fn test_order_update() {
         "si": 0,
         "ss": 0,
         "rp": "0" }"#;
-    let v: OrderUpdate = serde_json::from_str(json).unwrap();
-    let ws_data = WsData::default();
-    ws_data.add_order(v.to_owned());
-    assert_eq!(ws_data.get_open_orders().len(), 1);
-    assert_eq!(ws_data.get_filled_orders().len(), 0);
-    assert_eq!(ws_data.get_canceled_orders().len(), 0);
+        let v: OrderUpdate = serde_json::from_str(json).unwrap();
+        let ws_data = WsData::default();
+        ws_data.add_order(v.to_owned());
+        assert_eq!(ws_data.get_open_orders().len(), 1);
+        assert_eq!(ws_data.get_filled_orders().len(), 0);
+        assert_eq!(ws_data.get_canceled_orders().len(), 0);
 
-    json = r#"{
+        json = r#"{
         "s": "BTCUSDT",
         "c": "web_HWhZes7Aql5iv5R6dEaa",
         "S": "BUY",
@@ -270,13 +276,13 @@ fn test_order_update() {
         "si": 0,
         "ss": 0,
         "rp": "0"}"#;
-    let v: OrderUpdate = serde_json::from_str(json).unwrap();
-    ws_data.add_order(v.to_owned());
-    assert_eq!(ws_data.get_open_orders().len(), 1);
-    assert_eq!(ws_data.get_filled_orders().len(), 1);
-    assert_eq!(ws_data.get_canceled_orders().len(), 0);
+        let v: OrderUpdate = serde_json::from_str(json).unwrap();
+        ws_data.add_order(v.to_owned());
+        assert_eq!(ws_data.get_open_orders().len(), 0);
+        assert_eq!(ws_data.get_filled_orders().len(), 1);
+        assert_eq!(ws_data.get_canceled_orders().len(), 0);
 
-    json = r#"{
+        json = r#"{
         "s": "BTCUSDT",
         "c": "web_HWhZes7Aql5iv5R6dEaa",
         "S": "BUY",
@@ -310,16 +316,16 @@ fn test_order_update() {
         "si": 0,
         "ss": 0,
         "rp": "0" }"#;
-    let v: OrderUpdate = serde_json::from_str(json).unwrap();
-    ws_data.add_order(v.to_owned());
-    assert_eq!(ws_data.get_open_orders().len(), 1);
-    assert_eq!(ws_data.get_filled_orders().len(), 1);
-    assert_eq!(ws_data.get_canceled_orders().len(), 1);
-}
+        let v: OrderUpdate = serde_json::from_str(json).unwrap();
+        ws_data.add_order(v.to_owned());
+        assert_eq!(ws_data.get_open_orders().len(), 0);
+        assert_eq!(ws_data.get_filled_orders().len(), 1);
+        assert_eq!(ws_data.get_canceled_orders().len(), 1);
+    }
 
-#[test]
-fn test_mark_price_update() {
-    let json = r#"  {
+    #[test]
+    fn test_mark_price_update() {
+        let json = r#"  {
         "e": "markPriceUpdate",
         "E": 1562305380000,
         "s": "BTCUSDT",
@@ -329,19 +335,19 @@ fn test_mark_price_update() {
         "r": "0.00038167",
         "T": 1562306400000
     }"#;
-    let ws_data = WsData::default();
-    let v: IndexPriceEvent = serde_json::from_str(json).unwrap();
-    ws_data.update_mark_price(v);
-    assert!(ws_data.get_mark_price_event().is_some());
-    assert_eq!(
-        ws_data.get_mark_price_event().unwrap().mark_price,
-        "11794.15000000"
-    );
-}
+        let ws_data = WsData::default();
+        let v: IndexPriceEvent = serde_json::from_str(json).unwrap();
+        ws_data.update_mark_price(v);
+        assert!(ws_data.get_mark_price_event().is_some());
+        assert_eq!(
+            ws_data.get_mark_price_event().unwrap().price,
+            "11794.15000000"
+        );
+    }
 
-#[test]
-fn test_mark_price_snaps_update() {
-    let json = r#"  {
+    #[test]
+    fn test_mark_price_snaps_update() {
+        let json = r#"  {
         "e": "markPriceUpdate",
         "E": 1562305380000,
         "s": "BTCUSDT",
@@ -351,17 +357,17 @@ fn test_mark_price_snaps_update() {
         "r": "0.00038167",
         "T": 1562306400000
     }"#;
-    let ws_data = WsData::default();
-    let v: IndexPriceEvent = serde_json::from_str(json).unwrap();
-    ws_data.add_mark_price_snap(v.to_owned());
-    assert_eq!(ws_data.get_mark_price_event_snaps().len(), 1);
-    ws_data.add_mark_price_snap(v);
-    assert_eq!(ws_data.get_mark_price_event_snaps().len(), 2);
-}
+        let ws_data = WsData::default();
+        let v: IndexPriceEvent = serde_json::from_str(json).unwrap();
+        ws_data.add_mark_price_snap(v.to_owned());
+        assert_eq!(ws_data.get_mark_price_event_snaps().len(), 1);
+        ws_data.add_mark_price_snap(v);
+        assert_eq!(ws_data.get_mark_price_event_snaps().len(), 2);
+    }
 
-#[test]
-fn test_aggr_trades_update() {
-    let json = r#"  {
+    #[test]
+    fn test_aggr_trades_update() {
+        let json = r#"  {
         "e": "aggTrade",
         "E": 123456789,
         "s": "BTCUSDT",
@@ -373,17 +379,17 @@ fn test_aggr_trades_update() {
         "T": 123456785,
         "m": true
     }"#;
-    let ws_data = WsData::default();
-    let v: AggrTradesEvent = serde_json::from_str(json).unwrap();
-    ws_data.add_aggr_trades(v.to_owned());
-    assert_eq!(ws_data.get_aggr_trades().len(), 1);
-    ws_data.add_aggr_trades(v);
-    assert_eq!(ws_data.get_aggr_trades().len(), 2);
-}
+        let ws_data = WsData::default();
+        let v: AggrTradesEvent = serde_json::from_str(json).unwrap();
+        ws_data.add_aggr_trades(v.to_owned());
+        assert_eq!(ws_data.get_aggr_trades().len(), 1);
+        ws_data.add_aggr_trades(v);
+        assert_eq!(ws_data.get_aggr_trades().len(), 2);
+    }
 
-#[test]
-fn test_liquidations_update() {
-    let json = r#" {
+    #[test]
+    fn test_liquidations_update() {
+        let json = r#" {
         "e":"forceOrder",
         "E":1568014460893,
         "o":{
@@ -400,17 +406,17 @@ fn test_liquidations_update() {
             "T":1568014460893
            }
     }"#;
-    let ws_data = WsData::default();
-    let v: LiquidationEvent = serde_json::from_str(json).unwrap();
-    ws_data.add_liquidation(v.liquidation_order.to_owned());
-    assert_eq!(ws_data.get_liquidations().len(), 1);
-    ws_data.add_liquidation(v.liquidation_order);
-    assert_eq!(ws_data.get_liquidations().len(), 2);
-}
+        let ws_data = WsData::default();
+        let v: LiquidationEvent = serde_json::from_str(json).unwrap();
+        ws_data.add_liquidation(v.liquidation_order.to_owned());
+        assert_eq!(ws_data.get_liquidations().len(), 1);
+        ws_data.add_liquidation(v.liquidation_order);
+        assert_eq!(ws_data.get_liquidations().len(), 2);
+    }
 
-#[test]
-fn test_account_update() {
-    let json = r#"{
+    #[test]
+    fn test_account_update() {
+        let json = r#"{
         "e": "ACCOUNT_UPDATE",
         "E": 1564745798939,
         "T": 1564745798938 ,
@@ -439,17 +445,17 @@ fn test_account_update() {
             ]
         }
     }"#;
-    let ws_data = WsData::default();
-    let v: AccountUpdateEvent = serde_json::from_str(json).unwrap();
-    ws_data.update_balance(v.data.balances.get(0).unwrap().to_owned());
-    ws_data.update_position(v.data.positions.get(0).unwrap().to_owned());
-    assert!(ws_data.get_balance_event().is_some());
-    assert!(ws_data.get_position_event().is_some());
-}
+        let ws_data = WsData::default();
+        let v: AccountUpdateEvent = serde_json::from_str(json).unwrap();
+        ws_data.update_balance(v.data.balances.get(0).unwrap().to_owned());
+        ws_data.update_position(v.data.positions.get(0).unwrap().to_owned());
+        assert!(ws_data.get_balance_event().is_some());
+        assert!(ws_data.get_position_event().is_some());
+    }
 
-#[test]
-fn test_max_data_size() {
-    let json = r#"  {
+    #[test]
+    fn test_max_data_size() {
+        let json = r#"  {
         "e": "aggTrade",
         "E": 123456789,
         "s": "BTCUSDT",
@@ -461,13 +467,14 @@ fn test_max_data_size() {
         "T": 123456785,
         "m": true
     }"#;
-    let ws_data = WsData::default();
-    let v: AggrTradesEvent = serde_json::from_str(json).unwrap();
-    let mut inserts: usize = 0;
-    for _ in 0..=DATA_SIZE * 2 {
-        ws_data.add_aggr_trades(v.to_owned());
-        inserts += 1;
+        let ws_data = WsData::default();
+        let v: AggrTradesEvent = serde_json::from_str(json).unwrap();
+        let mut inserts: usize = 0;
+        for _ in 0..=DATA_SIZE * 2 {
+            ws_data.add_aggr_trades(v.to_owned());
+            inserts += 1;
+        }
+        assert!(inserts > DATA_SIZE);
+        assert_eq!(ws_data.get_aggr_trades().len(), DATA_SIZE);
     }
-    assert!(inserts > DATA_SIZE);
-    assert_eq!(ws_data.get_aggr_trades().len(), DATA_SIZE);
 }

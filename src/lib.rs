@@ -24,7 +24,7 @@ pub mod api;
 pub mod config;
 pub mod general;
 pub mod interface_usdm;
-mod interface_usdm_data;
+pub mod interface_usdm_data;
 pub mod market;
 pub mod savings;
 pub mod userstream;

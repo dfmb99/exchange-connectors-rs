@@ -1,24 +1,45 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, VecDeque};
 use std::convert::TryInto;
+use std::thread;
+use std::time::Duration;
+use log::{error};
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 use crate::account::{OrderSide, TimeInForce};
 use crate::api::{API, Futures};
 use crate::client::Client;
 use crate::config::Config;
 use crate::futures::account::{CustomOrderRequest, OrderType, OrderRequest};
-use crate::interface_usdm_data::UsdmData;
+use crate::interface_usdm_data::{UsdmConfig, UsdmData};
 use crate::ws_usdm::WsInterface;
 use crate::errors::*;
-use crate::futures::model::{AccountBalance, AccountInformation, AggTrades, BookTickers, CanceledOrder, ChangeLeverageResponse, ExchangeInformation, KlineSummaries, KlineSummary, LiquidationOrders, MarkPrices, OpenInterest, OpenInterestHist, OrderBook, PositionRisk, PriceStats, Symbol, SymbolPrice, Tickers, Trades, Transaction};
-use crate::model::{Empty, ServerTime};
+use crate::futures::model::{
+    AccountBalance, AccountInformation, AggTrades, BookTickers, CanceledOrder,
+    ChangeLeverageResponse, ExchangeInformation, KlineSummaries, KlineSummary, LiquidationOrders,
+    MarkPrices, OpenInterest, OpenInterestHist, OrderBook, OrderUpdate, PositionRisk, PriceStats,
+    Symbol, SymbolPrice, Tickers, Trades, Transaction,
+};
+use crate::model::{
+    AggrTradesEvent, Empty, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder,
+    ServerTime,
+};
 use crate::util::{build_request, build_signed_request};
 
-struct UsdmInterface {
+enum RequestType {
+    Get,
+    GetSigned,
+    PostSigned,
+    DeleteSigned,
+}
+
+#[derive(Clone)]
+pub struct UsdmInterface {
     symbol: String,
     client: Client,
     recv_window: u64,
     ws: WsInterface,
     data: UsdmData,
+    config: UsdmConfig,
 }
 
 impl UsdmInterface {
@@ -28,42 +49,47 @@ impl UsdmInterface {
     /// * `api_key` - Option<String>
     /// * `api_secret` - Option<String>
     /// * `config` - Config
-    pub fn new(symbol: String, api_key: Option<String>, api_secret: Option<String>, config: &Config) -> UsdmInterface {
+    pub fn new(
+        symbol: String, api_key: Option<String>, api_secret: Option<String>,
+        client_config: &Config, config: UsdmConfig,
+    ) -> UsdmInterface {
         let client = Client::new(
             api_key.to_owned(),
             api_secret.to_owned(),
-            config.futures_rest_api_endpoint.clone(),
+            client_config.futures_rest_api_endpoint.clone(),
         );
-        UsdmInterface {
+        let usdm_int = UsdmInterface {
             symbol: symbol.to_owned(),
             client,
-            recv_window: config.recv_window,
-            ws: WsInterface::new(symbol.to_owned(), api_key.to_owned(), api_secret.to_owned(), config),
-            data: UsdmData::default()
-        }
-    }
-
-    /// Test connectivity
-    pub fn ping(&self) -> Result<String> {
-        self.client.get(API::Futures(Futures::Ping), None)?;
-        Ok("pong".into())
+            recv_window: client_config.recv_window,
+            ws: WsInterface::new(
+                symbol.to_owned(),
+                api_key.to_owned(),
+                api_secret.to_owned(),
+                client_config,
+            ),
+            data: UsdmData::default(),
+            config,
+        };
+        update_usdm_data(usdm_int.to_owned());
+        usdm_int
     }
 
     /// Check server time
     pub fn get_server_time(&self) -> Result<ServerTime> {
-        self.client.get(API::Futures(Futures::Time), None)
+        self.api_request(Futures::Time, RequestType::Get, None)
     }
 
     /// Obtain exchange information
     /// - Current exchange trading rules and symbol information
     pub fn exchange_info(&self) -> Result<ExchangeInformation> {
-        self.client.get(API::Futures(Futures::ExchangeInfo), None)
+        self.api_request(Futures::ExchangeInfo, RequestType::Get, None)
     }
 
     /// Get Symbol information
     pub fn get_symbol_info<S>(&self, symbol: S) -> Result<Symbol>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let upper_symbol = symbol.into().to_uppercase();
         match self.exchange_info() {
@@ -81,50 +107,48 @@ impl UsdmInterface {
 
     /// Order book (Default 100; max 1000)
     pub fn get_depth<S>(&self, symbol: S) -> Result<OrderBook>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
 
         parameters.insert("symbol".into(), symbol.into());
         let request = build_request(parameters);
-
-        self.client.get(API::Futures(Futures::Depth), Some(request))
+        self.api_request(Futures::Depth, RequestType::Get, Some(request))
     }
 
     /// Order book at a custom depth. Currently supported values
     /// are 5, 10, 20, 50, 100, 500, 1000
     pub fn get_custom_depth<S>(&self, symbol: S, depth: u64) -> Result<OrderBook>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
         parameters.insert("symbol".into(), symbol.into());
         parameters.insert("limit".into(), depth.to_string());
         let request = build_request(parameters);
-        self.client.get(API::Futures(Futures::Depth), Some(request))
+        self.api_request(Futures::Depth, RequestType::Get, Some(request))
     }
 
     /// Get trades
     pub fn get_trades<S>(&self, symbol: S) -> Result<Trades>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
         parameters.insert("symbol".into(), symbol.into());
         let request = build_request(parameters);
-        self.client
-            .get(API::Futures(Futures::Trades), Some(request))
+        self.api_request(Futures::Trades, RequestType::Get, Some(request))
     }
 
     /// Get historical trades
     pub fn get_historical_trades<S1, S2, S3>(
         &self, symbol: S1, from_id: S2, limit: S3,
     ) -> Result<Trades>
-        where
-            S1: Into<String>,
-            S2: Into<Option<u64>>,
-            S3: Into<Option<u16>>,
+    where
+        S1: Into<String>,
+        S2: Into<Option<u64>>,
+        S3: Into<Option<u16>>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
 
@@ -139,21 +163,23 @@ impl UsdmInterface {
         }
 
         let request = build_signed_request(parameters, self.recv_window)?;
-
-        self.client
-            .get_signed(API::Futures(Futures::HistoricalTrades), Some(request))
+        self.api_request(
+            Futures::HistoricalTrades,
+            RequestType::GetSigned,
+            Some(request),
+        )
     }
 
     /// Get aggr trades
     pub fn get_agg_trades<S1, S2, S3, S4, S5>(
         &self, symbol: S1, from_id: S2, start_time: S3, end_time: S4, limit: S5,
     ) -> Result<AggTrades>
-        where
-            S1: Into<String>,
-            S2: Into<Option<u64>>,
-            S3: Into<Option<u64>>,
-            S4: Into<Option<u64>>,
-            S5: Into<Option<u16>>,
+    where
+        S1: Into<String>,
+        S2: Into<Option<u64>>,
+        S3: Into<Option<u64>>,
+        S4: Into<Option<u64>>,
+        S5: Into<Option<u16>>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
 
@@ -174,9 +200,7 @@ impl UsdmInterface {
         }
 
         let request = build_request(parameters);
-
-        self.client
-            .get(API::Futures(Futures::AggTrades), Some(request))
+        self.api_request(Futures::AggTrades, RequestType::Get, Some(request))
     }
 
     /// Returns up to 'limit' klines for given symbol and interval ("1m", "5m", ...)
@@ -184,12 +208,12 @@ impl UsdmInterface {
     pub fn get_klines<S1, S2, S3, S4, S5>(
         &self, symbol: S1, interval: S2, limit: S3, start_time: S4, end_time: S5,
     ) -> Result<KlineSummaries>
-        where
-            S1: Into<String>,
-            S2: Into<String>,
-            S3: Into<Option<u16>>,
-            S4: Into<Option<u64>>,
-            S5: Into<Option<u64>>,
+    where
+        S1: Into<String>,
+        S2: Into<String>,
+        S3: Into<Option<u16>>,
+        S4: Into<Option<u64>>,
+        S5: Into<Option<u64>>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
 
@@ -208,10 +232,8 @@ impl UsdmInterface {
         }
 
         let request = build_request(parameters);
-
-        let data: Vec<Vec<Value>> = self
-            .client
-            .get(API::Futures(Futures::Klines), Some(request))?;
+        let data: Vec<Vec<Value>> =
+            self.api_request(Futures::Klines, RequestType::Get, Some(request))?;
 
         let klines = KlineSummaries::AllKlineSummaries(
             data.iter()
@@ -224,92 +246,86 @@ impl UsdmInterface {
 
     /// 24hr ticker price change statistics
     pub fn get_24h_price_stats<S>(&self, symbol: S) -> Result<PriceStats>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
 
         parameters.insert("symbol".into(), symbol.into());
         let request = build_request(parameters);
-
-        self.client
-            .get(API::Futures(Futures::Ticker24hr), Some(request))
+        self.api_request(Futures::Ticker24hr, RequestType::Get, Some(request))
     }
 
     /// 24hr ticker price change statistics for all symbols
     pub fn get_all_24h_price_stats(&self) -> Result<Vec<PriceStats>> {
-        self.client.get(API::Futures(Futures::Ticker24hr), None)
+        self.api_request(Futures::Ticker24hr, RequestType::Get, None)
     }
 
     /// Latest price for ONE symbol.
     pub fn get_price<S>(&self, symbol: S) -> Result<SymbolPrice>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
 
         parameters.insert("symbol".into(), symbol.into());
         let request = build_request(parameters);
-
-        self.client
-            .get(API::Futures(Futures::TickerPrice), Some(request))
+        self.api_request(Futures::TickerPrice, RequestType::Get, Some(request))
     }
 
     /// Latest price for all symbols.
     pub fn get_all_prices(&self) -> Result<crate::model::Prices> {
-        self.client.get(API::Futures(Futures::TickerPrice), None)
+        self.api_request(Futures::TickerPrice, RequestType::Get, None)
     }
 
     /// Symbols order book ticker
     /// -> Best price/qty on the order book for ALL symbols.
     pub fn get_all_book_tickers(&self) -> Result<BookTickers> {
-        self.client.get(API::Futures(Futures::BookTicker), None)
+        self.api_request(Futures::BookTicker, RequestType::Get, None)
     }
 
     /// -> Best price/qty on the order book for ONE symbol
     pub fn get_book_ticker<S>(&self, symbol: S) -> Result<Tickers>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
         parameters.insert("symbol".into(), symbol.into());
         let request = build_request(parameters);
-        self.client
-            .get(API::Futures(Futures::BookTicker), Some(request))
+        self.api_request(Futures::BookTicker, RequestType::Get, Some(request))
     }
 
     /// Get mark prices
     pub fn get_mark_prices(&self) -> Result<MarkPrices> {
-        self.client.get(API::Futures(Futures::PremiumIndex), None)
+        self.api_request(Futures::PremiumIndex, RequestType::Get, None)
     }
 
     /// Get all liquidation orders
     pub fn get_all_liquidation_orders(&self) -> Result<LiquidationOrders> {
-        self.client.get(API::Futures(Futures::AllForceOrders), None)
+        self.api_request(Futures::AllForceOrders, RequestType::Get, None)
     }
 
     /// Get open interest data
     pub fn open_interest<S>(&self, symbol: S) -> Result<OpenInterest>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
         parameters.insert("symbol".into(), symbol.into());
         let request = build_request(parameters);
-        self.client
-            .get(API::Futures(Futures::OpenInterest), Some(request))
+        self.api_request(Futures::OpenInterest, RequestType::Get, Some(request))
     }
 
     /// Get open interest statistics
     pub fn open_interest_statistics<S1, S2, S3, S4, S5>(
         &self, symbol: S1, period: S2, limit: S3, start_time: S4, end_time: S5,
     ) -> Result<Vec<OpenInterestHist>>
-        where
-            S1: Into<String>,
-            S2: Into<String>,
-            S3: Into<Option<u16>>,
-            S4: Into<Option<u64>>,
-            S5: Into<Option<u64>>,
+    where
+        S1: Into<String>,
+        S2: Into<String>,
+        S3: Into<Option<u16>>,
+        S4: Into<Option<u64>>,
+        S5: Into<Option<u64>>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
         parameters.insert("symbol".into(), symbol.into());
@@ -326,21 +342,19 @@ impl UsdmInterface {
         }
 
         let request = build_request(parameters);
-        self.client
-            .get(API::Futures(Futures::OpenInterestHist), Some(request))
+        self.api_request(Futures::OpenInterestHist, RequestType::Get, Some(request))
     }
 
     /// Place limit buy order
     pub fn limit_buy(
-        &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64,
-        time_in_force: TimeInForce,
+        &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64
     ) -> Result<Transaction> {
         let buy = OrderRequest {
             symbol: symbol.into(),
             side: OrderSide::Buy,
             position_side: None,
             order_type: OrderType::Limit,
-            time_in_force: Some(time_in_force),
+            time_in_force: Some(TimeInForce::GTC),
             qty: Some(qty.into()),
             reduce_only: None,
             price: Some(price),
@@ -353,21 +367,19 @@ impl UsdmInterface {
         };
         let order = self.build_order(buy);
         let request = build_signed_request(order, self.recv_window)?;
-        self.client
-            .post_signed(API::Futures(Futures::Order), request)
+        self.api_request(Futures::Order, RequestType::PostSigned, Some(request))
     }
 
     /// Place limit sell order
     pub fn limit_sell(
-        &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64,
-        time_in_force: TimeInForce,
+        &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64
     ) -> Result<Transaction> {
         let sell = OrderRequest {
             symbol: symbol.into(),
             side: OrderSide::Sell,
             position_side: None,
             order_type: OrderType::Limit,
-            time_in_force: Some(time_in_force),
+            time_in_force: Some(TimeInForce::GTC),
             qty: Some(qty.into()),
             reduce_only: None,
             price: Some(price),
@@ -380,15 +392,14 @@ impl UsdmInterface {
         };
         let order = self.build_order(sell);
         let request = build_signed_request(order, self.recv_window)?;
-        self.client
-            .post_signed(API::Futures(Futures::Order), request)
+        self.api_request(Futures::Order, RequestType::PostSigned, Some(request))
     }
 
     /// Place a MARKET order - BUY
     pub fn market_buy<S, F>(&self, symbol: S, qty: F) -> Result<Transaction>
-        where
-            S: Into<String>,
-            F: Into<f64>,
+    where
+        S: Into<String>,
+        F: Into<f64>,
     {
         let buy = OrderRequest {
             symbol: symbol.into(),
@@ -408,15 +419,14 @@ impl UsdmInterface {
         };
         let order = self.build_order(buy);
         let request = build_signed_request(order, self.recv_window)?;
-        self.client
-            .post_signed(API::Futures(Futures::Order), request)
+        self.api_request(Futures::Order, RequestType::PostSigned, Some(request))
     }
 
     /// Place a MARKET order - SELL
     pub fn market_sell<S, F>(&self, symbol: S, qty: F) -> Result<Transaction>
-        where
-            S: Into<String>,
-            F: Into<f64>,
+    where
+        S: Into<String>,
+        F: Into<f64>,
     {
         let sell: OrderRequest = OrderRequest {
             symbol: symbol.into(),
@@ -436,45 +446,42 @@ impl UsdmInterface {
         };
         let order = self.build_order(sell);
         let request = build_signed_request(order, self.recv_window)?;
-        self.client
-            .post_signed(API::Futures(Futures::Order), request)
+        self.api_request(Futures::Order, RequestType::PostSigned, Some(request))
     }
 
     /// Cancel an order
     pub fn cancel_order<S>(&self, symbol: S, order_id: u64) -> Result<CanceledOrder>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters = BTreeMap::new();
         parameters.insert("symbol".into(), symbol.into());
         parameters.insert("orderId".into(), order_id.to_string());
 
         let request = build_signed_request(parameters, self.recv_window)?;
-        self.client
-            .delete_signed(API::Futures(Futures::Order), Some(request))
+        self.api_request(Futures::Order, RequestType::DeleteSigned, Some(request))
     }
 
     /// Cancel an order with a given client id
     pub fn cancel_order_with_client_id<S>(
         &self, symbol: S, orig_client_order_id: String,
     ) -> Result<CanceledOrder>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters = BTreeMap::new();
         parameters.insert("symbol".into(), symbol.into());
         parameters.insert("origClientOrderId".into(), orig_client_order_id);
 
         let request = build_signed_request(parameters, self.recv_window)?;
-        self.client
-            .delete_signed(API::Futures(Futures::Order), Some(request))
+        self.api_request(Futures::Order, RequestType::DeleteSigned, Some(request))
     }
 
     /// Place a STOP_MARKET close - BUY
     pub fn stop_market_close_buy<S, F>(&self, symbol: S, stop_price: F) -> Result<Transaction>
-        where
-            S: Into<String>,
-            F: Into<f64>,
+    where
+        S: Into<String>,
+        F: Into<f64>,
     {
         let sell: OrderRequest = OrderRequest {
             symbol: symbol.into(),
@@ -494,15 +501,14 @@ impl UsdmInterface {
         };
         let order = self.build_order(sell);
         let request = build_signed_request(order, self.recv_window)?;
-        self.client
-            .post_signed(API::Futures(Futures::Order), request)
+        self.api_request(Futures::Order, RequestType::PostSigned, Some(request))
     }
 
     /// Place a STOP_MARKET close - SELL
     pub fn stop_market_close_sell<S, F>(&self, symbol: S, stop_price: F) -> Result<Transaction>
-        where
-            S: Into<String>,
-            F: Into<f64>,
+    where
+        S: Into<String>,
+        F: Into<f64>,
     {
         let sell: OrderRequest = OrderRequest {
             symbol: symbol.into(),
@@ -522,8 +528,7 @@ impl UsdmInterface {
         };
         let order = self.build_order(sell);
         let request = build_signed_request(order, self.recv_window)?;
-        self.client
-            .post_signed(API::Futures(Futures::Order), request)
+        self.api_request(Futures::Order, RequestType::PostSigned, Some(request))
     }
 
     /// Custom order for for professional traders
@@ -546,8 +551,7 @@ impl UsdmInterface {
         };
         let order = self.build_order(order);
         let request = build_signed_request(order, self.recv_window)?;
-        self.client
-            .post_signed(API::Futures(Futures::Order), request)
+        self.api_request(Futures::Order, RequestType::PostSigned, Some(request))
     }
 
     fn build_order(&self, order: OrderRequest) -> BTreeMap<String, String> {
@@ -601,15 +605,14 @@ impl UsdmInterface {
 
     /// Get position_information
     pub fn position_information<S>(&self, symbol: S) -> Result<Vec<PositionRisk>>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters = BTreeMap::new();
         parameters.insert("symbol".into(), symbol.into());
 
         let request = build_signed_request(parameters, self.recv_window)?;
-        self.client
-            .get_signed(API::Futures(Futures::PositionRisk), Some(request))
+        self.api_request(Futures::PositionRisk, RequestType::GetSigned, Some(request))
     }
 
     /// Get account information
@@ -617,8 +620,7 @@ impl UsdmInterface {
         let parameters = BTreeMap::new();
 
         let request = build_signed_request(parameters, self.recv_window)?;
-        self.client
-            .get_signed(API::Futures(Futures::Account), Some(request))
+        self.api_request(Futures::Account, RequestType::GetSigned, Some(request))
     }
 
     /// Get account balance
@@ -626,24 +628,26 @@ impl UsdmInterface {
         let parameters = BTreeMap::new();
 
         let request = build_signed_request(parameters, self.recv_window)?;
-        self.client
-            .get_signed(API::Futures(Futures::Balance), Some(request))
+        self.api_request(Futures::Balance, RequestType::GetSigned, Some(request))
     }
 
     /// Change initial leverage
     pub fn change_initial_leverage<S>(
         &self, symbol: S, leverage: u8,
     ) -> Result<ChangeLeverageResponse>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
         parameters.insert("symbol".into(), symbol.into());
         parameters.insert("leverage".into(), leverage.to_string());
 
         let request = build_signed_request(parameters, self.recv_window)?;
-        self.client
-            .post_signed(API::Futures(Futures::ChangeInitialLeverage), request)
+        self.api_request(
+            Futures::ChangeInitialLeverage,
+            RequestType::PostSigned,
+            Some(request),
+        )
     }
 
     /// Change position mode
@@ -653,38 +657,229 @@ impl UsdmInterface {
         parameters.insert("dualSidePosition".into(), dual_side.into());
 
         let request = build_signed_request(parameters, self.recv_window)?;
-        self.client
-            .post_signed::<Empty>(API::Futures(Futures::PositionSide), request)
-            .map(|_| ())
+        self.api_request::<Empty>(
+            Futures::PositionSide,
+            RequestType::PostSigned,
+            Some(request),
+        )
+        .map(|_| ())
     }
 
     /// Cancel all orders
     pub fn cancel_all_open_orders<S>(&self, symbol: S) -> Result<()>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
         parameters.insert("symbol".into(), symbol.into());
         let request = build_signed_request(parameters, self.recv_window)?;
-        self.client
-            .delete_signed::<Empty>(API::Futures(Futures::AllOpenOrders), Some(request))
-            .map(|_| ())
+        self.api_request::<Empty>(
+            Futures::AllOpenOrders,
+            RequestType::DeleteSigned,
+            Some(request),
+        )
+        .map(|_| ())
     }
 
     /// Get all open orders
     pub fn get_all_open_orders<S>(&self, symbol: S) -> Result<Vec<crate::futures::model::Order>>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
         parameters.insert("symbol".into(), symbol.into());
         let request = build_signed_request(parameters, self.recv_window)?;
-        self.client
-            .get_signed(API::Futures(Futures::OpenOrders), Some(request))
+        self.api_request(Futures::OpenOrders, RequestType::GetSigned, Some(request))
     }
 
+    /// Get mark price from websocket
+    pub fn get_mark_price_ws(&self) -> Option<f64> {
+        if let Some(event) = self.ws.get_mark_price() {
+            return Some(event.price.parse().unwrap());
+        }
+        None
+    }
+
+    /// Get mark price from websocket
+    pub fn get_mark_price_snaps_ws(&self) -> VecDeque<IndexPriceEvent> {
+        self.ws.get_mark_price_snaps()
+    }
+
+    /// Get liquidations
+    pub fn get_liquidations_ws(&self) -> VecDeque<LiquidationOrder> {
+        self.ws.get_liquidations()
+    }
+
+    /// Get aggr_trades
+    pub fn get_aggr_trades_ws(&self) -> VecDeque<AggrTradesEvent> {
+        self.ws.get_aggr_trades()
+    }
+
+    /// Get last price from websocket
+    pub fn get_last_price_ws(&self) -> Option<f64> {
+        let aggr_trades = self.ws.get_aggr_trades();
+        if !aggr_trades.is_empty() {
+            return Some(aggr_trades.get(0).unwrap().price.parse().unwrap());
+        }
+        None
+    }
+
+    /// Get position
+    pub fn get_position_ws(&self) -> Option<EventPosition> {
+        self.ws.get_position()
+    }
+
+    /// Get balance
+    pub fn get_balance_ws(&self) -> Option<EventBalance> {
+        self.ws.get_balance()
+    }
+
+    /// Get open orders
+    pub fn get_open_orders_ws(&self) -> VecDeque<OrderUpdate> {
+        self.ws.get_open_orders()
+    }
+
+    /// Get filled orders
+    pub fn get_filled_orders_ws(&self) -> VecDeque<OrderUpdate> {
+        self.ws.get_filled_orders()
+    }
+
+    /// Get canceled orders
+    pub fn get_canceled_orders_ws(&self) -> VecDeque<OrderUpdate> {
+        self.ws.get_canceled_orders()
+    }
+
+    /// Get order
+    ///
+    /// * `order_id` - id of order
+    pub fn get_order_ws(&self, order_id: u64) -> Option<OrderUpdate> {
+        self.ws.get_order(order_id)
+    }
+
+    /// Get last order filled
+    pub fn get_last_filled_order(&self) -> Option<OrderUpdate> {
+        let filled_orders = self.ws.get_filled_orders();
+        if !filled_orders.is_empty() {
+            return Some(filled_orders.get(0).unwrap().to_owned());
+        }
+        None
+    }
+
+    /// Get last order canceled
+    pub fn get_last_canceled_order_ws(&self) -> Option<OrderUpdate> {
+        let canceled_orders = self.ws.get_canceled_orders();
+        if !canceled_orders.is_empty() {
+            return Some(canceled_orders.get(0).unwrap().to_owned());
+        }
+        None
+    }
+
+    /// Get last open order
+    pub fn get_last_open_order_ws(&self) -> Option<OrderUpdate> {
+        let open_orders = self.ws.get_open_orders();
+        if !open_orders.is_empty() {
+            return Some(open_orders.get(0).unwrap().to_owned());
+        }
+        None
+    }
+
+    /// Get position size
+    pub fn get_position_size_ws(&self) -> Option<f64> {
+        if let Some(position) = self.get_position_ws() {
+            return Some(position.position_amount.parse().unwrap());
+        }
+        None
+    }
+
+    /// Get position entry price
+    pub fn get_position_entry_ws(&self) -> Option<f64> {
+        if let Some(position) = self.get_position_ws() {
+            return Some(position.entry_price.parse().unwrap());
+        }
+        None
+    }
+
+    /// Get position entry price
+    pub fn get_position_upnl_ws(&self) -> Option<f64> {
+        if let Some(position) = self.get_position_ws() {
+            return Some(position.unrealized_pnl.parse().unwrap());
+        }
+        None
+    }
+
+    /// Get balance asset
+    pub fn get_balance_asset_ws(&self) -> Option<String> {
+        if let Some(balance) = self.get_balance_ws() {
+            return Some(balance.asset);
+        }
+        None
+    }
+
+    /// Get balance wallet
+    pub fn get_balance_wallet_ws(&self) -> Option<f64> {
+        if let Some(balance) = self.get_balance_ws() {
+            return Some(balance.wallet_balance.parse().unwrap());
+        }
+        None
+    }
+
+    /// Get balance cross wallet
+    pub fn get_balance_cross_wallet_ws(&self) -> Option<f64> {
+        if let Some(balance) = self.get_balance_ws() {
+            return Some(balance.cross_wallet_balance.parse().unwrap());
+        }
+        None
+    }
+
+    fn api_request<T: DeserializeOwned>(
+        &self, endpoint: Futures, req_type: RequestType, req: Option<String>,
+    ) -> Result<T> {
+        let result: Result<T> = match req_type {
+            RequestType::Get => self.client.get(API::Futures(endpoint), req.to_owned()),
+            RequestType::GetSigned => self
+                .client
+                .get_signed(API::Futures(endpoint), req.to_owned()),
+            RequestType::PostSigned => self
+                .client
+                .post_signed(API::Futures(endpoint), req.to_owned().unwrap()),
+            RequestType::DeleteSigned => self
+                .client
+                .delete_signed(API::Futures(endpoint), req.to_owned()),
+        };
+
+        return if result.is_err() && self.config.retry_on_err {
+            self.err_handler(endpoint, req_type, req, result)
+        } else {
+            result
+        };
+    }
+
+    fn err_handler<T: DeserializeOwned>(
+        &self, endpoint: Futures, req_type: RequestType, req: Option<String>, result: Result<T>,
+    ) -> Result<T> {
+        return match &result {
+            Err(Error(ErrorKind::BinanceError(err), ..)) => {
+                if err.msg == "Request occur unknown error."
+                    || err.msg == "Service Unavailable."
+                    || err.msg
+                        == "Internal error; unable to process your request. Please try again."
+                {
+                    thread::sleep(Duration::from_millis(self.config.retry_timeout));
+                    return self.api_request(endpoint, req_type, req);
+                }
+                result
+            }
+            _ => result,
+        };
+    }
 }
 
-fn update_last_day_klines(data: UsdmData) {
-
+fn update_usdm_data(mut usdm_int: UsdmInterface) {
+    thread::spawn(move || loop {
+        match usdm_int.get_klines(usdm_int.symbol.to_owned(), "1m", 1440, None, None) {
+            Ok(kline_data) => { usdm_int.data.set_last_day_klines(kline_data); }
+            Err(err) => { error!("{:?}", err); }
+        }
+        thread::sleep(Duration::from_millis(usdm_int.config.rest_update_interval));
+    });
 }
