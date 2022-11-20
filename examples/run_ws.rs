@@ -1,5 +1,5 @@
 use binance::config::Config;
-use binance::ws_usdt_futures::WsInterface;
+use binance::ws_usdm::WsInterface;
 use dotenv::dotenv;
 use std::thread;
 
@@ -15,7 +15,7 @@ fn main() {
         "BTCUSDT".to_string(),
         api_key_user,
         api_secret_user,
-        config.to_owned(),
+        &config,
     );
     loop {
         thread::yield_now();

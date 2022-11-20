@@ -52,6 +52,7 @@ pub enum Sapi {
     DepositAddress,
 }
 
+#[derive(Clone, Copy)]
 pub enum Futures {
     Ping,
     Time,

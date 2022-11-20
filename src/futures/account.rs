@@ -92,7 +92,7 @@ impl Display for WorkingType {
     }
 }
 
-struct OrderRequest {
+pub struct OrderRequest {
     pub symbol: String,
     pub side: OrderSide,
     pub position_side: Option<PositionSide>,
