@@ -23,12 +23,13 @@ pub mod account;
 pub mod api;
 pub mod config;
 pub mod general;
+pub mod interface_usdm;
+mod interface_usdm_data;
 pub mod market;
 pub mod savings;
 pub mod userstream;
 pub mod websockets;
-pub mod ws_usdt_futures;
-pub mod ws_usdt_futures_data;
-pub mod interface_usdt_futures_;
+pub mod ws_usdm;
+mod ws_usdm_data;
 
 pub mod futures;

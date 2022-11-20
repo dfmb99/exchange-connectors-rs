@@ -8,10 +8,11 @@ use crate::api::Binance;
 use crate::config::Config;
 use crate::errors::{BinanceContentError, Error};
 use crate::errors::ErrorKind::BinanceError;
+use crate::futures::model::OrderUpdate;
 use crate::futures::userstream::FuturesUserStream;
 use crate::futures::websockets::{FuturesMarket, FuturesWebsocketEvent, FuturesWebSockets};
-use crate::model::{EventBalance, EventPosition};
-use crate::ws_usdt_futures_data::WsData;
+use crate::model::{AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder};
+use crate::ws_usdm_data::WsData;
 
 pub struct WsInterface {
     symbol: String,
@@ -20,11 +21,14 @@ pub struct WsInterface {
 }
 
 impl WsInterface {
+    /// Binance USDM futures interface,
+    /// subscribes to @aggTrade, @markPrice@1s and @forceOrder and user data stream
+    /// * `symbol` - String
+    /// * `api_key` - Option<String>
+    /// * `api_secret` - Option<String>
+    /// * `config` - Config
     pub fn new(
-        symbol: String,
-        api_key: Option<String>,
-        api_secret: Option<String>,
-        config: Config,
+        symbol: String, api_key: Option<String>, api_secret: Option<String>, config: Config,
     ) -> WsInterface {
         let ws_data = WsData::default();
         user_stream_websocket(
@@ -45,21 +49,77 @@ impl WsInterface {
     }
 
     fn wait_for_data(&self) {
-        while self.ws_data.get_mark_price().is_none() {
+        while self.ws_data.get_mark_price_event().is_none() {
             debug!("Waiting for data");
             thread::yield_now();
         }
     }
+
+    /// Get mark price
+    pub fn get_mark_price(&self) -> Option<IndexPriceEvent> {
+         self.ws_data.get_mark_price_event()
+    }
+
+    /// Get mark price snaps
+    pub fn get_mark_price_snaps(&self) -> Vec<IndexPriceEvent> {
+        self.ws_data.get_mark_price_event_snaps()
+    }
+
+    /// Get aggr_trades
+    pub fn get_aggr_trades(&self) -> Vec<AggrTradesEvent> {
+        self.ws_data.get_aggr_trades()
+    }
+
+    /// Get liquidations
+    pub fn get_liquidations(&self) -> Vec<LiquidationOrder> {
+        self.ws_data.get_liquidations()
+    }
+
+    /// Get position
+    pub fn get_position(&self) -> Option<EventPosition>  {
+        self.ws_data.get_position_event()
+    }
+
+    /// Get balance
+    pub fn get_balance(&self) -> Option<EventBalance> {
+        self.ws_data.get_balance_event()
+    }
+
+    /// Get open orders
+    pub fn get_open_orders(&self) -> Vec<OrderUpdate> {
+        self.ws_data.get_open_orders()
+    }
+
+    /// Get filled orders
+    pub fn get_filled_orders(&self) -> Vec<OrderUpdate> {
+        self.ws_data.get_filled_orders()
+    }
+
+    /// Get canceled orders
+    pub fn get_canceled_orders(&self) -> Vec<OrderUpdate> {
+        self.ws_data.get_canceled_orders()
+    }
+
+    /// Get order
+    ///
+    /// * `order_id` - id of order
+    pub fn get_order(&self, order_id: u64) -> Option<OrderUpdate> {
+        if let Some(order) = self.ws_data.get_open_order(order_id) {
+            return Some(order)
+        } else if let Some(order) = self.ws_data.get_filled_order(order_id) {
+            return Some(order)
+        }else if let Some(order) = self.ws_data.get_canceled_order(order_id) {
+            return Some(order)
+        }
+        None
+    }
+
 }
 
 fn user_stream_websocket(
-    symbol: String,
-    api_key: Option<String>,
-    api_secret: Option<String>,
-    config: Config,
+    symbol: String, api_key: Option<String>, api_secret: Option<String>, config: Config,
     ws_data: WsData,
 ) {
-    // TODO: deal with UserDataStreamExpiredEvent events
     thread::spawn(move || {
         loop {
             let user_stream: FuturesUserStream =
@@ -101,8 +161,13 @@ fn user_stream_websocket(
                             FuturesWebsocketEvent::OrderTrade(trade) => {
                                 ws_data.add_order(trade.order);
                             }
-                            FuturesWebsocketEvent::UserDataStreamExpiredEvent(user_stream_expired) => {
-                                debug!("Received UserDataStreamExpiredEvent : {:?}", user_stream_expired);
+                            FuturesWebsocketEvent::UserDataStreamExpiredEvent(
+                                user_stream_expired,
+                            ) => {
+                                debug!(
+                                    "Received UserDataStreamExpiredEvent : {:?}",
+                                    user_stream_expired
+                                );
                                 let err = BinanceContentError {
                                     code: -32768,
                                     msg: "User data listen key is expired".to_string(),

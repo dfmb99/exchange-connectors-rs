@@ -55,11 +55,11 @@ impl WsData {
         }
     }
 
-    pub fn get_mark_price(&self) -> Option<IndexPriceEvent> {
+    pub fn get_mark_price_event(&self) -> Option<IndexPriceEvent> {
         self.mark_price.read().unwrap().clone()
     }
 
-    pub fn get_mark_price_snaps(&self) -> Vec<IndexPriceEvent> {
+    pub fn get_mark_price_event_snaps(&self) -> Vec<IndexPriceEvent> {
         self.mark_price_snaps.read().unwrap().clone()
     }
 
@@ -71,11 +71,11 @@ impl WsData {
         self.liquidations.read().unwrap().clone()
     }
 
-    pub fn get_position(&self) -> Option<EventPosition> {
+    pub fn get_position_event(&self) -> Option<EventPosition> {
         self.position.read().unwrap().clone()
     }
 
-    pub fn get_balance(&self) -> Option<EventBalance> {
+    pub fn get_balance_event(&self) -> Option<EventBalance> {
         self.balance.read().unwrap().clone()
     }
 
@@ -163,9 +163,7 @@ impl WsData {
 }
 
 fn insert_order_index_map(
-    mut index_map: RwLockWriteGuard<IndexMap<u64, OrderUpdate>>,
-    order_id: u64,
-    order: OrderUpdate,
+    mut index_map: RwLockWriteGuard<IndexMap<u64, OrderUpdate>>, order_id: u64, order: OrderUpdate,
 ) {
     if index_map.insert(order_id, order).is_none() && index_map.len() == DATA_SIZE + 1 {
         index_map.pop();
@@ -173,8 +171,7 @@ fn insert_order_index_map(
 }
 
 fn remove_order_index_map(
-    mut index_map: RwLockWriteGuard<IndexMap<u64, OrderUpdate>>,
-    order_id: u64,
+    mut index_map: RwLockWriteGuard<IndexMap<u64, OrderUpdate>>, order_id: u64,
 ) {
     index_map.shift_remove(&order_id);
 }
@@ -187,8 +184,7 @@ fn insert_vec<T>(mut vec: RwLockWriteGuard<Vec<T>>, value: T) {
 }
 
 fn get_order(
-    index_map: RwLockReadGuard<IndexMap<u64, OrderUpdate>>,
-    order_id: u64,
+    index_map: RwLockReadGuard<IndexMap<u64, OrderUpdate>>, order_id: u64,
 ) -> Option<OrderUpdate> {
     let result: Option<&OrderUpdate> = index_map.get(&order_id);
     return match result {
@@ -336,9 +332,9 @@ fn test_mark_price_update() {
     let ws_data = WsData::default();
     let v: IndexPriceEvent = serde_json::from_str(json).unwrap();
     ws_data.update_mark_price(v);
-    assert!(ws_data.get_mark_price().is_some());
+    assert!(ws_data.get_mark_price_event().is_some());
     assert_eq!(
-        ws_data.get_mark_price().unwrap().mark_price,
+        ws_data.get_mark_price_event().unwrap().mark_price,
         "11794.15000000"
     );
 }
@@ -358,9 +354,9 @@ fn test_mark_price_snaps_update() {
     let ws_data = WsData::default();
     let v: IndexPriceEvent = serde_json::from_str(json).unwrap();
     ws_data.add_mark_price_snap(v.to_owned());
-    assert_eq!(ws_data.get_mark_price_snaps().len(), 1);
+    assert_eq!(ws_data.get_mark_price_event_snaps().len(), 1);
     ws_data.add_mark_price_snap(v);
-    assert_eq!(ws_data.get_mark_price_snaps().len(), 2);
+    assert_eq!(ws_data.get_mark_price_event_snaps().len(), 2);
 }
 
 #[test]
@@ -447,8 +443,8 @@ fn test_account_update() {
     let v: AccountUpdateEvent = serde_json::from_str(json).unwrap();
     ws_data.update_balance(v.data.balances.get(0).unwrap().to_owned());
     ws_data.update_position(v.data.positions.get(0).unwrap().to_owned());
-    assert!(ws_data.get_balance().is_some());
-    assert!(ws_data.get_position().is_some());
+    assert!(ws_data.get_balance_event().is_some());
+    assert!(ws_data.get_position_event().is_some());
 }
 
 #[test]
