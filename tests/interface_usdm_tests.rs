@@ -97,6 +97,11 @@ mod tests {
         assert_eq!(canceled_orders.len(), 1);
         assert_eq!(canceled_orders.get(0).unwrap().order_id, limit_sell.as_ref().unwrap().order_id);
 
+        // Cancel previous limit buy order placed
+        let canceled_buy = usdm.cancel_order("btcusdt".to_string(), limit_buy.as_ref().unwrap().order_id);
+        print!("{:?}", canceled_buy);
+        assert!(canceled_buy.is_ok());
+
         // waits for ws data to update
         thread::sleep(Duration::from_millis(3000));
 
