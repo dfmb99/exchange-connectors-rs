@@ -16,7 +16,6 @@ use crate::ws_usdm_data::WsData;
 
 pub struct WsInterface {
     symbol: String,
-    config: Config,
     ws_data: WsData,
 }
 
@@ -28,7 +27,7 @@ impl WsInterface {
     /// * `api_secret` - Option<String>
     /// * `config` - Config
     pub fn new(
-        symbol: String, api_key: Option<String>, api_secret: Option<String>, config: Config,
+        symbol: String, api_key: Option<String>, api_secret: Option<String>, config: &Config,
     ) -> WsInterface {
         let ws_data = WsData::default();
         user_stream_websocket(
@@ -41,7 +40,6 @@ impl WsInterface {
         market_websocket(symbol.to_owned(), config.to_owned(), ws_data.clone());
         let ws_int = WsInterface {
             symbol,
-            config,
             ws_data,
         };
         ws_int.wait_for_data();
