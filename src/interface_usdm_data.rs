@@ -8,7 +8,7 @@ pub struct UsdmData {
 }
 
 impl UsdmData {
-    pub fn new() -> UsdmData {
+    pub fn default() -> UsdmData {
         UsdmData {
             last_day_klines: Arc::new(RwLock::new(KlineSummaries::AllKlineSummaries(Vec::default())))
         }
