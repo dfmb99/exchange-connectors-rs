@@ -275,7 +275,7 @@ fn fill_mark_price_snaps(ws_data: WsData) {
             Some(index_price) => {
                 ws_data.add_mark_price_snap(index_price.clone());
                 debug!("Added mark price snap {:?}", index_price);
-                thread::sleep(Duration::from_millis(15000));
+                thread::sleep(Duration::from_millis(5000));
             }
             None => { warn!("Unable to add mark price snap")}
         }
