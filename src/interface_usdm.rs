@@ -75,6 +75,11 @@ impl UsdmInterface {
         usdm_int
     }
 
+    /// Get last day "1m" klines
+    pub fn get_last_day_klines(&self) -> KlineSummaries {
+        self.data.get_last_day_klines()
+    }
+
     /// Check server time
     pub fn get_server_time(&self) -> Result<ServerTime> {
         self.api_request(Futures::Time, RequestType::Get, None)
