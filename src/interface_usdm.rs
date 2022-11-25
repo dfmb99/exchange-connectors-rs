@@ -754,6 +754,24 @@ impl UsdmInterface {
         self.ws.get_canceled_orders()
     }
 
+    /// Returns true of order is open, false otherwise
+    pub fn is_open_orders_ws(&self, order_id: u64) -> bool {
+        let orders = self.get_open_orders_ws().into_iter().filter(|ord| ord.order_id == order_id).collect::<Vec<_>>();
+        orders.len() > 0
+    }
+
+    /// Returns true if order is filled, false otherwise
+    pub fn is_filled_orders_ws(&self, order_id: u64) -> bool {
+        let orders = self.get_filled_orders_ws().into_iter().filter(|ord| ord.order_id == order_id).collect::<Vec<_>>();
+        orders.len() > 0
+    }
+
+    /// Get canceled orders, false otherwise
+    pub fn is_canceled_orders_ws(&self, order_id: u64) -> bool {
+        let orders = self.get_canceled_orders_ws().into_iter().filter(|ord| ord.order_id == order_id).collect::<Vec<_>>();
+        orders.len() > 0
+    }
+
     /// Get order
     ///
     /// * `order_id` - id of order
