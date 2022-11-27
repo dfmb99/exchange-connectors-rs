@@ -7,6 +7,7 @@ use crate::client::Client;
 use crate::api::{API, Futures};
 use crate::model::Empty;
 use crate::account::{OrderSide, TimeInForce};
+use crate::futures::model::Order;
 use super::model::{
     ChangeLeverageResponse, Transaction, CanceledOrder, PositionRisk, AccountBalance,
     AccountInformation,
@@ -458,7 +459,19 @@ impl FuturesAccount {
             .map(|_| ())
     }
 
-    pub fn get_all_open_orders<S>(&self, symbol: S) -> Result<Vec<crate::futures::model::Order>>
+    pub fn get_order<S>(&self, symbol: S, order_id: u64) -> Result<Order>
+        where
+            S: Into<String>,
+    {
+        let mut parameters = BTreeMap::new();
+        parameters.insert("symbol".into(), symbol.into());
+        parameters.insert("orderId".into(), order_id.to_string());
+
+        let request = build_signed_request(parameters, self.recv_window)?;
+        self.client.get_signed(API::Futures(Futures::Order), Some(request))
+    }
+
+    pub fn get_all_open_orders<S>(&self, symbol: S) -> Result<Vec<Order>>
     where
         S: Into<String>,
     {

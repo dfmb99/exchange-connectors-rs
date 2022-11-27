@@ -8,7 +8,7 @@ mod tests {
     use mockito::{mock, Matcher};
     use float_cmp::*;
     use binance::account::OrderSide;
-    use binance::futures::model::Transaction;
+    use binance::futures::model::{Order, Transaction};
 
     #[test]
     fn change_initial_leverage() {
@@ -165,5 +165,36 @@ mod tests {
         assert_eq!(transaction.orig_type, "STOP_MARKET");
         assert!(transaction.close_position);
         assert!(approx_eq!(f64, transaction.stop_price, 7.4, ulps = 2));
+    }
+
+    #[test]
+    fn order_status() {
+        let mock_order_status = mock("GET", "/fapi/v1/order")
+            .with_header("content-type", "application/json;charset=UTF-8")
+            .match_query(Matcher::Regex(
+                "orderId=1917641&recvWindow=1234&symbol=BTCUSDT&timestamp=\\d+".into(),
+            ))
+            .with_body_from_file("tests/mocks/futures/account/order_status.json")
+            .create();
+
+        let config = Config::default()
+            .set_futures_rest_api_endpoint(mockito::server_url())
+            .set_recv_window(1234);
+        let account: FuturesAccount = Binance::new_with_config(None, None, &config);
+        let _ = env_logger::try_init();
+        let order_status: Order = account.get_order("BTCUSDT", 1917641).unwrap();
+
+        mock_order_status.assert();
+
+        assert_eq!(order_status.symbol, "BTCUSDT");
+        assert_eq!(order_status.order_id, 1917641);
+        assert_eq!(order_status.client_order_id, "abc");
+        assert_eq!(order_status.price, 0.0);
+        assert_eq!(order_status.orig_qty, 0.40);
+        assert_eq!(order_status.executed_qty, 0.0);
+        assert_eq!(order_status.status, "NEW");
+        assert_eq!(order_status.time_in_force, "GTC"); //Migrate to TimeInForce enum
+        assert_eq!(order_status.side, "BUY");
+        assert_eq!(order_status.update_time, 1579276756075);
     }
 }

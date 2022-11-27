@@ -13,12 +13,7 @@ use crate::futures::account::{CustomOrderRequest, OrderType, OrderRequest};
 use crate::interface_usdm_data::{UsdmConfig, UsdmData};
 use crate::ws_usdm::WsInterface;
 use crate::errors::*;
-use crate::futures::model::{
-    AccountBalance, AccountInformation, AggTrades, BookTickers, CanceledOrder,
-    ChangeLeverageResponse, ExchangeInformation, KlineSummaries, KlineSummary, LiquidationOrders,
-    MarkPrices, OpenInterest, OpenInterestHist, OrderBook, OrderUpdate, PositionRisk, PriceStats,
-    Symbol, SymbolPrice, Tickers, Trades, Transaction,
-};
+use crate::futures::model::{AccountBalance, AccountInformation, AggTrades, BookTickers, CanceledOrder, ChangeLeverageResponse, ExchangeInformation, KlineSummaries, KlineSummary, LiquidationOrders, MarkPrices, OpenInterest, OpenInterestHist, Order, OrderBook, OrderUpdate, PositionRisk, PriceStats, Symbol, SymbolPrice, Tickers, Trades, Transaction};
 use crate::model::{
     AggrTradesEvent, Empty, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder,
     ServerTime,
@@ -686,8 +681,21 @@ impl UsdmInterface {
         .map(|_| ())
     }
 
+    /// Get an order
+    pub fn get_order<S>(&self, symbol: S, order_id: u64) -> Result<Order>
+        where
+            S: Into<String>,
+    {
+        let mut parameters = BTreeMap::new();
+        parameters.insert("symbol".into(), symbol.into());
+        parameters.insert("orderId".into(), order_id.to_string());
+
+        let request = build_signed_request(parameters, self.recv_window)?;
+        self.api_request(Futures::Order, RequestType::GetSigned, Some(request))
+    }
+
     /// Get all open orders
-    pub fn get_all_open_orders<S>(&self, symbol: S) -> Result<Vec<crate::futures::model::Order>>
+    pub fn get_all_open_orders<S>(&self, symbol: S) -> Result<Vec<Order>>
     where
         S: Into<String>,
     {
