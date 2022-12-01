@@ -12,7 +12,7 @@ type PositionsWs = Arc<RwLock<Option<EventPosition>>>;
 type BalanceWs = Arc<RwLock<Option<EventBalance>>>;
 type OrdersWs = Arc<RwLock<IndexMap<u64, OrderUpdate>>>;
 
-const DATA_SIZE: usize = 500;
+const DATA_SIZE: usize = 1000;
 
 #[derive(Clone, Debug)]
 pub struct WsData {
