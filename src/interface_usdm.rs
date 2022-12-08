@@ -18,6 +18,7 @@ use crate::model::{
     AggrTradesEvent, Empty, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder,
     ServerTime,
 };
+use crate::model::KlineSummaries::AllKlineSummaries;
 use crate::util::{build_request, build_signed_request};
 
 enum RequestType {
@@ -67,7 +68,18 @@ impl UsdmInterface {
             config,
         };
         update_usdm_data(usdm_int.to_owned());
+        usdm_int.wait_for_data();
         usdm_int
+    }
+
+    fn wait_for_data(&self) {
+        loop {
+            let AllKlineSummaries(k_lines) = self.get_last_day_klines();
+            if !k_lines.is_empty()  {
+                break;
+            }
+            thread::yield_now();
+        }
     }
 
     /// Get last day "1m" klines
