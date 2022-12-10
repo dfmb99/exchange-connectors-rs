@@ -15,7 +15,7 @@ impl UsdmConfig {
         UsdmConfig {
             retry_on_err: true,
             retry_timeout: 300,           // milliseconds
-            rest_update_interval: 300000, // milliseconds
+            rest_update_interval: 60000, // milliseconds
         }
     }
 
