@@ -23,13 +23,9 @@ pub mod account;
 pub mod api;
 pub mod config;
 pub mod general;
-pub mod interface_usdm;
-pub mod interface_usdm_data;
 pub mod market;
 pub mod savings;
 pub mod userstream;
 pub mod websockets;
-pub mod ws_usdm;
-mod ws_usdm_data;
 
 pub mod futures;

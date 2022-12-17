@@ -10,8 +10,8 @@ use crate::api::{API, Futures};
 use crate::client::Client;
 use crate::config::Config;
 use crate::futures::account::{CustomOrderRequest, OrderType, OrderRequest};
-use crate::interface_usdm_data::{UsdmConfig, UsdmData};
-use crate::ws_usdm::WsInterface;
+use crate::futures::interface_usdm_data::{UsdmConfig, UsdmData};
+use crate::futures::ws_usdm::WsInterface;
 use crate::errors::*;
 use crate::futures::model::{AccountBalance, AccountInformation, AggTrades, BookTickers, CanceledOrder, ChangeLeverageResponse, ExchangeInformation, KlineSummaries, KlineSummary, LiquidationOrders, MarkPrices, OpenInterest, OpenInterestHist, Order, OrderBook, OrderUpdate, PositionRisk, PriceStats, Symbol, SymbolPrice, Tickers, Trades, Transaction};
 use crate::model::{

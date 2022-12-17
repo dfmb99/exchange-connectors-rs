@@ -1,6 +1,6 @@
-use binance::interface_usdm::UsdmInterface;
+use binance::futures::interface_usdm::UsdmInterface;
 use binance::config::Config;
-use binance::interface_usdm_data::UsdmConfig;
+use binance::futures::interface_usdm_data::UsdmConfig;
 use std::thread;
 use std::time::Duration;
 
