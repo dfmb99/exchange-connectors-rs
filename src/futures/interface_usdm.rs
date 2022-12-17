@@ -13,7 +13,7 @@ use crate::futures::account::{CustomOrderRequest, OrderType, OrderRequest};
 use crate::futures::interface_usdm_data::{UsdmConfig, UsdmData};
 use crate::futures::ws_usdm::WsInterface;
 use crate::errors::*;
-use crate::futures::model::{AccountBalance, AccountInformation, AggTrades, BookTickers, CanceledOrder, ChangeLeverageResponse, ExchangeInformation, KlineSummaries, KlineSummary, LiquidationOrders, MarkPrices, OpenInterest, OpenInterestHist, Order, OrderBook, OrderUpdate, PositionRisk, PriceStats, Symbol, SymbolPrice, Tickers, Trades, Transaction};
+use crate::futures::model::{AccountBalance, AccountInformation, AggTrades, BookTickers, CanceledOrder, ChangeLeverageResponse, ComissionRate, ExchangeInformation, FundingRateHist, KlineSummaries, KlineSummary, LiquidationOrders, MarkPrices, OpenInterest, OpenInterestHist, Order, OrderBook, OrderUpdate, PositionRisk, PriceStats, Symbol, SymbolPrice, Tickers, Trades, Transaction};
 use crate::model::{
     AggrTradesEvent, Empty, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder,
     ServerTime,
@@ -355,6 +355,46 @@ impl UsdmInterface {
 
         let request = build_request(parameters);
         self.api_request(Futures::OpenInterestHist, RequestType::Get, Some(request))
+    }
+
+    /// Get funding rate history
+    pub fn funding_rate_history<S1, S2, S3, S4>(
+        &self, symbol: S1, limit: S2, start_time: S3, end_time: S4,
+    ) -> Result<Vec<FundingRateHist>>
+        where
+            S1: Into<Option<String>>,
+            S2: Into<Option<i32>>,
+            S3: Into<Option<i64>>,
+            S4: Into<Option<i64>>,
+    {
+        let mut parameters: BTreeMap<String, String> = BTreeMap::new();
+        if let Some(lt) = symbol.into() {
+            parameters.insert("symbol".into(), format!("{}", lt));
+        }
+        if let Some(lt) = limit.into() {
+            parameters.insert("limit".into(), format!("{}", lt));
+        }
+        if let Some(st) = start_time.into() {
+            parameters.insert("startTime".into(), format!("{}", st));
+        }
+        if let Some(et) = end_time.into() {
+            parameters.insert("endTime".into(), format!("{}", et));
+        }
+
+        let request = build_request(parameters);
+        self.api_request(Futures::FundingRate, RequestType::Get, Some(request))
+    }
+
+    /// Get comission rate
+    pub fn get_comission_rate<S>(&self, symbol: S, timestamp: S) -> Result<ComissionRate>
+        where
+            S: Into<String>,
+    {
+        let mut parameters = BTreeMap::new();
+        parameters.insert("symbol".into(), symbol.into());
+        parameters.insert("timestamp".into(), timestamp.into());
+        let request = build_signed_request(parameters, self.recv_window)?;
+        self.api_request(Futures::ComissionRate, RequestType::Get, Some(request))
     }
 
     /// Place limit buy order

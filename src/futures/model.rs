@@ -181,6 +181,14 @@ pub struct OpenInterestHist {
     pub timestamp: u64,
 }
 
+#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct FundingRateHist {
+    pub symbol: String,
+    pub funding_rate: String,
+    pub funding_time: i64,
+}
+
 #[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Order {
@@ -457,6 +465,14 @@ pub struct ChangeLeverageResponse {
     pub max_notional_value: f64,
     pub symbol: String,
 }
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ComissionRate {
+    pub symbol: String,
+    pub maker_commission_rate: String,
+    pub taker_commission_rate: String,
+}
+
 
 fn default_stop_price() -> f64 {
     0.0

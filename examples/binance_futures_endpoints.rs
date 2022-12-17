@@ -1,12 +1,15 @@
 use binance::api::*;
+use binance::config::Config;
 use binance::futures::general::*;
 use binance::futures::market::*;
 use binance::futures::model::*;
 use binance::errors::ErrorKind as BinanceLibErrorKind;
+use binance::futures::account::FuturesAccount;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 fn main() {
     general();
-    //account();
+    account();
     market_data();
 }
 
@@ -39,6 +42,26 @@ fn general() {
 
     match general.get_symbol_info("btcusdt") {
         Ok(answer) => println!("Symbol information: {:?}", answer),
+        Err(e) => println!("Error: {}", e),
+    }
+}
+
+fn account() {
+    let api_key_user =
+        Some("f7349ef10fed52e0282e9c66d7269acfb046d70d8b48f0ca34733e67322471c9".into());
+    let api_secret_user =
+        Some("7dedd32206a93e7d86f84372940a74e762711cd0800833a1e5fe56e6ed059cc1".into());
+
+    let config = Config::testnet();
+    let account: FuturesAccount = Binance::new_with_config(api_key_user, api_secret_user, &config);
+
+    let start = SystemTime::now();
+    let since_the_epoch = start
+        .duration_since(UNIX_EPOCH)
+        .expect("Time went backwards");
+
+    match account.get_comission_rate("btcusdt", &since_the_epoch.as_millis().to_string()) {
+        Ok(comission_rate) => println!("Maker fee: {:?} Taker fee: {:?}", comission_rate.maker_commission_rate, comission_rate.taker_commission_rate),
         Err(e) => println!("Error: {}", e),
     }
 }
@@ -100,6 +123,15 @@ fn market_data() {
 
     match market.open_interest("btcusdt") {
         Ok(answer) => println!("Open interest: {:?}", answer),
+        Err(e) => println!("Error: {}", e),
+    }
+
+    match market.funding_rate_history(Some("btcusdt".to_string()), Some(3), None, None) {
+        Ok(funding_rates) => {
+            for f in &funding_rates {
+                println!("Funding rate: symbol {:?} funding rate {:?}", f.symbol, f.funding_rate);
+            }
+        }
         Err(e) => println!("Error: {}", e),
     }
 }

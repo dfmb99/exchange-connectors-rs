@@ -7,7 +7,7 @@ use crate::client::Client;
 use crate::api::{API, Futures};
 use crate::model::Empty;
 use crate::account::{OrderSide, TimeInForce};
-use crate::futures::model::Order;
+use crate::futures::model::{ComissionRate, Order};
 use super::model::{
     ChangeLeverageResponse, Transaction, CanceledOrder, PositionRisk, AccountBalance,
     AccountInformation,
@@ -480,5 +480,17 @@ impl FuturesAccount {
         let request = build_signed_request(parameters, self.recv_window)?;
         self.client
             .get_signed(API::Futures(Futures::OpenOrders), Some(request))
+    }
+
+    pub fn get_comission_rate<S>(&self, symbol: S, timestamp: S) -> Result<ComissionRate>
+    where
+        S: Into<String>,
+    {
+        let mut parameters = BTreeMap::new();
+        parameters.insert("symbol".into(), symbol.into());
+        parameters.insert("timestamp".into(), timestamp.into());
+        let request = build_signed_request(parameters, self.recv_window)?;
+        self.client
+            .get_signed(API::Futures(Futures::ComissionRate), Some(request))
     }
 }
