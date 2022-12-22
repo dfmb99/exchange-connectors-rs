@@ -31,9 +31,9 @@ enum RequestType {
 #[derive(Clone)]
 pub struct UsdmInterface {
     symbol: String,
-    client: Client,
+    pub api: Client,
     recv_window: u64,
-    ws: WsInterface,
+    pub ws: WsInterface,
     data: UsdmData,
     config: UsdmConfig,
 }
@@ -56,7 +56,7 @@ impl UsdmInterface {
         );
         let usdm_int = UsdmInterface {
             symbol: symbol.to_owned(),
-            client,
+            api: client,
             recv_window: client_config.recv_window,
             ws: WsInterface::new(
                 symbol.to_owned(),
@@ -918,15 +918,15 @@ impl UsdmInterface {
         &self, endpoint: Futures, req_type: RequestType, req: Option<String>,
     ) -> Result<T> {
         let result: Result<T> = match req_type {
-            RequestType::Get => self.client.get(API::Futures(endpoint), req.to_owned()),
+            RequestType::Get => self.api.get(API::Futures(endpoint), req.to_owned()),
             RequestType::GetSigned => self
-                .client
+                .api
                 .get_signed(API::Futures(endpoint), req.to_owned()),
             RequestType::PostSigned => self
-                .client
+                .api
                 .post_signed(API::Futures(endpoint), req.to_owned().unwrap()),
             RequestType::DeleteSigned => self
-                .client
+                .api
                 .delete_signed(API::Futures(endpoint), req.to_owned()),
         };
 
