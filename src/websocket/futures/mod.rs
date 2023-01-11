@@ -10,6 +10,11 @@ use tungstenite::{connect, Message};
 use tungstenite::protocol::WebSocket;
 use tungstenite::stream::MaybeTlsStream;
 use tungstenite::handshake::client::Response;
+
+pub mod usdm;
+pub mod usdm_data;
+pub mod userstream;
+
 #[allow(clippy::all)]
 enum FuturesWebsocketAPI {
     Default,

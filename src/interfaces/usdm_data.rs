@@ -1,5 +1,5 @@
 use std::sync::{Arc, RwLock};
-use crate::model::KlineSummaries;
+use crate::rest::spot::model::KlineSummaries;
 
 type KlineData = Arc<RwLock<KlineSummaries>>;
 

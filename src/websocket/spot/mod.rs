@@ -11,6 +11,8 @@ use tungstenite::protocol::WebSocket;
 use tungstenite::stream::MaybeTlsStream;
 use tungstenite::handshake::client::Response;
 
+pub mod userstream;
+
 #[allow(clippy::all)]
 enum WebsocketAPI {
     Default,

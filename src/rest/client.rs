@@ -1,12 +1,12 @@
 use hex::encode as hex_encode;
 use hmac::{Hmac, Mac, NewMac};
-use crate::errors::*;
 use reqwest::StatusCode;
 use reqwest::blocking::Response;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue, USER_AGENT, CONTENT_TYPE};
 use sha2::Sha256;
 use serde::de::DeserializeOwned;
-use crate::api::API;
+use crate::commons::errors::*;
+use crate::rest::api::API;
 
 #[derive(Clone)]
 pub struct Client {

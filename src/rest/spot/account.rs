@@ -1,11 +1,10 @@
-use crate::util::*;
-use crate::model::*;
-use crate::client::*;
-use crate::errors::*;
 use std::collections::BTreeMap;
 use std::fmt::Display;
-use crate::api::API;
-use crate::api::Spot;
+use crate::commons::errors::*;
+use crate::commons::util::build_signed_request;
+use crate::rest::api::{API, Spot};
+use crate::rest::client::Client;
+use crate::rest::spot::model::{AccountInformation, Balance, Empty, Order, OrderCanceled, TradeHistory, Transaction};
 
 #[derive(Clone)]
 pub struct Account {
@@ -457,11 +456,11 @@ impl Account {
     /// Returning a `Transaction` value with the same parameters sent on the order.
     ///
     ///```no_run
-    /// use binance::api::Binance;
-    /// use binance::account::*;
+    /// use binance::rest::api::Binance;
+    /// use binance::rest::spot::account::{Account, TimeInForce};
     ///
     /// fn main() {
-    ///     let api_key = Some("api_key".into());
+    /// let api_key = Some("api_key".into());
     ///     let secret_key = Some("secret_key".into());
     ///     let account: Account = Binance::new(api_key, secret_key);
     ///     let result = account.stop_limit_buy_order("LTCBTC", 1, 0.1, 0.09, TimeInForce::GTC);
@@ -495,11 +494,11 @@ impl Account {
     /// This order is sandboxed: it is validated, but not sent to the matching engine.
     ///
     ///```no_run
-    /// use binance::api::Binance;
-    /// use binance::account::*;
+    /// use binance::rest::api::Binance;
+    /// use binance::rest::spot::account::*;
     ///
     /// fn main() {
-    ///     let api_key = Some("api_key".into());
+    /// let api_key = Some("api_key".into());
     ///     let secret_key = Some("secret_key".into());
     ///     let account: Account = Binance::new(api_key, secret_key);
     ///     let result = account.test_stop_limit_buy_order("LTCBTC", 1, 0.1, 0.09, TimeInForce::GTC);
@@ -533,11 +532,11 @@ impl Account {
     /// Returning a `Transaction` value with the same parameters sent on the order.
     ///
     ///```no_run
-    /// use binance::api::Binance;
-    /// use binance::account::*;
+    /// use binance::rest::api::Binance;
+    /// use binance::rest::spot::account::*;
     ///
     /// fn main() {
-    ///     let api_key = Some("api_key".into());
+    /// let api_key = Some("api_key".into());
     ///     let secret_key = Some("secret_key".into());
     ///     let account: Account = Binance::new(api_key, secret_key);
     ///     let result = account.stop_limit_sell_order("LTCBTC", 1, 0.1, 0.09, TimeInForce::GTC);
@@ -571,8 +570,8 @@ impl Account {
     /// This order is sandboxed: it is validated, but not sent to the matching engine.
     ///
     ///```no_run
-    /// use binance::api::Binance;
-    /// use binance::account::*;
+    /// use binance::rest::api::Binance;
+    /// use binance::rest::spot::account::*;
     ///
     /// fn main() {
     ///     let api_key = Some("api_key".into());

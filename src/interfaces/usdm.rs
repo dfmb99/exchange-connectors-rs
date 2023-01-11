@@ -5,21 +5,18 @@ use std::time::Duration;
 use log::{error};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
-use crate::account::{OrderSide, TimeInForce};
-use crate::api::{API, Futures};
-use crate::client::Client;
-use crate::config::Config;
-use crate::futures::account::{CustomOrderRequest, OrderType, OrderRequest};
-use crate::futures::interface_usdm_data::{UsdmConfig, UsdmData};
-use crate::futures::ws_usdm::WsInterface;
-use crate::errors::*;
-use crate::futures::model::{AccountBalance, AccountInformation, AggTrades, BookTickers, CanceledOrder, ChangeLeverageResponse, ComissionRate, ExchangeInformation, FundingRateHist, KlineSummaries, KlineSummary, LiquidationOrders, MarkPrices, OpenInterest, OpenInterestHist, Order, OrderBook, OrderUpdate, PositionRisk, PriceStats, Symbol, SymbolPrice, Tickers, Trades, Transaction};
-use crate::model::{
-    AggrTradesEvent, Empty, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder,
-    ServerTime,
-};
-use crate::model::KlineSummaries::AllKlineSummaries;
-use crate::util::{build_request, build_signed_request};
+use crate::commons::errors::*;
+use crate::commons::config::Config;
+use crate::commons::util::{build_request, build_signed_request};
+use crate::interfaces::usdm_data::{UsdmConfig, UsdmData};
+use crate::rest::api::{API, Futures};
+use crate::rest::client::Client;
+use crate::rest::futures::account::{CustomOrderRequest, OrderRequest, OrderType};
+use crate::rest::futures::model::{AccountBalance, AccountInformation, AggTrades, CanceledOrder, ChangeLeverageResponse, ComissionRate, ExchangeInformation, FundingRateHist, LiquidationOrder, LiquidationOrders, MarkPrices, OpenInterest, OpenInterestHist, Order, OrderBook, OrderUpdate, PositionRisk, PriceStats, Symbol, Trades, Transaction};
+use crate::rest::spot::account::{OrderSide, TimeInForce};
+use crate::rest::spot::model::{AggrTradesEvent, BookTickers, Empty, EventBalance, EventPosition, IndexPriceEvent, KlineSummaries, KlineSummary, ServerTime, SymbolPrice, Tickers};
+use crate::rest::spot::model::KlineSummaries::AllKlineSummaries;
+use crate::websocket::futures::usdm::WsInterface;
 
 enum RequestType {
     Get,
@@ -247,7 +244,7 @@ impl UsdmInterface {
         let data: Vec<Vec<Value>> =
             self.api_request(Futures::Klines, RequestType::Get, Some(request))?;
 
-        let klines = KlineSummaries::AllKlineSummaries(
+        let klines = AllKlineSummaries(
             data.iter()
                 .map(|row| row.try_into())
                 .collect::<Result<Vec<KlineSummary>>>()?,
@@ -843,7 +840,7 @@ impl UsdmInterface {
     pub fn get_last_filled_order(&self) -> Option<OrderUpdate> {
         let filled_orders = self.ws.get_filled_orders();
         if !filled_orders.is_empty() {
-            return Some(filled_orders.get(0).unwrap().to_owned());
+            return Some(filled_orders[0].to_owned());
         }
         None
     }
@@ -852,7 +849,7 @@ impl UsdmInterface {
     pub fn get_last_canceled_order_ws(&self) -> Option<OrderUpdate> {
         let canceled_orders = self.ws.get_canceled_orders();
         if !canceled_orders.is_empty() {
-            return Some(canceled_orders.get(0).unwrap().to_owned());
+            return Some(canceled_orders[0].to_owned());
         }
         None
     }
@@ -861,7 +858,7 @@ impl UsdmInterface {
     pub fn get_last_open_order_ws(&self) -> Option<OrderUpdate> {
         let open_orders = self.ws.get_open_orders();
         if !open_orders.is_empty() {
-            return Some(open_orders.get(0).unwrap().to_owned());
+            return Some(open_orders[0].to_owned());
         }
         None
     }
