@@ -1,8 +1,8 @@
 use std::collections::VecDeque;
 use indexmap::IndexMap;
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
-use crate::futures::model::OrderUpdate;
-use crate::model::{AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder};
+use crate::rest::futures::model::{LiquidationOrder, OrderUpdate};
+use crate::rest::spot::model::{AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent};
 
 type MarkPriceWs = Arc<RwLock<Option<IndexPriceEvent>>>;
 type MarkPriceSnapsWs = Arc<RwLock<VecDeque<IndexPriceEvent>>>;

@@ -14,6 +14,7 @@ use crate::futures::userstream::FuturesUserStream;
 use crate::futures::websockets::{FuturesMarket, FuturesWebsocketEvent, FuturesWebSockets};
 use crate::model::{AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder};
 use crate::futures::ws_usdm_data::WsData;
+use crate::websocket::futures::usdm_data::WsData;
 
 #[derive(Clone)]
 pub struct WsInterface {
