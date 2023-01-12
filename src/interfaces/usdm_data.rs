@@ -1,5 +1,5 @@
 use std::sync::{Arc, RwLock};
-use crate::rest::spot::model::KlineSummaries;
+use crate::rest::model::KlineSummaries;
 
 type KlineData = Arc<RwLock<KlineSummaries>>;
 
@@ -14,7 +14,7 @@ impl UsdmConfig {
     pub fn default() -> UsdmConfig {
         UsdmConfig {
             retry_on_err: true,
-            retry_timeout: 300,           // milliseconds
+            retry_timeout: 300,          // milliseconds
             rest_update_interval: 60000, // milliseconds
         }
     }

@@ -1,6 +1,6 @@
-use binance::futures::websockets::*;
 use std::sync::atomic::{AtomicBool, Ordering};
-use binance::config::Config;
+use binance::commons::config::Config;
+use binance::websocket::futures::{FuturesMarket, FuturesWebsocketEvent, FuturesWebSockets};
 
 fn main() {
     //market_websocket();

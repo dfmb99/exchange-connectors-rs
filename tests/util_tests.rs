@@ -1,4 +1,6 @@
-use binance::util::*;
+use binance::commons::util;
+use binance::commons::util::build_request;
+use binance::commons::util::build_signed_request_custom;
 
 #[cfg(test)]
 mod tests {
@@ -32,8 +34,7 @@ mod tests {
             since_epoch.as_secs() * 1000 + u64::from(since_epoch.subsec_nanos()) / 1_000_000;
 
         let parameters: BTreeMap<String, String> = BTreeMap::new();
-        let result =
-            binance::util::build_signed_request_custom(parameters, recv_window, now).unwrap();
+        let result = build_signed_request_custom(parameters, recv_window, now).unwrap();
 
         assert_eq!(
             result,
@@ -45,8 +46,8 @@ mod tests {
     fn to_i64() {
         let value_max = serde_json::json!(i64::MAX);
         let value_min = serde_json::json!(i64::MIN);
-        assert_eq!(binance::util::to_i64(&value_max), i64::MAX);
-        assert_eq!(binance::util::to_i64(&value_min), i64::MIN);
+        assert_eq!(util::to_i64(&value_max), i64::MAX);
+        assert_eq!(util::to_i64(&value_min), i64::MIN);
     }
 
     #[test]
@@ -54,7 +55,7 @@ mod tests {
         let value = serde_json::json!("123.3");
         assert!(approx_eq!(
             f64,
-            binance::util::to_f64(&value),
+            util::to_f64(&value),
             123.3,
             ulps = 2
         ));

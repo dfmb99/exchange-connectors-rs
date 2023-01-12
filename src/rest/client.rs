@@ -1,5 +1,5 @@
 use hex::encode as hex_encode;
-use hmac::{Hmac, Mac, NewMac};
+use hmac::{Hmac, Mac};
 use reqwest::StatusCode;
 use reqwest::blocking::Response;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue, USER_AGENT, CONTENT_TYPE};

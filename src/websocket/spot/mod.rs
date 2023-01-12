@@ -8,9 +8,10 @@ use tungstenite::stream::MaybeTlsStream;
 use tungstenite::handshake::client::Response;
 use crate::commons::config::Config;
 use crate::commons::errors::*;
-use crate::config::*;
-use crate::model::*;
-use crate::rest::spot::model::{AccountUpdateEvent, AggrTradesEvent, BalanceUpdateEvent, BookTickerEvent, DayTickerEvent, DepthOrderBookEvent, KlineEvent, OrderBook, OrderTradeEvent, TradeEvent};
+use crate::rest::model::{
+    AccountUpdateEvent, AggrTradesEvent, BalanceUpdateEvent, BookTickerEvent, DayTickerEvent,
+    DepthOrderBookEvent, KlineEvent, OrderBook, OrderTradeEvent, TradeEvent,
+};
 
 pub mod userstream;
 
@@ -159,6 +160,7 @@ impl<'a> WebSockets<'a> {
                     }
                     Message::Pong(_) | Message::Binary(_) => (),
                     Message::Close(e) => bail!(format!("Disconnected {:?}", e)),
+                    Message::Frame(_) => (),
                 }
             }
         }

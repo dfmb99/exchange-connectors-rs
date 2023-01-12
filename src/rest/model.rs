@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{from_value, Value};
 use std::convert::TryFrom;
-use crate::errors::{Error, ErrorKind, Result};
+use crate::commons::errors::{Error, ErrorKind, Result};
 
 #[derive(Deserialize, Clone)]
 pub struct Empty {}
@@ -1307,7 +1307,7 @@ pub(crate) mod string_or_float_opt {
         S: Serializer,
     {
         match value {
-            Some(v) => crate::model::string_or_float::serialize(v, serializer),
+            Some(v) => super::string_or_float::serialize(v, serializer),
             None => serializer.serialize_none(),
         }
     }
@@ -1323,9 +1323,7 @@ pub(crate) mod string_or_float_opt {
             Float(f64),
         }
 
-        Ok(Some(crate::model::string_or_float::deserialize(
-            deserializer,
-        )?))
+        Ok(Some(super::string_or_float::deserialize(deserializer)?))
     }
 }
 

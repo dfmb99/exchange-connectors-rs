@@ -20,15 +20,18 @@
 - [ ] `Taker Buy/Sell Volume (MARKET_DATA)`
 */
 
-use crate::util::*;
-use crate::futures::model::*;
-use crate::client::*;
-use crate::errors::*;
 use std::collections::BTreeMap;
 use serde_json::Value;
-use crate::api::API;
-use crate::api::Futures;
 use std::convert::TryInto;
+use crate::commons::errors::*;
+use crate::commons::util::{build_request, build_signed_request};
+use crate::rest::api::{API, Futures};
+use crate::rest::client::Client;
+use crate::rest::futures::model::{
+    AggTrades, FundingRateHist, LiquidationOrders, MarkPrices, OpenInterest, OpenInterestHist,
+    OrderBook, PriceStats, Trades,
+};
+use crate::rest::model::{BookTickers, KlineSummaries, KlineSummary, Prices, SymbolPrice, Tickers};
 
 // TODO
 // Make enums for Strings
@@ -217,7 +220,7 @@ impl FuturesMarket {
     }
 
     // Latest price for all symbols.
-    pub fn get_all_prices(&self) -> Result<crate::model::Prices> {
+    pub fn get_all_prices(&self) -> Result<Prices> {
         self.client.get(API::Futures(Futures::TickerPrice), None)
     }
 
@@ -290,11 +293,11 @@ impl FuturesMarket {
     pub fn funding_rate_history<S1, S2, S3, S4>(
         &self, symbol: S1, limit: S2, start_time: S3, end_time: S4,
     ) -> Result<Vec<FundingRateHist>>
-        where
-            S1: Into<Option<String>>,
-            S2: Into<Option<i32>>,
-            S3: Into<Option<i64>>,
-            S4: Into<Option<i64>>,
+    where
+        S1: Into<Option<String>>,
+        S2: Into<Option<i32>>,
+        S3: Into<Option<i64>>,
+        S4: Into<Option<i64>>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
         if let Some(lt) = symbol.into() {

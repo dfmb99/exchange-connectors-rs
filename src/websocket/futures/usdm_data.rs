@@ -1,8 +1,10 @@
 use std::collections::VecDeque;
 use indexmap::IndexMap;
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
-use crate::rest::futures::model::{LiquidationOrder, OrderUpdate};
-use crate::rest::spot::model::{AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent};
+use crate::rest::futures::model::{OrderUpdate};
+use crate::rest::model::{
+    AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder,
+};
 
 type MarkPriceWs = Arc<RwLock<Option<IndexPriceEvent>>>;
 type MarkPriceSnapsWs = Arc<RwLock<VecDeque<IndexPriceEvent>>>;
@@ -197,7 +199,7 @@ fn get_order(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{AccountUpdateEvent, LiquidationEvent};
+    use crate::rest::model::{AccountUpdateEvent, LiquidationEvent};
 
     #[test]
     fn test_order_update() {

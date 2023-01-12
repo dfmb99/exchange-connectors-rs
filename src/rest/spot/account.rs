@@ -4,7 +4,9 @@ use crate::commons::errors::*;
 use crate::commons::util::build_signed_request;
 use crate::rest::api::{API, Spot};
 use crate::rest::client::Client;
-use crate::rest::spot::model::{AccountInformation, Balance, Empty, Order, OrderCanceled, TradeHistory, Transaction};
+use crate::rest::model::{
+    AccountInformation, Balance, Empty, Order, OrderCanceled, TradeHistory, Transaction,
+};
 
 #[derive(Clone)]
 pub struct Account {

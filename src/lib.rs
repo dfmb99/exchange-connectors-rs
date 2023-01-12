@@ -14,6 +14,6 @@
 extern crate error_chain;
 
 pub mod commons;
+pub mod interfaces;
 pub mod rest;
 pub mod websocket;
-pub mod interfaces;

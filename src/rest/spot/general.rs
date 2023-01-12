@@ -1,8 +1,7 @@
-use crate::model::*;
-use crate::client::*;
-use crate::errors::*;
-use crate::api::API;
-use crate::api::Spot;
+use crate::commons::errors::*;
+use crate::rest::api::{API, Spot};
+use crate::rest::client::Client;
+use crate::rest::model::{Empty, ExchangeInformation, ServerTime, Symbol};
 
 #[derive(Clone)]
 pub struct General {

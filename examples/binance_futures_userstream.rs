@@ -1,8 +1,8 @@
 use std::sync::atomic::AtomicBool;
-use binance::api::*;
-use binance::config::Config;
-use binance::futures::userstream::*;
-use binance::futures::websockets::{FuturesMarket, FuturesWebsocketEvent, FuturesWebSockets};
+use binance::commons::config::Config;
+use binance::rest::api::Binance;
+use binance::websocket::futures::{FuturesMarket, FuturesWebsocketEvent, FuturesWebSockets};
+use binance::websocket::futures::userstream::FuturesUserStream;
 
 fn main() {
     //user_stream();

@@ -5,16 +5,17 @@ use std::sync::mpsc;
 use std::sync::mpsc::Receiver;
 use std::thread;
 use std::time::Duration;
-use crate::api::Binance;
-use crate::config::Config;
-use crate::errors::{BinanceContentError, Error};
-use crate::errors::ErrorKind::BinanceError;
-use crate::futures::model::OrderUpdate;
-use crate::futures::userstream::FuturesUserStream;
-use crate::futures::websockets::{FuturesMarket, FuturesWebsocketEvent, FuturesWebSockets};
-use crate::model::{AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder};
-use crate::futures::ws_usdm_data::WsData;
+use crate::commons::config::Config;
+use crate::commons::errors::{BinanceContentError, Error};
+use crate::commons::errors::ErrorKind::BinanceError;
+use crate::rest::api::Binance;
+use crate::rest::futures::model::OrderUpdate;
+use crate::rest::model::{
+    AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder,
+};
+use crate::websocket::futures::{FuturesMarket, FuturesWebsocketEvent, FuturesWebSockets};
 use crate::websocket::futures::usdm_data::WsData;
+use crate::websocket::futures::userstream::FuturesUserStream;
 
 #[derive(Clone)]
 pub struct WsInterface {
@@ -40,7 +41,9 @@ impl WsInterface {
             ws_data.clone(),
         );
         market_websocket(symbol.to_owned(), config.to_owned(), ws_data.clone());
-        let ws_int = WsInterface { ws_data: ws_data.clone() };
+        let ws_int = WsInterface {
+            ws_data: ws_data.clone(),
+        };
         ws_int.wait_for_data();
         fill_mark_price_snaps(ws_data);
         ws_int
@@ -278,7 +281,9 @@ fn fill_mark_price_snaps(ws_data: WsData) {
                 debug!("Added mark price snap {:?}", index_price);
                 thread::sleep(Duration::from_millis(5000));
             }
-            None => { warn!("Unable to add mark price snap")}
+            None => {
+                warn!("Unable to add mark price snap")
+            }
         }
     });
 }

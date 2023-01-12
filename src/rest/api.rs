@@ -159,7 +159,7 @@ impl From<API> for String {
                 Futures::Account => "/fapi/v2/account",
                 Futures::OpenOrders => "/fapi/v1/openOrders",
                 Futures::UserDataStream => "/fapi/v1/listenKey",
-                Futures::ComissionRate => "/fapi/v1/commissionRate"
+                Futures::ComissionRate => "/fapi/v1/commissionRate",
             },
         })
     }

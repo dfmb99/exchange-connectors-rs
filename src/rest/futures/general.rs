@@ -1,8 +1,8 @@
-use crate::futures::model::*;
-use crate::client::*;
-use crate::errors::*;
-use crate::api::API;
-use crate::api::Futures;
+use crate::commons::errors::*;
+use crate::rest::api::{API, Futures};
+use crate::rest::client::Client;
+use crate::rest::futures::model::{ExchangeInformation, Symbol};
+use crate::rest::model::ServerTime;
 
 #[derive(Clone)]
 pub struct FuturesGeneral {

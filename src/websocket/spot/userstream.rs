@@ -1,7 +1,7 @@
 use crate::commons::errors::*;
 use crate::rest::api::{API, Spot};
 use crate::rest::client::Client;
-use crate::rest::spot::model::{Success, UserDataStream};
+use crate::rest::model::{Success, UserDataStream};
 
 #[derive(Clone)]
 pub struct UserStream {

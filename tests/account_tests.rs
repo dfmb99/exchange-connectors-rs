@@ -1,7 +1,7 @@
-use binance::api::*;
-use binance::config::*;
-use binance::account::*;
-use binance::model::*;
+use binance::commons::config::Config;
+use binance::rest::api::Binance;
+use binance::rest::model::{Order, OrderCanceled, Transaction, TradeHistory};
+use binance::rest::spot::account::{Account, OrderSide, OrderType, TimeInForce};
 
 #[cfg(test)]
 mod tests {

@@ -3,7 +3,7 @@ use crate::commons::errors::*;
 use crate::commons::util::build_signed_request;
 use crate::rest::api::{API, Sapi};
 use crate::rest::client::Client;
-use crate::rest::spot::model::{AssetDetail, CoinInfo, DepositAddress};
+use crate::rest::model::{AssetDetail, CoinInfo, DepositAddress};
 
 #[derive(Clone)]
 pub struct Savings {

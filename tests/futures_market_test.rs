@@ -1,7 +1,7 @@
-use binance::api::*;
-use binance::config::*;
-use binance::futures::market::FuturesMarket;
-use binance::futures::model::OpenInterestHist;
+use binance::commons::config::Config;
+use binance::rest::api::Binance;
+use binance::rest::futures::market::FuturesMarket;
+use binance::rest::futures::model::OpenInterestHist;
 
 #[cfg(test)]
 mod tests {

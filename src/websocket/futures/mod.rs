@@ -1,7 +1,3 @@
-use crate::errors::*;
-use crate::config::*;
-use crate::model::*;
-use crate::futures::model;
 use url::Url;
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -10,6 +6,14 @@ use tungstenite::{connect, Message};
 use tungstenite::protocol::WebSocket;
 use tungstenite::stream::MaybeTlsStream;
 use tungstenite::handshake::client::Response;
+use crate::commons::config::Config;
+use crate::commons::errors::*;
+use crate::rest::futures::model::{OrderBook, OrderTradeEvent};
+use crate::rest::model::{
+    AccountUpdateEvent, AggrTradesEvent, BookTickerEvent, ContinuousKlineEvent, DayTickerEvent,
+    DepthOrderBookEvent, IndexKlineEvent, IndexPriceEvent, KlineEvent, LiquidationEvent,
+    MarkPriceEvent, MiniTickerEvent, TradeEvent, UserDataStreamExpiredEvent,
+};
 
 pub mod usdm;
 pub mod usdm_data;
@@ -52,7 +56,7 @@ impl FuturesWebsocketAPI {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum FuturesWebsocketEvent {
     AccountUpdate(AccountUpdateEvent),
-    OrderTrade(model::OrderTradeEvent),
+    OrderTrade(OrderTradeEvent),
     AggrTrades(AggrTradesEvent),
     Trade(TradeEvent),
     OrderBook(OrderBook),
@@ -86,7 +90,7 @@ enum FuturesEvents {
     MiniTickerEvent(MiniTickerEvent),
     VecMiniTickerEvent(Vec<MiniTickerEvent>),
     AccountUpdateEvent(AccountUpdateEvent),
-    OrderTradeEvent(model::OrderTradeEvent),
+    OrderTradeEvent(OrderTradeEvent),
     AggrTradesEvent(AggrTradesEvent),
     IndexPriceEvent(IndexPriceEvent),
     MarkPriceEvent(MarkPriceEvent),
@@ -209,6 +213,7 @@ impl<'a> FuturesWebSockets<'a> {
                     }
                     Message::Pong(_) | Message::Binary(_) => (),
                     Message::Close(e) => bail!(format!("Disconnected {:?}", e)),
+                    Message::Frame(_) => (),
                 }
             }
         }

@@ -12,10 +12,18 @@ use crate::interfaces::usdm_data::{UsdmConfig, UsdmData};
 use crate::rest::api::{API, Futures};
 use crate::rest::client::Client;
 use crate::rest::futures::account::{CustomOrderRequest, OrderRequest, OrderType};
-use crate::rest::futures::model::{AccountBalance, AccountInformation, AggTrades, CanceledOrder, ChangeLeverageResponse, ComissionRate, ExchangeInformation, FundingRateHist, LiquidationOrder, LiquidationOrders, MarkPrices, OpenInterest, OpenInterestHist, Order, OrderBook, OrderUpdate, PositionRisk, PriceStats, Symbol, Trades, Transaction};
+use crate::rest::futures::model::{
+    AccountBalance, AccountInformation, AggTrades, CanceledOrder, ChangeLeverageResponse,
+    ComissionRate, ExchangeInformation, FundingRateHist, LiquidationOrders, MarkPrices,
+    OpenInterest, OpenInterestHist, Order, OrderBook, OrderUpdate, PositionRisk, PriceStats,
+    Symbol, Trades, Transaction,
+};
 use crate::rest::spot::account::{OrderSide, TimeInForce};
-use crate::rest::spot::model::{AggrTradesEvent, BookTickers, Empty, EventBalance, EventPosition, IndexPriceEvent, KlineSummaries, KlineSummary, ServerTime, SymbolPrice, Tickers};
-use crate::rest::spot::model::KlineSummaries::AllKlineSummaries;
+use crate::rest::model::{
+    AggrTradesEvent, BookTickers, Empty, EventBalance, EventPosition, IndexPriceEvent,
+    KlineSummaries, KlineSummary, ServerTime, SymbolPrice, Tickers, LiquidationOrder, Prices,
+};
+use crate::rest::model::KlineSummaries::AllKlineSummaries;
 use crate::websocket::futures::usdm::WsInterface;
 
 enum RequestType {
@@ -72,7 +80,7 @@ impl UsdmInterface {
     fn wait_for_data(&self) {
         loop {
             let AllKlineSummaries(k_lines) = self.get_last_day_klines();
-            if !k_lines.is_empty()  {
+            if !k_lines.is_empty() {
                 break;
             }
             thread::yield_now();
@@ -283,7 +291,7 @@ impl UsdmInterface {
     }
 
     /// Latest price for all symbols.
-    pub fn get_all_prices(&self) -> Result<crate::model::Prices> {
+    pub fn get_all_prices(&self) -> Result<Prices> {
         self.api_request(Futures::TickerPrice, RequestType::Get, None)
     }
 
@@ -358,11 +366,11 @@ impl UsdmInterface {
     pub fn funding_rate_history<S1, S2, S3, S4>(
         &self, symbol: S1, limit: S2, start_time: S3, end_time: S4,
     ) -> Result<Vec<FundingRateHist>>
-        where
-            S1: Into<Option<String>>,
-            S2: Into<Option<i32>>,
-            S3: Into<Option<i64>>,
-            S4: Into<Option<i64>>,
+    where
+        S1: Into<Option<String>>,
+        S2: Into<Option<i32>>,
+        S3: Into<Option<i64>>,
+        S4: Into<Option<i64>>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
         if let Some(lt) = symbol.into() {
@@ -384,8 +392,8 @@ impl UsdmInterface {
 
     /// Get comission rate
     pub fn get_comission_rate<S>(&self, symbol: S, timestamp: S) -> Result<ComissionRate>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters = BTreeMap::new();
         parameters.insert("symbol".into(), symbol.into());
@@ -396,7 +404,7 @@ impl UsdmInterface {
 
     /// Place limit buy order
     pub fn limit_buy(
-        &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64
+        &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64,
     ) -> Result<Transaction> {
         let buy = OrderRequest {
             symbol: symbol.into(),
@@ -421,7 +429,7 @@ impl UsdmInterface {
 
     /// Place limit sell order
     pub fn limit_sell(
-        &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64
+        &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64,
     ) -> Result<Transaction> {
         let sell = OrderRequest {
             symbol: symbol.into(),
@@ -732,8 +740,8 @@ impl UsdmInterface {
 
     /// Get an order
     pub fn get_order<S>(&self, symbol: S, order_id: u64) -> Result<Order>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters = BTreeMap::new();
         parameters.insert("symbol".into(), symbol.into());
@@ -813,19 +821,31 @@ impl UsdmInterface {
 
     /// Returns true of order is open, false otherwise
     pub fn is_open_orders_ws(&self, order_id: u64) -> bool {
-        let orders = self.get_open_orders_ws().into_iter().filter(|ord| ord.order_id == order_id).collect::<Vec<_>>();
+        let orders = self
+            .get_open_orders_ws()
+            .into_iter()
+            .filter(|ord| ord.order_id == order_id)
+            .collect::<Vec<_>>();
         orders.len() > 0
     }
 
     /// Returns true if order is filled, false otherwise
     pub fn is_filled_orders_ws(&self, order_id: u64) -> bool {
-        let orders = self.get_filled_orders_ws().into_iter().filter(|ord| ord.order_id == order_id).collect::<Vec<_>>();
+        let orders = self
+            .get_filled_orders_ws()
+            .into_iter()
+            .filter(|ord| ord.order_id == order_id)
+            .collect::<Vec<_>>();
         orders.len() > 0
     }
 
     /// Get canceled orders, false otherwise
     pub fn is_canceled_orders_ws(&self, order_id: u64) -> bool {
-        let orders = self.get_canceled_orders_ws().into_iter().filter(|ord| ord.order_id == order_id).collect::<Vec<_>>();
+        let orders = self
+            .get_canceled_orders_ws()
+            .into_iter()
+            .filter(|ord| ord.order_id == order_id)
+            .collect::<Vec<_>>();
         orders.len() > 0
     }
 
@@ -916,9 +936,7 @@ impl UsdmInterface {
     ) -> Result<T> {
         let result: Result<T> = match req_type {
             RequestType::Get => self.api.get(API::Futures(endpoint), req.to_owned()),
-            RequestType::GetSigned => self
-                .api
-                .get_signed(API::Futures(endpoint), req.to_owned()),
+            RequestType::GetSigned => self.api.get_signed(API::Futures(endpoint), req.to_owned()),
             RequestType::PostSigned => self
                 .api
                 .post_signed(API::Futures(endpoint), req.to_owned().unwrap()),
@@ -957,8 +975,12 @@ impl UsdmInterface {
 fn update_usdm_data(mut usdm_int: UsdmInterface) {
     thread::spawn(move || loop {
         match usdm_int.get_klines(usdm_int.symbol.to_owned(), "1m", 1440, None, None) {
-            Ok(kline_data) => { usdm_int.data.set_last_day_klines(kline_data); }
-            Err(err) => { error!("{:?}", err); }
+            Ok(kline_data) => {
+                usdm_int.data.set_last_day_klines(kline_data);
+            }
+            Err(err) => {
+                error!("{:?}", err);
+            }
         }
         thread::sleep(Duration::from_millis(usdm_int.config.rest_update_interval));
     });
