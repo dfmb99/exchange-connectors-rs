@@ -40,7 +40,7 @@ impl WsInterface {
             config.to_owned(),
             ws_data.clone(),
         );
-        market_websocket(symbol.to_owned(), config.to_owned(), ws_data.clone());
+        market_websocket(symbol, config.to_owned(), ws_data.clone());
         let ws_int = WsInterface {
             ws_data: ws_data.clone(),
         };
@@ -210,12 +210,9 @@ fn user_stream_keep_alive(rx: Receiver<()>, user_stream: FuturesUserStream, list
             // Keepalive a user data stream to prevent a time out. User data streams will close after 60 minutes. Loops every 50 minutes
             thread::sleep(Duration::from_secs(3000));
 
-            match rx.recv_timeout(Duration::from_millis(300)) {
-                Ok(_) => {
-                    debug!("Terminating.");
-                    break;
-                }
-                Err(_) => {}
+            if rx.recv_timeout(Duration::from_millis(300)).is_ok() {
+                debug!("Terminating.");
+                break;
             }
 
             match user_stream.keep_alive(&listen_key) {

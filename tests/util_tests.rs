@@ -53,11 +53,6 @@ mod tests {
     #[test]
     fn to_f64() {
         let value = serde_json::json!("123.3");
-        assert!(approx_eq!(
-            f64,
-            util::to_f64(&value),
-            123.3,
-            ulps = 2
-        ));
+        assert!(approx_eq!(f64, util::to_f64(&value), 123.3, ulps = 2));
     }
 }

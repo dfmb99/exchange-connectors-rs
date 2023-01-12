@@ -63,12 +63,7 @@ impl UsdmInterface {
             symbol: symbol.to_owned(),
             api: client,
             recv_window: client_config.recv_window,
-            ws: WsInterface::new(
-                symbol.to_owned(),
-                api_key.to_owned(),
-                api_secret.to_owned(),
-                client_config,
-            ),
+            ws: WsInterface::new(symbol, api_key, api_secret, client_config),
             data: UsdmData::default(),
             config,
         };
@@ -374,16 +369,16 @@ impl UsdmInterface {
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
         if let Some(lt) = symbol.into() {
-            parameters.insert("symbol".into(), format!("{}", lt));
+            parameters.insert("symbol".into(), lt);
         }
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), lt.to_string());
         }
         if let Some(st) = start_time.into() {
-            parameters.insert("startTime".into(), format!("{}", st));
+            parameters.insert("startTime".into(), st.to_string());
         }
         if let Some(et) = end_time.into() {
-            parameters.insert("endTime".into(), format!("{}", et));
+            parameters.insert("endTime".into(), et.to_string());
         }
 
         let request = build_request(parameters);
@@ -821,32 +816,29 @@ impl UsdmInterface {
 
     /// Returns true of order is open, false otherwise
     pub fn is_open_orders_ws(&self, order_id: u64) -> bool {
-        let orders = self
-            .get_open_orders_ws()
+        self.get_open_orders_ws()
             .into_iter()
             .filter(|ord| ord.order_id == order_id)
-            .collect::<Vec<_>>();
-        orders.len() > 0
+            .count() >
+            0
     }
 
     /// Returns true if order is filled, false otherwise
     pub fn is_filled_orders_ws(&self, order_id: u64) -> bool {
-        let orders = self
-            .get_filled_orders_ws()
+        self.get_filled_orders_ws()
             .into_iter()
             .filter(|ord| ord.order_id == order_id)
-            .collect::<Vec<_>>();
-        orders.len() > 0
+            .count() >
+            0
     }
 
     /// Get canceled orders, false otherwise
     pub fn is_canceled_orders_ws(&self, order_id: u64) -> bool {
-        let orders = self
-            .get_canceled_orders_ws()
+        self.get_canceled_orders_ws()
             .into_iter()
             .filter(|ord| ord.order_id == order_id)
-            .collect::<Vec<_>>();
-        orders.len() > 0
+            .count() >
+            0
     }
 
     /// Get order
@@ -945,22 +937,22 @@ impl UsdmInterface {
                 .delete_signed(API::Futures(endpoint), req.to_owned()),
         };
 
-        return if result.is_err() && self.config.retry_on_err {
+        if result.is_err() && self.config.retry_on_err {
             self.err_handler(endpoint, req_type, req, result)
         } else {
             result
-        };
+        }
     }
 
     fn err_handler<T: DeserializeOwned>(
         &self, endpoint: Futures, req_type: RequestType, req: Option<String>, result: Result<T>,
     ) -> Result<T> {
-        return match &result {
+        match &result {
             Err(Error(ErrorKind::BinanceError(err), ..)) => {
-                if err.msg == "Request occur unknown error."
-                    || err.msg == "Service Unavailable."
-                    || err.msg
-                        == "Internal error; unable to process your request. Please try again."
+                if err.msg == "Request occur unknown error." ||
+                    err.msg == "Service Unavailable." ||
+                    err.msg ==
+                        "Internal error; unable to process your request. Please try again."
                 {
                     thread::sleep(Duration::from_millis(self.config.retry_timeout));
                     return self.api_request(endpoint, req_type, req);
@@ -968,7 +960,7 @@ impl UsdmInterface {
                 result
             }
             _ => result,
-        };
+        }
     }
 }
 

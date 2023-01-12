@@ -91,10 +91,10 @@ impl FuturesMarket {
 
         // Add three optional parameters
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), lt.to_string());
         }
         if let Some(fi) = from_id.into() {
-            parameters.insert("fromId".into(), format!("{}", fi));
+            parameters.insert("fromId".into(), fi.to_string());
         }
 
         let request = build_signed_request(parameters, self.recv_window)?;
@@ -119,16 +119,16 @@ impl FuturesMarket {
 
         // Add three optional parameters
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), lt.to_string());
         }
         if let Some(st) = start_time.into() {
-            parameters.insert("startTime".into(), format!("{}", st));
+            parameters.insert("startTime".into(), st.to_string());
         }
         if let Some(et) = end_time.into() {
-            parameters.insert("endTime".into(), format!("{}", et));
+            parameters.insert("endTime".into(), et.to_string());
         }
         if let Some(fi) = from_id.into() {
-            parameters.insert("fromId".into(), format!("{}", fi));
+            parameters.insert("fromId".into(), fi.to_string());
         }
 
         let request = build_request(parameters);
@@ -156,13 +156,13 @@ impl FuturesMarket {
 
         // Add three optional parameters
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), lt.to_string());
         }
         if let Some(st) = start_time.into() {
-            parameters.insert("startTime".into(), format!("{}", st));
+            parameters.insert("startTime".into(), st.to_string());
         }
         if let Some(et) = end_time.into() {
-            parameters.insert("endTime".into(), format!("{}", et));
+            parameters.insert("endTime".into(), et.to_string());
         }
 
         let request = build_request(parameters);
@@ -270,13 +270,13 @@ impl FuturesMarket {
         parameters.insert("period".into(), period.into());
 
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), lt.to_string());
         }
         if let Some(st) = start_time.into() {
-            parameters.insert("startTime".into(), format!("{}", st));
+            parameters.insert("startTime".into(), st.to_string());
         }
         if let Some(et) = end_time.into() {
-            parameters.insert("endTime".into(), format!("{}", et));
+            parameters.insert("endTime".into(), et.to_string());
         }
 
         let request = build_request(parameters);
@@ -295,16 +295,16 @@ impl FuturesMarket {
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
         if let Some(lt) = symbol.into() {
-            parameters.insert("symbol".into(), format!("{}", lt));
+            parameters.insert("symbol".into(), lt);
         }
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), lt.to_string());
         }
         if let Some(st) = start_time.into() {
-            parameters.insert("startTime".into(), format!("{}", st));
+            parameters.insert("startTime".into(), st.to_string());
         }
         if let Some(et) = end_time.into() {
-            parameters.insert("endTime".into(), format!("{}", et));
+            parameters.insert("endTime".into(), et.to_string());
         }
 
         let request = build_request(parameters);
