@@ -33,11 +33,6 @@ use crate::rest::futures::model::{
 };
 use crate::rest::model::{BookTickers, KlineSummaries, KlineSummary, Prices, SymbolPrice, Tickers};
 
-// TODO
-// Make enums for Strings
-// Add limit parameters to functions
-// Implement all functions
-
 #[derive(Clone)]
 pub struct FuturesMarket {
     pub client: Client,
@@ -82,7 +77,6 @@ impl FuturesMarket {
             .get(API::Futures(Futures::Trades), Some(request))
     }
 
-    // TODO This may be incomplete, as it hasn't been tested
     pub fn get_historical_trades<S1, S2, S3>(
         &self, symbol: S1, from_id: S2, limit: S3,
     ) -> Result<Trades>
