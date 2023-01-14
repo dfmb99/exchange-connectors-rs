@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
-use crate::model::{string_or_float, string_or_float_opt, string_or_bool};
+use crate::rest::model::{string_or_float, string_or_float_opt, string_or_bool};
 
-pub use crate::model::{
+pub use crate::rest::model::{
     Asks, Bids, BookTickers, Filters, KlineSummaries, KlineSummary, RateLimit, ServerTime,
     SymbolPrice, Tickers,
 };
@@ -472,7 +472,6 @@ pub struct ComissionRate {
     pub maker_commission_rate: String,
     pub taker_commission_rate: String,
 }
-
 
 fn default_stop_price() -> f64 {
     0.0

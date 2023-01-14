@@ -1,11 +1,12 @@
-use binance::api::*;
-use binance::config::Config;
-use binance::futures::general::*;
-use binance::futures::market::*;
-use binance::futures::model::*;
-use binance::errors::ErrorKind as BinanceLibErrorKind;
-use binance::futures::account::FuturesAccount;
 use std::time::{SystemTime, UNIX_EPOCH};
+use binance::commons::config::Config;
+use binance::commons::errors::ErrorKind as BinanceLibErrorKind;
+use binance::rest::api::Binance;
+use binance::rest::futures::account::FuturesAccount;
+use binance::rest::futures::general::FuturesGeneral;
+use binance::rest::futures::market::FuturesMarket;
+use binance::rest::futures::model::{AggTrades, LiquidationOrders, MarkPrices, Trades};
+use binance::rest::model::{BookTickers, KlineSummaries};
 
 fn main() {
     general();
@@ -61,7 +62,10 @@ fn account() {
         .expect("Time went backwards");
 
     match account.get_comission_rate("btcusdt", &since_the_epoch.as_millis().to_string()) {
-        Ok(comission_rate) => println!("Maker fee: {:?} Taker fee: {:?}", comission_rate.maker_commission_rate, comission_rate.taker_commission_rate),
+        Ok(comission_rate) => println!(
+            "Maker fee: {:?} Taker fee: {:?}",
+            comission_rate.maker_commission_rate, comission_rate.taker_commission_rate
+        ),
         Err(e) => println!("Error: {}", e),
     }
 }
@@ -129,7 +133,10 @@ fn market_data() {
     match market.funding_rate_history(Some("btcusdt".to_string()), Some(3), None, None) {
         Ok(funding_rates) => {
             for f in &funding_rates {
-                println!("Funding rate: symbol {:?} funding rate {:?}", f.symbol, f.funding_rate);
+                println!(
+                    "Funding rate: symbol {:?} funding rate {:?}",
+                    f.symbol, f.funding_rate
+                );
             }
         }
         Err(e) => println!("Error: {}", e),

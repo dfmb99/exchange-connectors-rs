@@ -1,14 +1,14 @@
-use crate::account::*;
-use crate::client::*;
-use crate::config::*;
-use crate::futures::account::FuturesAccount;
-use crate::futures::general::*;
-use crate::futures::market::*;
-use crate::futures::userstream::*;
-use crate::general::*;
-use crate::market::*;
-use crate::userstream::*;
-use crate::savings::*;
+use crate::commons::config::Config;
+use crate::rest::client::Client;
+use crate::rest::futures::account::FuturesAccount;
+use crate::rest::futures::general::FuturesGeneral;
+use crate::rest::futures::market::FuturesMarket;
+use crate::rest::savings::Savings;
+use crate::rest::spot::account::Account;
+use crate::rest::spot::general::General;
+use crate::rest::spot::market::Market;
+use crate::websocket::futures::userstream::FuturesUserStream;
+use crate::websocket::spot::userstream::UserStream;
 
 #[allow(clippy::all)]
 pub enum API {
@@ -159,7 +159,7 @@ impl From<API> for String {
                 Futures::Account => "/fapi/v2/account",
                 Futures::OpenOrders => "/fapi/v1/openOrders",
                 Futures::UserDataStream => "/fapi/v1/listenKey",
-                Futures::ComissionRate => "/fapi/v1/commissionRate"
+                Futures::ComissionRate => "/fapi/v1/commissionRate",
             },
         })
     }

@@ -1,8 +1,10 @@
 use std::collections::VecDeque;
 use indexmap::IndexMap;
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
-use crate::futures::model::OrderUpdate;
-use crate::model::{AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder};
+use crate::rest::futures::model::{OrderUpdate};
+use crate::rest::model::{
+    AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder,
+};
 
 type MarkPriceWs = Arc<RwLock<Option<IndexPriceEvent>>>;
 type MarkPriceSnapsWs = Arc<RwLock<VecDeque<IndexPriceEvent>>>;
@@ -14,7 +16,7 @@ type OrdersWs = Arc<RwLock<IndexMap<u64, OrderUpdate>>>;
 
 const DATA_SIZE: usize = 1000;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct WsData {
     mark_price: MarkPriceWs,
     mark_price_snaps: MarkPriceSnapsWs,
@@ -27,22 +29,8 @@ pub struct WsData {
     canceled_orders: OrdersWs,
 }
 
-impl WsData {
-    pub fn default() -> WsData {
-        WsData {
-            mark_price: Arc::new(RwLock::new(None)),
-            mark_price_snaps: Arc::new(RwLock::new(VecDeque::with_capacity(DATA_SIZE))),
-            aggr_trades: Arc::new(RwLock::new(VecDeque::with_capacity(DATA_SIZE))),
-            liquidations: Arc::new(RwLock::new(VecDeque::with_capacity(DATA_SIZE))),
-            position: Arc::new(RwLock::new(None)),
-            balance: Arc::new(RwLock::new(None)),
-            filled_orders: Arc::new(RwLock::new(IndexMap::with_capacity(DATA_SIZE))),
-            open_orders: Arc::new(RwLock::new(IndexMap::with_capacity(DATA_SIZE))),
-            canceled_orders: Arc::new(RwLock::new(IndexMap::with_capacity(DATA_SIZE))),
-        }
-    }
-
-    pub fn clone(&self) -> WsData {
+impl Clone for WsData {
+    fn clone(&self) -> WsData {
         WsData {
             mark_price: Arc::clone(&self.mark_price),
             mark_price_snaps: Arc::clone(&self.mark_price_snaps),
@@ -55,7 +43,25 @@ impl WsData {
             canceled_orders: Arc::clone(&self.canceled_orders),
         }
     }
+}
 
+impl Default for WsData {
+    fn default() -> WsData {
+        WsData {
+            mark_price: Arc::new(RwLock::new(None)),
+            mark_price_snaps: Arc::new(RwLock::new(VecDeque::with_capacity(DATA_SIZE))),
+            aggr_trades: Arc::new(RwLock::new(VecDeque::with_capacity(DATA_SIZE))),
+            liquidations: Arc::new(RwLock::new(VecDeque::with_capacity(DATA_SIZE))),
+            position: Arc::new(RwLock::new(None)),
+            balance: Arc::new(RwLock::new(None)),
+            filled_orders: Arc::new(RwLock::new(IndexMap::with_capacity(DATA_SIZE))),
+            open_orders: Arc::new(RwLock::new(IndexMap::with_capacity(DATA_SIZE))),
+            canceled_orders: Arc::new(RwLock::new(IndexMap::with_capacity(DATA_SIZE))),
+        }
+    }
+}
+
+impl WsData {
     pub fn get_mark_price_event(&self) -> Option<IndexPriceEvent> {
         self.mark_price.read().unwrap().clone()
     }
@@ -146,7 +152,7 @@ impl WsData {
     }
 
     pub fn add_order(&self, order: OrderUpdate) {
-        let order_id = order.clone().order_id;
+        let order_id = order.order_id;
         let order_status = order.clone().order_status;
 
         if order_status == "NEW" {
@@ -188,16 +194,13 @@ fn get_order(
     index_map: RwLockReadGuard<IndexMap<u64, OrderUpdate>>, order_id: u64,
 ) -> Option<OrderUpdate> {
     let result: Option<&OrderUpdate> = index_map.get(&order_id);
-    return match result {
-        None => None,
-        Some(order) => Some(order.clone()),
-    };
+    result.cloned()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{AccountUpdateEvent, LiquidationEvent};
+    use crate::rest::model::{AccountUpdateEvent, LiquidationEvent};
 
     #[test]
     fn test_order_update() {

@@ -1,12 +1,14 @@
-use crate::util::*;
-use crate::model::*;
-use crate::client::*;
-use crate::errors::*;
 use std::collections::BTreeMap;
 use serde_json::Value;
-use crate::api::API;
-use crate::api::Spot;
 use std::convert::TryInto;
+use crate::commons::errors::*;
+use crate::commons::util::build_request;
+use crate::rest::api::{API, Spot};
+use crate::rest::client::Client;
+use crate::rest::model::{
+    AggTrade, AveragePrice, BookTickers, KlineSummaries, KlineSummary, OrderBook, Prices,
+    PriceStats, SymbolPrice, Tickers,
+};
 
 #[derive(Clone)]
 pub struct Market {

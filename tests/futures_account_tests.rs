@@ -1,14 +1,14 @@
-use binance::api::*;
-use binance::config::*;
-use binance::futures::account::*;
+use binance::commons::config::Config;
+use binance::rest::api::Binance;
+use binance::rest::futures::account::{CustomOrderRequest, FuturesAccount, OrderType};
+use binance::rest::futures::model::{Order, Transaction};
+use binance::rest::spot::account::OrderSide;
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use mockito::{mock, Matcher};
     use float_cmp::*;
-    use binance::account::OrderSide;
-    use binance::futures::model::{Order, Transaction};
 
     #[test]
     fn change_initial_leverage() {

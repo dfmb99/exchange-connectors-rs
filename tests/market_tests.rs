@@ -1,7 +1,10 @@
-use binance::api::*;
-use binance::config::*;
-use binance::market::*;
-use binance::model::*;
+use binance::commons::config::Config;
+use binance::rest::api::Binance;
+use binance::rest::model::{Bids, KlineSummary, Prices};
+use binance::rest::spot::market::Market;
+use binance::rest::model::BookTickers::AllBookTickers;
+use binance::rest::model::KlineSummaries::AllKlineSummaries;
+use binance::rest::model::Prices::AllPrices;
 
 #[cfg(test)]
 mod tests {
@@ -59,7 +62,7 @@ mod tests {
         mock_get_all_prices.assert();
 
         match prices {
-            binance::model::Prices::AllPrices(symbols) => {
+            AllPrices(symbols) => {
                 assert!(!symbols.is_empty());
                 let first_symbol = symbols[0].clone();
                 assert_eq!(first_symbol.symbol, "LTCBTC");
@@ -121,7 +124,7 @@ mod tests {
         mock_get_all_book_tickers.assert();
 
         match book_tickers {
-            binance::model::BookTickers::AllBookTickers(tickers) => {
+            AllBookTickers(tickers) => {
                 assert!(!tickers.is_empty());
                 let first_ticker = tickers[0].clone();
                 assert_eq!(first_ticker.symbol, "LTCBTC");
@@ -314,7 +317,7 @@ mod tests {
         mock_get_klines.assert();
 
         match klines {
-            binance::model::KlineSummaries::AllKlineSummaries(klines) => {
+            AllKlineSummaries(klines) => {
                 assert!(!klines.is_empty());
                 let kline: KlineSummary = klines[0].clone();
 

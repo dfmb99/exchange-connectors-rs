@@ -5,21 +5,26 @@ use std::time::Duration;
 use log::{error};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
-use crate::account::{OrderSide, TimeInForce};
-use crate::api::{API, Futures};
-use crate::client::Client;
-use crate::config::Config;
-use crate::futures::account::{CustomOrderRequest, OrderType, OrderRequest};
-use crate::futures::interface_usdm_data::{UsdmConfig, UsdmData};
-use crate::futures::ws_usdm::WsInterface;
-use crate::errors::*;
-use crate::futures::model::{AccountBalance, AccountInformation, AggTrades, BookTickers, CanceledOrder, ChangeLeverageResponse, ComissionRate, ExchangeInformation, FundingRateHist, KlineSummaries, KlineSummary, LiquidationOrders, MarkPrices, OpenInterest, OpenInterestHist, Order, OrderBook, OrderUpdate, PositionRisk, PriceStats, Symbol, SymbolPrice, Tickers, Trades, Transaction};
-use crate::model::{
-    AggrTradesEvent, Empty, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder,
-    ServerTime,
+use crate::commons::errors::*;
+use crate::commons::config::Config;
+use crate::commons::util::{build_request, build_signed_request};
+use crate::interfaces::usdm_data::{UsdmConfig, UsdmData};
+use crate::rest::api::{API, Futures};
+use crate::rest::client::Client;
+use crate::rest::futures::account::{CustomOrderRequest, OrderRequest, OrderType};
+use crate::rest::futures::model::{
+    AccountBalance, AccountInformation, AggTrades, CanceledOrder, ChangeLeverageResponse,
+    ComissionRate, ExchangeInformation, FundingRateHist, LiquidationOrders, MarkPrices,
+    OpenInterest, OpenInterestHist, Order, OrderBook, OrderUpdate, PositionRisk, PriceStats,
+    Symbol, Trades, Transaction,
 };
-use crate::model::KlineSummaries::AllKlineSummaries;
-use crate::util::{build_request, build_signed_request};
+use crate::rest::spot::account::{OrderSide, TimeInForce};
+use crate::rest::model::{
+    AggrTradesEvent, BookTickers, Empty, EventBalance, EventPosition, IndexPriceEvent,
+    KlineSummaries, KlineSummary, ServerTime, SymbolPrice, Tickers, LiquidationOrder, Prices,
+};
+use crate::rest::model::KlineSummaries::AllKlineSummaries;
+use crate::websocket::futures::usdm::WsInterface;
 
 enum RequestType {
     Get,
@@ -58,12 +63,7 @@ impl UsdmInterface {
             symbol: symbol.to_owned(),
             api: client,
             recv_window: client_config.recv_window,
-            ws: WsInterface::new(
-                symbol.to_owned(),
-                api_key.to_owned(),
-                api_secret.to_owned(),
-                client_config,
-            ),
+            ws: WsInterface::new(symbol, api_key, api_secret, client_config),
             data: UsdmData::default(),
             config,
         };
@@ -75,7 +75,7 @@ impl UsdmInterface {
     fn wait_for_data(&self) {
         loop {
             let AllKlineSummaries(k_lines) = self.get_last_day_klines();
-            if !k_lines.is_empty()  {
+            if !k_lines.is_empty() {
                 break;
             }
             thread::yield_now();
@@ -247,7 +247,7 @@ impl UsdmInterface {
         let data: Vec<Vec<Value>> =
             self.api_request(Futures::Klines, RequestType::Get, Some(request))?;
 
-        let klines = KlineSummaries::AllKlineSummaries(
+        let klines = AllKlineSummaries(
             data.iter()
                 .map(|row| row.try_into())
                 .collect::<Result<Vec<KlineSummary>>>()?,
@@ -286,7 +286,7 @@ impl UsdmInterface {
     }
 
     /// Latest price for all symbols.
-    pub fn get_all_prices(&self) -> Result<crate::model::Prices> {
+    pub fn get_all_prices(&self) -> Result<Prices> {
         self.api_request(Futures::TickerPrice, RequestType::Get, None)
     }
 
@@ -361,24 +361,24 @@ impl UsdmInterface {
     pub fn funding_rate_history<S1, S2, S3, S4>(
         &self, symbol: S1, limit: S2, start_time: S3, end_time: S4,
     ) -> Result<Vec<FundingRateHist>>
-        where
-            S1: Into<Option<String>>,
-            S2: Into<Option<i32>>,
-            S3: Into<Option<i64>>,
-            S4: Into<Option<i64>>,
+    where
+        S1: Into<Option<String>>,
+        S2: Into<Option<i32>>,
+        S3: Into<Option<i64>>,
+        S4: Into<Option<i64>>,
     {
         let mut parameters: BTreeMap<String, String> = BTreeMap::new();
         if let Some(lt) = symbol.into() {
-            parameters.insert("symbol".into(), format!("{}", lt));
+            parameters.insert("symbol".into(), lt);
         }
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), lt.to_string());
         }
         if let Some(st) = start_time.into() {
-            parameters.insert("startTime".into(), format!("{}", st));
+            parameters.insert("startTime".into(), st.to_string());
         }
         if let Some(et) = end_time.into() {
-            parameters.insert("endTime".into(), format!("{}", et));
+            parameters.insert("endTime".into(), et.to_string());
         }
 
         let request = build_request(parameters);
@@ -387,8 +387,8 @@ impl UsdmInterface {
 
     /// Get comission rate
     pub fn get_comission_rate<S>(&self, symbol: S, timestamp: S) -> Result<ComissionRate>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters = BTreeMap::new();
         parameters.insert("symbol".into(), symbol.into());
@@ -399,7 +399,7 @@ impl UsdmInterface {
 
     /// Place limit buy order
     pub fn limit_buy(
-        &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64
+        &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64,
     ) -> Result<Transaction> {
         let buy = OrderRequest {
             symbol: symbol.into(),
@@ -424,7 +424,7 @@ impl UsdmInterface {
 
     /// Place limit sell order
     pub fn limit_sell(
-        &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64
+        &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64,
     ) -> Result<Transaction> {
         let sell = OrderRequest {
             symbol: symbol.into(),
@@ -735,8 +735,8 @@ impl UsdmInterface {
 
     /// Get an order
     pub fn get_order<S>(&self, symbol: S, order_id: u64) -> Result<Order>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters = BTreeMap::new();
         parameters.insert("symbol".into(), symbol.into());
@@ -816,20 +816,29 @@ impl UsdmInterface {
 
     /// Returns true of order is open, false otherwise
     pub fn is_open_orders_ws(&self, order_id: u64) -> bool {
-        let orders = self.get_open_orders_ws().into_iter().filter(|ord| ord.order_id == order_id).collect::<Vec<_>>();
-        orders.len() > 0
+        self.get_open_orders_ws()
+            .into_iter()
+            .filter(|ord| ord.order_id == order_id)
+            .count() >
+            0
     }
 
     /// Returns true if order is filled, false otherwise
     pub fn is_filled_orders_ws(&self, order_id: u64) -> bool {
-        let orders = self.get_filled_orders_ws().into_iter().filter(|ord| ord.order_id == order_id).collect::<Vec<_>>();
-        orders.len() > 0
+        self.get_filled_orders_ws()
+            .into_iter()
+            .filter(|ord| ord.order_id == order_id)
+            .count() >
+            0
     }
 
     /// Get canceled orders, false otherwise
     pub fn is_canceled_orders_ws(&self, order_id: u64) -> bool {
-        let orders = self.get_canceled_orders_ws().into_iter().filter(|ord| ord.order_id == order_id).collect::<Vec<_>>();
-        orders.len() > 0
+        self.get_canceled_orders_ws()
+            .into_iter()
+            .filter(|ord| ord.order_id == order_id)
+            .count() >
+            0
     }
 
     /// Get order
@@ -843,7 +852,7 @@ impl UsdmInterface {
     pub fn get_last_filled_order(&self) -> Option<OrderUpdate> {
         let filled_orders = self.ws.get_filled_orders();
         if !filled_orders.is_empty() {
-            return Some(filled_orders.get(0).unwrap().to_owned());
+            return Some(filled_orders[0].to_owned());
         }
         None
     }
@@ -852,7 +861,7 @@ impl UsdmInterface {
     pub fn get_last_canceled_order_ws(&self) -> Option<OrderUpdate> {
         let canceled_orders = self.ws.get_canceled_orders();
         if !canceled_orders.is_empty() {
-            return Some(canceled_orders.get(0).unwrap().to_owned());
+            return Some(canceled_orders[0].to_owned());
         }
         None
     }
@@ -861,7 +870,7 @@ impl UsdmInterface {
     pub fn get_last_open_order_ws(&self) -> Option<OrderUpdate> {
         let open_orders = self.ws.get_open_orders();
         if !open_orders.is_empty() {
-            return Some(open_orders.get(0).unwrap().to_owned());
+            return Some(open_orders[0].to_owned());
         }
         None
     }
@@ -919,9 +928,7 @@ impl UsdmInterface {
     ) -> Result<T> {
         let result: Result<T> = match req_type {
             RequestType::Get => self.api.get(API::Futures(endpoint), req.to_owned()),
-            RequestType::GetSigned => self
-                .api
-                .get_signed(API::Futures(endpoint), req.to_owned()),
+            RequestType::GetSigned => self.api.get_signed(API::Futures(endpoint), req.to_owned()),
             RequestType::PostSigned => self
                 .api
                 .post_signed(API::Futures(endpoint), req.to_owned().unwrap()),
@@ -930,22 +937,22 @@ impl UsdmInterface {
                 .delete_signed(API::Futures(endpoint), req.to_owned()),
         };
 
-        return if result.is_err() && self.config.retry_on_err {
+        if result.is_err() && self.config.retry_on_err {
             self.err_handler(endpoint, req_type, req, result)
         } else {
             result
-        };
+        }
     }
 
     fn err_handler<T: DeserializeOwned>(
         &self, endpoint: Futures, req_type: RequestType, req: Option<String>, result: Result<T>,
     ) -> Result<T> {
-        return match &result {
+        match &result {
             Err(Error(ErrorKind::BinanceError(err), ..)) => {
-                if err.msg == "Request occur unknown error."
-                    || err.msg == "Service Unavailable."
-                    || err.msg
-                        == "Internal error; unable to process your request. Please try again."
+                if err.msg == "Request occur unknown error." ||
+                    err.msg == "Service Unavailable." ||
+                    err.msg ==
+                        "Internal error; unable to process your request. Please try again."
                 {
                     thread::sleep(Duration::from_millis(self.config.retry_timeout));
                     return self.api_request(endpoint, req_type, req);
@@ -953,15 +960,19 @@ impl UsdmInterface {
                 result
             }
             _ => result,
-        };
+        }
     }
 }
 
 fn update_usdm_data(mut usdm_int: UsdmInterface) {
     thread::spawn(move || loop {
         match usdm_int.get_klines(usdm_int.symbol.to_owned(), "1m", 1440, None, None) {
-            Ok(kline_data) => { usdm_int.data.set_last_day_klines(kline_data); }
-            Err(err) => { error!("{:?}", err); }
+            Ok(kline_data) => {
+                usdm_int.data.set_last_day_klines(kline_data);
+            }
+            Err(err) => {
+                error!("{:?}", err);
+            }
         }
         thread::sleep(Duration::from_millis(usdm_int.config.rest_update_interval));
     });

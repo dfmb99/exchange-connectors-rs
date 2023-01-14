@@ -1,7 +1,7 @@
-use binance::config::Config;
-use binance::futures::ws_usdm::WsInterface;
 use dotenv::dotenv;
 use std::thread;
+use binance::commons::config::Config;
+use binance::websocket::futures::usdm::WsInterface;
 
 fn main() {
     dotenv().ok();
