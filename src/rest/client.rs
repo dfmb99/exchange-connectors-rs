@@ -22,7 +22,10 @@ impl Client {
             api_key: api_key.unwrap_or_else(|| "".into()),
             secret_key: secret_key.unwrap_or_else(|| "".into()),
             host,
-            inner_client: reqwest::blocking::Client::builder().build().unwrap(),
+            inner_client: reqwest::blocking::Client::builder()
+                .pool_idle_timeout(None)
+                .build()
+                .unwrap(),
         }
     }
 
