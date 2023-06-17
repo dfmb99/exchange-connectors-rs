@@ -969,11 +969,12 @@ fn update_usdm_data(mut usdm_int: UsdmInterface) {
         match usdm_int.get_klines(usdm_int.symbol.to_owned(), "1m", 1440, None, None) {
             Ok(kline_data) => {
                 usdm_int.data.set_last_day_klines(kline_data);
+                thread::sleep(Duration::from_millis(usdm_int.config.rest_update_interval));
             }
             Err(err) => {
                 error!("{:?}", err);
+                thread::sleep(Duration::from_millis(usdm_int.config.retry_timeout));
             }
         }
-        thread::sleep(Duration::from_millis(usdm_int.config.rest_update_interval));
     });
 }
