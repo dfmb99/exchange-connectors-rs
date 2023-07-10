@@ -50,10 +50,11 @@ impl WsInterface {
     }
 
     fn wait_for_data(&self) {
+        debug!("Waiting for data");
         while self.ws_data.get_mark_price_event().is_none() {
-            debug!("Waiting for data");
             thread::yield_now();
         }
+        debug!("Finished waiting for data");
     }
 
     /// Get mark price
