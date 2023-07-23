@@ -42,12 +42,12 @@ impl FuturesWebsocketAPI {
 
         match self {
             FuturesWebsocketAPI::Default => {
-                format!("{}/ws/{}", baseurl, subscription)
+                format!("{baseurl}/ws/{subscription}")
             }
             FuturesWebsocketAPI::MultiStream(url) => {
-                format!("{}/stream?streams={}", url, subscription)
+                format!("{url}/stream?streams={subscription}")
             }
-            FuturesWebsocketAPI::Custom(url) => format!("{}/ws/{}", url, subscription),
+            FuturesWebsocketAPI::Custom(url) => format!("{url}/ws/{subscription}"),
         }
     }
 }
@@ -145,7 +145,7 @@ impl<'a> FuturesWebSockets<'a> {
                 self.socket = Some(answer);
                 Ok(())
             }
-            Err(e) => bail!(format!("Error during handshake {}", e)),
+            Err(e) => bail!(format!("Error during handshake {e}")),
         }
     }
 
@@ -205,14 +205,14 @@ impl<'a> FuturesWebSockets<'a> {
                 match message {
                     Message::Text(msg) => {
                         if let Err(e) = self.handle_msg(&msg) {
-                            bail!(format!("Error on handling stream message: {}", e));
+                            bail!(format!("Error on handling stream message: {e}"));
                         }
                     }
                     Message::Ping(_) => {
                         socket.0.write_message(Message::Pong(vec![])).unwrap();
                     }
                     Message::Pong(_) | Message::Binary(_) => (),
-                    Message::Close(e) => bail!(format!("Disconnected {:?}", e)),
+                    Message::Close(e) => bail!(format!("Disconnected {e:?}")),
                     Message::Frame(_) => (),
                 }
             }

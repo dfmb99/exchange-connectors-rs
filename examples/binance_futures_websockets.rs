@@ -67,7 +67,7 @@ fn market_websocket() {
         //
         // in case an event comes in that doesn't properly serialize to
         // a FuturesWebsocketEvent, the web socket loop will keep running
-        println!("{:?}\n", event);
+        println!("{event:?}\n");
         keep_running.swap(false, Ordering::Relaxed);
 
         Ok(())
@@ -75,7 +75,7 @@ fn market_websocket() {
 
     // USD-M futures examples
     for stream_example in stream_examples_usd_m {
-        println!("Starting with USD_M {:?}", stream_example);
+        println!("Starting with USD_M {stream_example:?}");
         keep_running.swap(true, Ordering::Relaxed);
 
         let mut web_socket: FuturesWebSockets<'_> = FuturesWebSockets::new(callback_fn);
@@ -88,7 +88,7 @@ fn market_websocket() {
 
     // COIN-M futures examples
     for stream_example in stream_examples_coin_m {
-        println!("Starting with COIN_M {:?}", stream_example);
+        println!("Starting with COIN_M {stream_example:?}");
         keep_running.swap(true, Ordering::Relaxed);
 
         let mut web_socket: FuturesWebSockets<'_> = FuturesWebSockets::new(callback_fn);
@@ -120,7 +120,7 @@ fn get_trades_btc_usdt() {
 
     web_socket.connect(FuturesMarket::USDM, &agg_trade).unwrap(); // check error
     if let Err(e) = web_socket.event_loop(&keep_running) {
-        println!("Error: {}", e);
+        println!("Error: {e}");
     }
     web_socket.disconnect().unwrap();
     println!("disconnected");
@@ -196,7 +196,7 @@ fn btc_usdt_websocket() {
         .connect_multiple_streams(FuturesMarket::USDM, &stream_examples_btc_usdt, &config)
         .unwrap(); // check error
     if let Err(e) = web_socket.event_loop(&keep_running) {
-        println!("Error: {}", e);
+        println!("Error: {e}");
     }
     web_socket.disconnect().unwrap();
     println!("disconnected");

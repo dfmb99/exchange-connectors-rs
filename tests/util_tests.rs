@@ -38,7 +38,7 @@ mod tests {
 
         assert_eq!(
             result,
-            format!("recvWindow={}&timestamp={}", recv_window, timestamp)
+            format!("recvWindow={recv_window}&timestamp={timestamp}")
         );
     }
 

@@ -14,7 +14,7 @@ use crate::rest::client::Client;
 use crate::rest::futures::account::{CustomOrderRequest, OrderRequest, OrderType};
 use crate::rest::futures::model::{
     AccountBalance, AccountInformation, AggTrades, CanceledOrder, ChangeLeverageResponse,
-    ComissionRate, ExchangeInformation, FundingRateHist, LiquidationOrders, MarkPrices,
+    ComissionRate, ExchangeInformation, FundingRateHist, LiquidationOrders, MarkPrice,
     OpenInterest, OpenInterestHist, Order, OrderBook, OrderUpdate, PositionRisk, PriceStats,
     Symbol, Trades, Transaction,
 };
@@ -168,10 +168,10 @@ impl UsdmInterface {
 
         // Add three optional parameters
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), format!("{lt}"));
         }
         if let Some(fi) = from_id.into() {
-            parameters.insert("fromId".into(), format!("{}", fi));
+            parameters.insert("fromId".into(), format!("{fi}"));
         }
 
         let request = build_signed_request(parameters, self.recv_window)?;
@@ -199,16 +199,16 @@ impl UsdmInterface {
 
         // Add three optional parameters
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), format!("{lt}"));
         }
         if let Some(st) = start_time.into() {
-            parameters.insert("startTime".into(), format!("{}", st));
+            parameters.insert("startTime".into(), format!("{st}"));
         }
         if let Some(et) = end_time.into() {
-            parameters.insert("endTime".into(), format!("{}", et));
+            parameters.insert("endTime".into(), format!("{et}"));
         }
         if let Some(fi) = from_id.into() {
-            parameters.insert("fromId".into(), format!("{}", fi));
+            parameters.insert("fromId".into(), format!("{fi}"));
         }
 
         let request = build_request(parameters);
@@ -234,13 +234,13 @@ impl UsdmInterface {
 
         // Add three optional parameters
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), format!("{lt}"));
         }
         if let Some(st) = start_time.into() {
-            parameters.insert("startTime".into(), format!("{}", st));
+            parameters.insert("startTime".into(), format!("{st}"));
         }
         if let Some(et) = end_time.into() {
-            parameters.insert("endTime".into(), format!("{}", et));
+            parameters.insert("endTime".into(), format!("{et}"));
         }
 
         let request = build_request(parameters);
@@ -307,9 +307,16 @@ impl UsdmInterface {
         self.api_request(Futures::BookTicker, RequestType::Get, Some(request))
     }
 
-    /// Get mark prices
-    pub fn get_mark_prices(&self) -> Result<MarkPrices> {
-        self.api_request(Futures::PremiumIndex, RequestType::Get, None)
+    /// Get mark price
+    pub fn get_mark_price<S>(&self, symbol: S) -> Result<MarkPrice>
+    where
+        S: Into<String>,
+    {
+        let mut parameters: BTreeMap<String, String> = BTreeMap::new();
+        parameters.insert("symbol".into(), symbol.into());
+        let request = build_request(parameters);
+
+        self.api_request(Futures::PremiumIndex, RequestType::Get, Some(request))
     }
 
     /// Get all liquidation orders
@@ -344,13 +351,13 @@ impl UsdmInterface {
         parameters.insert("period".into(), period.into());
 
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), format!("{lt}"));
         }
         if let Some(st) = start_time.into() {
-            parameters.insert("startTime".into(), format!("{}", st));
+            parameters.insert("startTime".into(), format!("{st}"));
         }
         if let Some(et) = end_time.into() {
-            parameters.insert("endTime".into(), format!("{}", et));
+            parameters.insert("endTime".into(), format!("{et}"));
         }
 
         let request = build_request(parameters);

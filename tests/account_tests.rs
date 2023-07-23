@@ -448,7 +448,7 @@ mod tests {
             Ok(answer) => {
                 assert!(answer.order_id == 1);
             }
-            Err(e) => panic!("Error: {}", e),
+            Err(e) => panic!("Error: {e}"),
         }
 
         mock_market_buy_using_quote_quantity.assert();
@@ -552,7 +552,7 @@ mod tests {
             Ok(answer) => {
                 assert!(answer.order_id == 1);
             }
-            Err(e) => panic!("Error: {}", e),
+            Err(e) => panic!("Error: {e}"),
         }
 
         mock_market_sell_using_quote_quantity.assert();

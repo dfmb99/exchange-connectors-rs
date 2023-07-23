@@ -67,7 +67,7 @@ impl Client {
         let mut url: String = format!("{}{}", self.host, String::from(endpoint));
         if let Some(request) = request {
             if !request.is_empty() {
-                url.push_str(format!("?{}", request).as_str());
+                url.push_str(format!("?{request}").as_str());
             }
         }
 
@@ -91,7 +91,7 @@ impl Client {
 
     pub fn put<T: DeserializeOwned>(&self, endpoint: API, listen_key: &str) -> Result<T> {
         let url: String = format!("{}{}", self.host, String::from(endpoint));
-        let data: String = format!("listenKey={}", listen_key);
+        let data: String = format!("listenKey={listen_key}");
 
         let client = &self.inner_client;
         let response = client
@@ -105,7 +105,7 @@ impl Client {
 
     pub fn delete<T: DeserializeOwned>(&self, endpoint: API, listen_key: &str) -> Result<T> {
         let url: String = format!("{}{}", self.host, String::from(endpoint));
-        let data: String = format!("listenKey={}", listen_key);
+        let data: String = format!("listenKey={listen_key}");
 
         let client = &self.inner_client;
         let response = client
@@ -125,14 +125,14 @@ impl Client {
                     Hmac::<Sha256>::new_from_slice(self.secret_key.as_bytes()).unwrap();
                 signed_key.update(request.as_bytes());
                 let signature = hex_encode(signed_key.finalize().into_bytes());
-                let request_body: String = format!("{}&signature={}", request, signature);
+                let request_body: String = format!("{request}&signature={signature}");
                 format!("{}{}?{}", self.host, String::from(endpoint), request_body)
             }
             None => {
                 let signed_key =
                     Hmac::<Sha256>::new_from_slice(self.secret_key.as_bytes()).unwrap();
                 let signature = hex_encode(signed_key.finalize().into_bytes());
-                let request_body: String = format!("&signature={}", signature);
+                let request_body: String = format!("&signature={signature}");
                 format!("{}{}?{}", self.host, String::from(endpoint), request_body)
             }
         }
@@ -180,7 +180,7 @@ impl Client {
                 Err(ErrorKind::BinanceError(error).into())
             }
             s => {
-                bail!(format!("Received response: {:?}", s));
+                bail!(format!("Received response: {s:?}"));
             }
         }
     }

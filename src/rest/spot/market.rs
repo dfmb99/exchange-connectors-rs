@@ -122,16 +122,16 @@ impl Market {
 
         // Add three optional parameters
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), format!("{lt}"));
         }
         if let Some(st) = start_time.into() {
-            parameters.insert("startTime".into(), format!("{}", st));
+            parameters.insert("startTime".into(), format!("{st}"));
         }
         if let Some(et) = end_time.into() {
-            parameters.insert("endTime".into(), format!("{}", et));
+            parameters.insert("endTime".into(), format!("{et}"));
         }
         if let Some(fi) = from_id.into() {
-            parameters.insert("fromId".into(), format!("{}", fi));
+            parameters.insert("fromId".into(), format!("{fi}"));
         }
 
         let request = build_request(parameters);
@@ -158,13 +158,13 @@ impl Market {
 
         // Add three optional parameters
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), format!("{lt}"));
         }
         if let Some(st) = start_time.into() {
-            parameters.insert("startTime".into(), format!("{}", st));
+            parameters.insert("startTime".into(), format!("{st}"));
         }
         if let Some(et) = end_time.into() {
-            parameters.insert("endTime".into(), format!("{}", et));
+            parameters.insert("endTime".into(), format!("{et}"));
         }
 
         let request = build_request(parameters);

@@ -39,7 +39,7 @@ fn save_all_trades_websocket() {
             // You can break the event_loop if some condition is met be setting keep_running to false
             // keep_running.store(false, Ordering::Relaxed);
             if let Err(error) = web_socket_handler.write_to_file(events) {
-                println!("{}", error);
+                println!("{error}");
             }
         }
 
@@ -48,6 +48,6 @@ fn save_all_trades_websocket() {
 
     web_socket.connect(&agg_trade).unwrap(); // check error
     if let Err(e) = web_socket.event_loop(&keep_running) {
-        println!("Error: {}", e);
+        println!("Error: {e}");
     }
 }

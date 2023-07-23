@@ -240,7 +240,7 @@ mod tests {
         "rp": "0" }"#;
         let v: OrderUpdate = serde_json::from_str(json).unwrap();
         let ws_data = WsData::default();
-        ws_data.add_order(v.to_owned());
+        ws_data.add_order(v);
         assert_eq!(ws_data.get_open_orders().len(), 1);
         assert_eq!(ws_data.get_filled_orders().len(), 0);
         assert_eq!(ws_data.get_canceled_orders().len(), 0);
@@ -280,7 +280,7 @@ mod tests {
         "ss": 0,
         "rp": "0"}"#;
         let v: OrderUpdate = serde_json::from_str(json).unwrap();
-        ws_data.add_order(v.to_owned());
+        ws_data.add_order(v);
         assert_eq!(ws_data.get_open_orders().len(), 0);
         assert_eq!(ws_data.get_filled_orders().len(), 1);
         assert_eq!(ws_data.get_canceled_orders().len(), 0);
@@ -320,7 +320,7 @@ mod tests {
         "ss": 0,
         "rp": "0" }"#;
         let v: OrderUpdate = serde_json::from_str(json).unwrap();
-        ws_data.add_order(v.to_owned());
+        ws_data.add_order(v);
         assert_eq!(ws_data.get_open_orders().len(), 0);
         assert_eq!(ws_data.get_filled_orders().len(), 1);
         assert_eq!(ws_data.get_canceled_orders().len(), 1);
