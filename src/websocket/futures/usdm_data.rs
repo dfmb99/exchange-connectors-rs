@@ -173,7 +173,7 @@ fn insert_order_index_map(
     mut index_map: RwLockWriteGuard<IndexMap<u64, OrderUpdate>>, order_id: u64, order: OrderUpdate,
 ) {
     if index_map.insert(order_id, order).is_none() && index_map.len() == DATA_SIZE + 1 {
-        index_map.pop();
+        index_map.shift_remove_index(0);
     }
 }
 
@@ -479,5 +479,62 @@ mod tests {
         }
         assert!(inserts > DATA_SIZE);
         assert_eq!(ws_data.get_aggr_trades().len(), DATA_SIZE);
+    }
+
+    #[test]
+    fn test_max_data_size_index_map() {
+        let json = r#"{
+        "s": "BTCUSDT",
+        "c": "web_HWhZes7Aql5iv5R6dEaa",
+        "S": "BUY",
+        "o": "LIMIT",
+        "f": "GTC",
+        "q": "0.010",
+        "p": "15000",
+        "ap": "0",
+        "sp": "0",
+        "x": "NEW",
+        "X": "NEW",
+        "i": 3252769662,
+        "l": "0",
+        "z": "0",
+        "L": "0",
+        "N": "",
+        "n": "",
+        "T": 1668814069559,
+        "t": 0,
+        "b": "150",
+        "a": "0",
+        "m": false,
+        "R": false,
+        "wt": "CONTRACT_PRICE",
+        "ot": "LIMIT",
+        "ps": "LONG",
+        "cp": false,
+        "AP": "0",
+        "cr": "",
+        "pP": false,
+        "si": 0,
+        "ss": 0,
+        "rp": "0" }"#;
+        let v: OrderUpdate = serde_json::from_str(json).unwrap();
+        let ws_data = WsData::default();
+        let mut inserts: usize = 0;
+        for _ in 0..=DATA_SIZE * 2 {
+            let mut v2 = v.clone();
+            v2.order_id = v2.order_id + inserts as u64;
+            ws_data.add_order(v2);
+            inserts += 1;
+        }
+        assert!(inserts > DATA_SIZE);
+        assert_eq!(ws_data.get_open_orders().len(), DATA_SIZE);
+        assert_eq!(
+            ws_data
+                .get_open_orders()
+                .get(ws_data.get_open_orders().len() - 1)
+                .unwrap()
+                .order_id,
+            v.order_id + inserts as u64 - 1
+        );
     }
 }
