@@ -966,6 +966,10 @@ impl UsdmInterface {
                 }
                 result
             }
+            Err(Error(ErrorKind::ReqError(_), ..)) => {
+                thread::sleep(Duration::from_millis(self.config.retry_timeout));
+                self.api_request(endpoint, req_type, req)
+            }
             _ => result,
         }
     }
