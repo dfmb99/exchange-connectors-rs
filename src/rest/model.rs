@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{from_value, Value};
 use std::convert::TryFrom;
-use crate::errors::{Error, ErrorKind, Result};
+use crate::commons::errors::{Error, ErrorKind, Result};
 
 #[derive(Deserialize, Clone)]
 pub struct Empty {}
@@ -1307,7 +1307,7 @@ pub(crate) mod string_or_float_opt {
         S: Serializer,
     {
         match value {
-            Some(v) => crate::model::string_or_float::serialize(v, serializer),
+            Some(v) => super::string_or_float::serialize(v, serializer),
             None => serializer.serialize_none(),
         }
     }
@@ -1323,9 +1323,7 @@ pub(crate) mod string_or_float_opt {
             Float(f64),
         }
 
-        Ok(Some(crate::model::string_or_float::deserialize(
-            deserializer,
-        )?))
+        Ok(Some(super::string_or_float::deserialize(deserializer)?))
     }
 }
 
@@ -1421,6 +1419,6 @@ fn test_account_update_event() {
 
     let res = r#"AccountUpdateEvent { event_type: "ACCOUNT_UPDATE", event_time: 1564745798939, data: AccountUpdateDataEvent { reason: "ORDER", balances: [EventBalance { asset: "USDT", wallet_balance: "122624.12345678", cross_wallet_balance: "100.12345678", balance_change: "50.12345678" }, EventBalance { asset: "BUSD", wallet_balance: "1.00000000", cross_wallet_balance: "0.00000000", balance_change: "-49.12345678" }], positions: [EventPosition { symbol: "BTCUSDT", position_amount: "0", entry_price: "0.00000", accumulated_realized: "200", unrealized_pnl: "0", margin_type: "isolated", isolated_wallet: "0.00000000", position_side: "BOTH" }, EventPosition { symbol: "BTCUSDT", position_amount: "20", entry_price: "6563.66500", accumulated_realized: "0", unrealized_pnl: "2850.21200", margin_type: "isolated", isolated_wallet: "13200.70726908", position_side: "LONG" }, EventPosition { symbol: "BTCUSDT", position_amount: "-10", entry_price: "6563.86000", accumulated_realized: "-45.04000000", unrealized_pnl: "-1423.15600", margin_type: "isolated", isolated_wallet: "6570.42511771", position_side: "SHORT" }] } }"#;
     let v: AccountUpdateEvent = serde_json::from_str(json).unwrap();
-    assert_eq!(format!("{:?}", v), res);
+    assert_eq!(format!("{v:?}"), res);
     //let event =  from_value::<AccountUpdateEvent>(json).unwrap();
 }

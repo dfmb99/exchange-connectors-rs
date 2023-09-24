@@ -20,20 +20,18 @@
 - [ ] `Taker Buy/Sell Volume (MARKET_DATA)`
 */
 
-use crate::util::*;
-use crate::futures::model::*;
-use crate::client::*;
-use crate::errors::*;
 use std::collections::BTreeMap;
 use serde_json::Value;
-use crate::api::API;
-use crate::api::Futures;
 use std::convert::TryInto;
-
-// TODO
-// Make enums for Strings
-// Add limit parameters to functions
-// Implement all functions
+use crate::commons::errors::*;
+use crate::commons::util::{build_request, build_signed_request};
+use crate::rest::api::{API, Futures};
+use crate::rest::client::Client;
+use crate::rest::futures::model::{
+    AggTrades, FundingRateHist, LiquidationOrders, MarkPrices, OpenInterest, OpenInterestHist,
+    OrderBook, PriceStats, Trades,
+};
+use crate::rest::model::{BookTickers, KlineSummaries, KlineSummary, Prices, SymbolPrice, Tickers};
 
 #[derive(Clone)]
 pub struct FuturesMarket {
@@ -79,7 +77,6 @@ impl FuturesMarket {
             .get(API::Futures(Futures::Trades), Some(request))
     }
 
-    // TODO This may be incomplete, as it hasn't been tested
     pub fn get_historical_trades<S1, S2, S3>(
         &self, symbol: S1, from_id: S2, limit: S3,
     ) -> Result<Trades>
@@ -94,10 +91,10 @@ impl FuturesMarket {
 
         // Add three optional parameters
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), lt.to_string());
         }
         if let Some(fi) = from_id.into() {
-            parameters.insert("fromId".into(), format!("{}", fi));
+            parameters.insert("fromId".into(), fi.to_string());
         }
 
         let request = build_signed_request(parameters, self.recv_window)?;
@@ -122,16 +119,16 @@ impl FuturesMarket {
 
         // Add three optional parameters
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), lt.to_string());
         }
         if let Some(st) = start_time.into() {
-            parameters.insert("startTime".into(), format!("{}", st));
+            parameters.insert("startTime".into(), st.to_string());
         }
         if let Some(et) = end_time.into() {
-            parameters.insert("endTime".into(), format!("{}", et));
+            parameters.insert("endTime".into(), et.to_string());
         }
         if let Some(fi) = from_id.into() {
-            parameters.insert("fromId".into(), format!("{}", fi));
+            parameters.insert("fromId".into(), fi.to_string());
         }
 
         let request = build_request(parameters);
@@ -159,13 +156,13 @@ impl FuturesMarket {
 
         // Add three optional parameters
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), lt.to_string());
         }
         if let Some(st) = start_time.into() {
-            parameters.insert("startTime".into(), format!("{}", st));
+            parameters.insert("startTime".into(), st.to_string());
         }
         if let Some(et) = end_time.into() {
-            parameters.insert("endTime".into(), format!("{}", et));
+            parameters.insert("endTime".into(), et.to_string());
         }
 
         let request = build_request(parameters);
@@ -217,7 +214,7 @@ impl FuturesMarket {
     }
 
     // Latest price for all symbols.
-    pub fn get_all_prices(&self) -> Result<crate::model::Prices> {
+    pub fn get_all_prices(&self) -> Result<Prices> {
         self.client.get(API::Futures(Futures::TickerPrice), None)
     }
 
@@ -273,17 +270,45 @@ impl FuturesMarket {
         parameters.insert("period".into(), period.into());
 
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), lt.to_string());
         }
         if let Some(st) = start_time.into() {
-            parameters.insert("startTime".into(), format!("{}", st));
+            parameters.insert("startTime".into(), st.to_string());
         }
         if let Some(et) = end_time.into() {
-            parameters.insert("endTime".into(), format!("{}", et));
+            parameters.insert("endTime".into(), et.to_string());
         }
 
         let request = build_request(parameters);
         self.client
             .get(API::Futures(Futures::OpenInterestHist), Some(request))
+    }
+
+    pub fn funding_rate_history<S1, S2, S3, S4>(
+        &self, symbol: S1, limit: S2, start_time: S3, end_time: S4,
+    ) -> Result<Vec<FundingRateHist>>
+    where
+        S1: Into<Option<String>>,
+        S2: Into<Option<i32>>,
+        S3: Into<Option<i64>>,
+        S4: Into<Option<i64>>,
+    {
+        let mut parameters: BTreeMap<String, String> = BTreeMap::new();
+        if let Some(lt) = symbol.into() {
+            parameters.insert("symbol".into(), lt);
+        }
+        if let Some(lt) = limit.into() {
+            parameters.insert("limit".into(), lt.to_string());
+        }
+        if let Some(st) = start_time.into() {
+            parameters.insert("startTime".into(), st.to_string());
+        }
+        if let Some(et) = end_time.into() {
+            parameters.insert("endTime".into(), et.to_string());
+        }
+
+        let request = build_request(parameters);
+        self.client
+            .get(API::Futures(Futures::FundingRate), Some(request))
     }
 }

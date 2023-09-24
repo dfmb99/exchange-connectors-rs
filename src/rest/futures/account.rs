@@ -1,13 +1,13 @@
 use std::collections::BTreeMap;
 use std::fmt::Display;
 
-use crate::util::*;
-use crate::errors::*;
-use crate::client::Client;
-use crate::api::{API, Futures};
-use crate::model::Empty;
-use crate::account::{OrderSide, TimeInForce};
-use crate::futures::model::Order;
+use crate::commons::errors::*;
+use crate::commons::util::build_signed_request;
+use crate::rest::api::{API, Futures};
+use crate::rest::client::Client;
+use crate::rest::futures::model::{ComissionRate, Order};
+use crate::rest::model::Empty;
+use crate::rest::spot::account::{OrderSide, TimeInForce};
 use super::model::{
     ChangeLeverageResponse, Transaction, CanceledOrder, PositionRisk, AccountBalance,
     AccountInformation,
@@ -460,15 +460,16 @@ impl FuturesAccount {
     }
 
     pub fn get_order<S>(&self, symbol: S, order_id: u64) -> Result<Order>
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let mut parameters = BTreeMap::new();
         parameters.insert("symbol".into(), symbol.into());
         parameters.insert("orderId".into(), order_id.to_string());
 
         let request = build_signed_request(parameters, self.recv_window)?;
-        self.client.get_signed(API::Futures(Futures::Order), Some(request))
+        self.client
+            .get_signed(API::Futures(Futures::Order), Some(request))
     }
 
     pub fn get_all_open_orders<S>(&self, symbol: S) -> Result<Vec<Order>>
@@ -480,5 +481,17 @@ impl FuturesAccount {
         let request = build_signed_request(parameters, self.recv_window)?;
         self.client
             .get_signed(API::Futures(Futures::OpenOrders), Some(request))
+    }
+
+    pub fn get_comission_rate<S>(&self, symbol: S, timestamp: S) -> Result<ComissionRate>
+    where
+        S: Into<String>,
+    {
+        let mut parameters = BTreeMap::new();
+        parameters.insert("symbol".into(), symbol.into());
+        parameters.insert("timestamp".into(), timestamp.into());
+        let request = build_signed_request(parameters, self.recv_window)?;
+        self.client
+            .get_signed(API::Futures(Futures::ComissionRate), Some(request))
     }
 }

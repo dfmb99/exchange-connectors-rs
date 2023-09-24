@@ -1,7 +1,7 @@
-use binance::api::*;
-use binance::userstream::*;
-use binance::websockets::*;
 use std::sync::atomic::{AtomicBool, Ordering};
+use binance::rest::api::Binance;
+use binance::websocket::spot::userstream::UserStream;
+use binance::websocket::spot::{WebsocketEvent, WebSockets};
 
 fn main() {
     //user_stream();
@@ -22,13 +22,13 @@ fn user_stream() {
         let listen_key = answer.listen_key;
 
         match user_stream.keep_alive(&listen_key) {
-            Ok(msg) => println!("Keepalive user data stream: {:?}", msg),
-            Err(e) => println!("Error: {}", e),
+            Ok(msg) => println!("Keepalive user data stream: {msg:?}"),
+            Err(e) => println!("Error: {e}"),
         }
 
         match user_stream.close(&listen_key) {
-            Ok(msg) => println!("Close user data stream: {:?}", msg),
-            Err(e) => println!("Error: {}", e),
+            Ok(msg) => println!("Close user data stream: {msg:?}"),
+            Err(e) => println!("Error: {e}"),
         }
     } else {
         println!("Not able to start an User Stream (Check your API_KEY)");
@@ -70,7 +70,7 @@ fn user_stream_websocket() {
 
         web_socket.connect(&listen_key).unwrap(); // check error
         if let Err(e) = web_socket.event_loop(&keep_running) {
-            println!("Error: {}", e);
+            println!("Error: {e}");
         }
         user_stream.close(&listen_key).unwrap();
         web_socket.disconnect().unwrap();
@@ -111,7 +111,7 @@ fn market_websocket() {
 
     web_socket.connect(&agg_trade).unwrap(); // check error
     if let Err(e) = web_socket.event_loop(&keep_running) {
-        println!("Error: {}", e);
+        println!("Error: {e}");
     }
     web_socket.disconnect().unwrap();
     println!("disconnected");
@@ -135,7 +135,7 @@ fn all_trades_websocket() {
 
     web_socket.connect(&agg_trade).unwrap(); // check error
     if let Err(e) = web_socket.event_loop(&keep_running) {
-        println!("Error: {}", e);
+        println!("Error: {e}");
     }
     web_socket.disconnect().unwrap();
     println!("disconnected");
@@ -157,7 +157,7 @@ fn kline_websocket() {
 
     web_socket.connect(&kline).unwrap(); // check error
     if let Err(e) = web_socket.event_loop(&keep_running) {
-        println!("Error: {}", e);
+        println!("Error: {e}");
     }
     web_socket.disconnect().unwrap();
     println!("disconnected");
@@ -172,7 +172,7 @@ fn last_price_for_one_symbol() {
         if let WebsocketEvent::DayTicker(ticker_event) = event {
             btcusdt = ticker_event.average_price.parse().unwrap();
             let btcusdt_close: f32 = ticker_event.current_close.parse().unwrap();
-            println!("{} - {}", btcusdt, btcusdt_close);
+            println!("{btcusdt} - {btcusdt_close}");
 
             if btcusdt_close as i32 == 7000 {
                 // Break the event loop
@@ -185,7 +185,7 @@ fn last_price_for_one_symbol() {
 
     web_socket.connect(&agg_trade).unwrap(); // check error
     if let Err(e) = web_socket.event_loop(&keep_running) {
-        println!("Error: {}", e);
+        println!("Error: {e}");
     }
     web_socket.disconnect().unwrap();
     println!("disconnected");
@@ -205,7 +205,7 @@ fn multiple_streams() {
     let keep_running = AtomicBool::new(true);
     let mut web_socket: WebSockets<'_> = WebSockets::new(|event: WebsocketEvent| {
         if let WebsocketEvent::DepthOrderBook(depth_order_book) = event {
-            println!("{:?}", depth_order_book);
+            println!("{depth_order_book:?}");
         }
 
         Ok(())
@@ -213,7 +213,7 @@ fn multiple_streams() {
 
     web_socket.connect_multiple_streams(&endpoints).unwrap(); // check error
     if let Err(e) = web_socket.event_loop(&keep_running) {
-        println!("Error: {}", e);
+        println!("Error: {e}");
     }
     web_socket.disconnect().unwrap();
 }

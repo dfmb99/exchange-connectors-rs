@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
-use crate::model::{string_or_float, string_or_float_opt, string_or_bool};
+use crate::rest::model::{string_or_float, string_or_float_opt, string_or_bool};
 
-pub use crate::model::{
+pub use crate::rest::model::{
     Asks, Bids, BookTickers, Filters, KlineSummaries, KlineSummary, RateLimit, ServerTime,
     SymbolPrice, Tickers,
 };
@@ -179,6 +179,14 @@ pub struct OpenInterestHist {
     pub sum_open_interest: String,
     pub sum_open_interest_value: String,
     pub timestamp: u64,
+}
+
+#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct FundingRateHist {
+    pub symbol: String,
+    pub funding_rate: String,
+    pub funding_time: i64,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -456,6 +464,13 @@ pub struct ChangeLeverageResponse {
     #[serde(with = "string_or_float")]
     pub max_notional_value: f64,
     pub symbol: String,
+}
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ComissionRate {
+    pub symbol: String,
+    pub maker_commission_rate: String,
+    pub taker_commission_rate: String,
 }
 
 fn default_stop_price() -> f64 {

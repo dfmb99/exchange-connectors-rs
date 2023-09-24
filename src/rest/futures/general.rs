@@ -1,30 +1,30 @@
-use crate::model::*;
-use crate::client::*;
-use crate::errors::*;
-use crate::api::API;
-use crate::api::Spot;
+use crate::commons::errors::*;
+use crate::rest::api::{API, Futures};
+use crate::rest::client::Client;
+use crate::rest::futures::model::{ExchangeInformation, Symbol};
+use crate::rest::model::ServerTime;
 
 #[derive(Clone)]
-pub struct General {
+pub struct FuturesGeneral {
     pub client: Client,
 }
 
-impl General {
+impl FuturesGeneral {
     // Test connectivity
     pub fn ping(&self) -> Result<String> {
-        self.client.get::<Empty>(API::Spot(Spot::Ping), None)?;
+        self.client.get(API::Futures(Futures::Ping), None)?;
         Ok("pong".into())
     }
 
     // Check server time
     pub fn get_server_time(&self) -> Result<ServerTime> {
-        self.client.get(API::Spot(Spot::Time), None)
+        self.client.get(API::Futures(Futures::Time), None)
     }
 
     // Obtain exchange information
     // - Current exchange trading rules and symbol information
     pub fn exchange_info(&self) -> Result<ExchangeInformation> {
-        self.client.get(API::Spot(Spot::ExchangeInfo), None)
+        self.client.get(API::Futures(Futures::ExchangeInfo), None)
     }
 
     // Get Symbol information

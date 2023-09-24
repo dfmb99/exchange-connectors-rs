@@ -1,12 +1,14 @@
-use crate::util::*;
-use crate::model::*;
-use crate::client::*;
-use crate::errors::*;
 use std::collections::BTreeMap;
 use serde_json::Value;
-use crate::api::API;
-use crate::api::Spot;
 use std::convert::TryInto;
+use crate::commons::errors::*;
+use crate::commons::util::build_request;
+use crate::rest::api::{API, Spot};
+use crate::rest::client::Client;
+use crate::rest::model::{
+    AggTrade, AveragePrice, BookTickers, KlineSummaries, KlineSummary, OrderBook, Prices,
+    PriceStats, SymbolPrice, Tickers,
+};
 
 #[derive(Clone)]
 pub struct Market {
@@ -120,16 +122,16 @@ impl Market {
 
         // Add three optional parameters
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), format!("{lt}"));
         }
         if let Some(st) = start_time.into() {
-            parameters.insert("startTime".into(), format!("{}", st));
+            parameters.insert("startTime".into(), format!("{st}"));
         }
         if let Some(et) = end_time.into() {
-            parameters.insert("endTime".into(), format!("{}", et));
+            parameters.insert("endTime".into(), format!("{et}"));
         }
         if let Some(fi) = from_id.into() {
-            parameters.insert("fromId".into(), format!("{}", fi));
+            parameters.insert("fromId".into(), format!("{fi}"));
         }
 
         let request = build_request(parameters);
@@ -156,13 +158,13 @@ impl Market {
 
         // Add three optional parameters
         if let Some(lt) = limit.into() {
-            parameters.insert("limit".into(), format!("{}", lt));
+            parameters.insert("limit".into(), format!("{lt}"));
         }
         if let Some(st) = start_time.into() {
-            parameters.insert("startTime".into(), format!("{}", st));
+            parameters.insert("startTime".into(), format!("{st}"));
         }
         if let Some(et) = end_time.into() {
-            parameters.insert("endTime".into(), format!("{}", et));
+            parameters.insert("endTime".into(), format!("{et}"));
         }
 
         let request = build_request(parameters);

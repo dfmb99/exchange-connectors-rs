@@ -1,8 +1,10 @@
 use std::collections::VecDeque;
 use indexmap::IndexMap;
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
-use crate::futures::model::OrderUpdate;
-use crate::model::{AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder};
+use crate::rest::futures::model::{OrderUpdate};
+use crate::rest::model::{
+    AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder,
+};
 
 type MarkPriceWs = Arc<RwLock<Option<IndexPriceEvent>>>;
 type MarkPriceSnapsWs = Arc<RwLock<VecDeque<IndexPriceEvent>>>;
@@ -14,7 +16,7 @@ type OrdersWs = Arc<RwLock<IndexMap<u64, OrderUpdate>>>;
 
 const DATA_SIZE: usize = 1000;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct WsData {
     mark_price: MarkPriceWs,
     mark_price_snaps: MarkPriceSnapsWs,
@@ -27,22 +29,8 @@ pub struct WsData {
     canceled_orders: OrdersWs,
 }
 
-impl WsData {
-    pub fn default() -> WsData {
-        WsData {
-            mark_price: Arc::new(RwLock::new(None)),
-            mark_price_snaps: Arc::new(RwLock::new(VecDeque::with_capacity(DATA_SIZE))),
-            aggr_trades: Arc::new(RwLock::new(VecDeque::with_capacity(DATA_SIZE))),
-            liquidations: Arc::new(RwLock::new(VecDeque::with_capacity(DATA_SIZE))),
-            position: Arc::new(RwLock::new(None)),
-            balance: Arc::new(RwLock::new(None)),
-            filled_orders: Arc::new(RwLock::new(IndexMap::with_capacity(DATA_SIZE))),
-            open_orders: Arc::new(RwLock::new(IndexMap::with_capacity(DATA_SIZE))),
-            canceled_orders: Arc::new(RwLock::new(IndexMap::with_capacity(DATA_SIZE))),
-        }
-    }
-
-    pub fn clone(&self) -> WsData {
+impl Clone for WsData {
+    fn clone(&self) -> WsData {
         WsData {
             mark_price: Arc::clone(&self.mark_price),
             mark_price_snaps: Arc::clone(&self.mark_price_snaps),
@@ -55,7 +43,25 @@ impl WsData {
             canceled_orders: Arc::clone(&self.canceled_orders),
         }
     }
+}
 
+impl Default for WsData {
+    fn default() -> WsData {
+        WsData {
+            mark_price: Arc::new(RwLock::new(None)),
+            mark_price_snaps: Arc::new(RwLock::new(VecDeque::with_capacity(DATA_SIZE))),
+            aggr_trades: Arc::new(RwLock::new(VecDeque::with_capacity(DATA_SIZE))),
+            liquidations: Arc::new(RwLock::new(VecDeque::with_capacity(DATA_SIZE))),
+            position: Arc::new(RwLock::new(None)),
+            balance: Arc::new(RwLock::new(None)),
+            filled_orders: Arc::new(RwLock::new(IndexMap::with_capacity(DATA_SIZE))),
+            open_orders: Arc::new(RwLock::new(IndexMap::with_capacity(DATA_SIZE))),
+            canceled_orders: Arc::new(RwLock::new(IndexMap::with_capacity(DATA_SIZE))),
+        }
+    }
+}
+
+impl WsData {
     pub fn get_mark_price_event(&self) -> Option<IndexPriceEvent> {
         self.mark_price.read().unwrap().clone()
     }
@@ -146,7 +152,7 @@ impl WsData {
     }
 
     pub fn add_order(&self, order: OrderUpdate) {
-        let order_id = order.clone().order_id;
+        let order_id = order.order_id;
         let order_status = order.clone().order_status;
 
         if order_status == "NEW" {
@@ -167,7 +173,7 @@ fn insert_order_index_map(
     mut index_map: RwLockWriteGuard<IndexMap<u64, OrderUpdate>>, order_id: u64, order: OrderUpdate,
 ) {
     if index_map.insert(order_id, order).is_none() && index_map.len() == DATA_SIZE + 1 {
-        index_map.pop();
+        index_map.shift_remove_index(0);
     }
 }
 
@@ -188,16 +194,13 @@ fn get_order(
     index_map: RwLockReadGuard<IndexMap<u64, OrderUpdate>>, order_id: u64,
 ) -> Option<OrderUpdate> {
     let result: Option<&OrderUpdate> = index_map.get(&order_id);
-    return match result {
-        None => None,
-        Some(order) => Some(order.clone()),
-    };
+    result.cloned()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{AccountUpdateEvent, LiquidationEvent};
+    use crate::rest::model::{AccountUpdateEvent, LiquidationEvent};
 
     #[test]
     fn test_order_update() {
@@ -237,7 +240,7 @@ mod tests {
         "rp": "0" }"#;
         let v: OrderUpdate = serde_json::from_str(json).unwrap();
         let ws_data = WsData::default();
-        ws_data.add_order(v.to_owned());
+        ws_data.add_order(v);
         assert_eq!(ws_data.get_open_orders().len(), 1);
         assert_eq!(ws_data.get_filled_orders().len(), 0);
         assert_eq!(ws_data.get_canceled_orders().len(), 0);
@@ -277,7 +280,7 @@ mod tests {
         "ss": 0,
         "rp": "0"}"#;
         let v: OrderUpdate = serde_json::from_str(json).unwrap();
-        ws_data.add_order(v.to_owned());
+        ws_data.add_order(v);
         assert_eq!(ws_data.get_open_orders().len(), 0);
         assert_eq!(ws_data.get_filled_orders().len(), 1);
         assert_eq!(ws_data.get_canceled_orders().len(), 0);
@@ -317,7 +320,7 @@ mod tests {
         "ss": 0,
         "rp": "0" }"#;
         let v: OrderUpdate = serde_json::from_str(json).unwrap();
-        ws_data.add_order(v.to_owned());
+        ws_data.add_order(v);
         assert_eq!(ws_data.get_open_orders().len(), 0);
         assert_eq!(ws_data.get_filled_orders().len(), 1);
         assert_eq!(ws_data.get_canceled_orders().len(), 1);
@@ -476,5 +479,62 @@ mod tests {
         }
         assert!(inserts > DATA_SIZE);
         assert_eq!(ws_data.get_aggr_trades().len(), DATA_SIZE);
+    }
+
+    #[test]
+    fn test_max_data_size_index_map() {
+        let json = r#"{
+        "s": "BTCUSDT",
+        "c": "web_HWhZes7Aql5iv5R6dEaa",
+        "S": "BUY",
+        "o": "LIMIT",
+        "f": "GTC",
+        "q": "0.010",
+        "p": "15000",
+        "ap": "0",
+        "sp": "0",
+        "x": "NEW",
+        "X": "NEW",
+        "i": 3252769662,
+        "l": "0",
+        "z": "0",
+        "L": "0",
+        "N": "",
+        "n": "",
+        "T": 1668814069559,
+        "t": 0,
+        "b": "150",
+        "a": "0",
+        "m": false,
+        "R": false,
+        "wt": "CONTRACT_PRICE",
+        "ot": "LIMIT",
+        "ps": "LONG",
+        "cp": false,
+        "AP": "0",
+        "cr": "",
+        "pP": false,
+        "si": 0,
+        "ss": 0,
+        "rp": "0" }"#;
+        let v: OrderUpdate = serde_json::from_str(json).unwrap();
+        let ws_data = WsData::default();
+        let mut inserts: usize = 0;
+        for _ in 0..=DATA_SIZE * 2 {
+            let mut v2 = v.clone();
+            v2.order_id = v2.order_id + inserts as u64;
+            ws_data.add_order(v2);
+            inserts += 1;
+        }
+        assert!(inserts > DATA_SIZE);
+        assert_eq!(ws_data.get_open_orders().len(), DATA_SIZE);
+        assert_eq!(
+            ws_data
+                .get_open_orders()
+                .get(ws_data.get_open_orders().len() - 1)
+                .unwrap()
+                .order_id,
+            v.order_id + inserts as u64 - 1
+        );
     }
 }

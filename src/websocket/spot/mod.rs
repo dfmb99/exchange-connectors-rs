@@ -1,15 +1,19 @@
-use crate::errors::*;
-use crate::config::*;
-use crate::model::*;
 use url::Url;
 use serde::{Deserialize, Serialize};
-
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::net::TcpStream;
 use tungstenite::{connect, Message};
 use tungstenite::protocol::WebSocket;
 use tungstenite::stream::MaybeTlsStream;
 use tungstenite::handshake::client::Response;
+use crate::commons::config::Config;
+use crate::commons::errors::*;
+use crate::rest::model::{
+    AccountUpdateEvent, AggrTradesEvent, BalanceUpdateEvent, BookTickerEvent, DayTickerEvent,
+    DepthOrderBookEvent, KlineEvent, OrderBook, OrderTradeEvent, TradeEvent,
+};
+
+pub mod userstream;
 
 #[allow(clippy::all)]
 enum WebsocketAPI {
@@ -21,12 +25,11 @@ enum WebsocketAPI {
 impl WebsocketAPI {
     fn params(self, subscription: &str) -> String {
         match self {
-            WebsocketAPI::Default => format!("wss://stream.binance.com:9443/ws/{}", subscription),
-            WebsocketAPI::MultiStream => format!(
-                "wss://stream.binance.com:9443/stream?streams={}",
-                subscription
-            ),
-            WebsocketAPI::Custom(url) => format!("{}/{}", url, subscription),
+            WebsocketAPI::Default => format!("wss://stream.binance.com:9443/ws/{subscription}"),
+            WebsocketAPI::MultiStream => {
+                format!("wss://stream.binance.com:9443/stream?streams={subscription}")
+            }
+            WebsocketAPI::Custom(url) => format!("{url}/{subscription}"),
         }
     }
 }
@@ -98,7 +101,7 @@ impl<'a> WebSockets<'a> {
                 self.socket = Some(answer);
                 Ok(())
             }
-            Err(e) => bail!(format!("Error during handshake {}", e)),
+            Err(e) => bail!(format!("Error during handshake {e}")),
         }
     }
 
@@ -148,14 +151,15 @@ impl<'a> WebSockets<'a> {
                 match message {
                     Message::Text(msg) => {
                         if let Err(e) = self.handle_msg(&msg) {
-                            bail!(format!("Error on handling stream message: {}", e));
+                            bail!(format!("Error on handling stream message: {e}"));
                         }
                     }
                     Message::Ping(_) => {
                         socket.0.write_message(Message::Pong(vec![])).unwrap();
                     }
                     Message::Pong(_) | Message::Binary(_) => (),
-                    Message::Close(e) => bail!(format!("Disconnected {:?}", e)),
+                    Message::Close(e) => bail!(format!("Disconnected {e:?}")),
+                    Message::Frame(_) => (),
                 }
             }
         }

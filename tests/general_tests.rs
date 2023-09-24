@@ -1,7 +1,7 @@
-use binance::api::*;
-use binance::config::*;
-use binance::general::*;
-use binance::model::*;
+use binance::commons::config::Config;
+use binance::rest::api::Binance;
+use binance::rest::model::Filters;
+use binance::rest::spot::general::General;
 
 #[cfg(test)]
 mod tests {

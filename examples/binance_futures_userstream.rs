@@ -1,8 +1,8 @@
 use std::sync::atomic::AtomicBool;
-use binance::api::*;
-use binance::config::Config;
-use binance::futures::userstream::*;
-use binance::futures::websockets::{FuturesMarket, FuturesWebsocketEvent, FuturesWebSockets};
+use binance::commons::config::Config;
+use binance::rest::api::Binance;
+use binance::websocket::futures::{FuturesMarket, FuturesWebsocketEvent, FuturesWebSockets};
+use binance::websocket::futures::userstream::FuturesUserStream;
 
 fn main() {
     //user_stream();
@@ -18,13 +18,13 @@ fn user_stream() {
         let listen_key = answer.listen_key;
 
         match user_stream.keep_alive(&listen_key) {
-            Ok(msg) => println!("Keepalive user data stream: {:?}", msg),
-            Err(e) => println!("Error: {}", e),
+            Ok(msg) => println!("Keepalive user data stream: {msg:?}"),
+            Err(e) => println!("Error: {e}"),
         }
 
         match user_stream.close(&listen_key) {
-            Ok(msg) => println!("Close user data stream: {:?}", msg),
-            Err(e) => println!("Error: {}", e),
+            Ok(msg) => println!("Close user data stream: {msg:?}"),
+            Err(e) => println!("Error: {e}"),
         }
     } else {
         println!("Not able to start an User Stream (Check your API_KEY)");
@@ -51,14 +51,14 @@ fn user_stream_websocket() {
                 match event {
                     FuturesWebsocketEvent::AccountUpdate(account_update) => {
                         for balance in &account_update.data.balances {
-                            println!("{:?}", balance);
+                            println!("{balance:?}");
                         }
                         for positions in &account_update.data.positions {
-                            println!("{:?}", positions);
+                            println!("{positions:?}");
                         }
                     }
                     FuturesWebsocketEvent::OrderTrade(trade) => {
-                        println!("{:?}", trade);
+                        println!("{trade:?}");
                     }
                     _ => (),
                 };
@@ -70,7 +70,7 @@ fn user_stream_websocket() {
             .connect_with_config(FuturesMarket::USDM, &listen_key, &config)
             .unwrap(); // check error
         if let Err(e) = web_socket.event_loop(&keep_running) {
-            println!("Error: {}", e);
+            println!("Error: {e}");
         }
         user_stream.close(&listen_key).unwrap();
         web_socket.disconnect().unwrap();

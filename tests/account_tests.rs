@@ -1,7 +1,7 @@
-use binance::api::*;
-use binance::config::*;
-use binance::account::*;
-use binance::model::*;
+use binance::commons::config::Config;
+use binance::rest::api::Binance;
+use binance::rest::model::{Order, OrderCanceled, Transaction, TradeHistory};
+use binance::rest::spot::account::{Account, OrderSide, OrderType, TimeInForce};
 
 #[cfg(test)]
 mod tests {
@@ -448,7 +448,7 @@ mod tests {
             Ok(answer) => {
                 assert!(answer.order_id == 1);
             }
-            Err(e) => panic!("Error: {}", e),
+            Err(e) => panic!("Error: {e}"),
         }
 
         mock_market_buy_using_quote_quantity.assert();
@@ -552,7 +552,7 @@ mod tests {
             Ok(answer) => {
                 assert!(answer.order_id == 1);
             }
-            Err(e) => panic!("Error: {}", e),
+            Err(e) => panic!("Error: {e}"),
         }
 
         mock_market_sell_using_quote_quantity.assert();

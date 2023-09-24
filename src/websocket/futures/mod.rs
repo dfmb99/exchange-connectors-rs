@@ -1,7 +1,3 @@
-use crate::errors::*;
-use crate::config::*;
-use crate::model::*;
-use crate::futures::model;
 use url::Url;
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -10,6 +6,19 @@ use tungstenite::{connect, Message};
 use tungstenite::protocol::WebSocket;
 use tungstenite::stream::MaybeTlsStream;
 use tungstenite::handshake::client::Response;
+use crate::commons::config::Config;
+use crate::commons::errors::*;
+use crate::rest::futures::model::{OrderBook, OrderTradeEvent};
+use crate::rest::model::{
+    AccountUpdateEvent, AggrTradesEvent, BookTickerEvent, ContinuousKlineEvent, DayTickerEvent,
+    DepthOrderBookEvent, IndexKlineEvent, IndexPriceEvent, KlineEvent, LiquidationEvent,
+    MarkPriceEvent, MiniTickerEvent, TradeEvent, UserDataStreamExpiredEvent,
+};
+
+pub mod usdm;
+pub mod usdm_data;
+pub mod userstream;
+
 #[allow(clippy::all)]
 enum FuturesWebsocketAPI {
     Default,
@@ -33,12 +42,12 @@ impl FuturesWebsocketAPI {
 
         match self {
             FuturesWebsocketAPI::Default => {
-                format!("{}/ws/{}", baseurl, subscription)
+                format!("{baseurl}/ws/{subscription}")
             }
             FuturesWebsocketAPI::MultiStream(url) => {
-                format!("{}/stream?streams={}", url, subscription)
+                format!("{url}/stream?streams={subscription}")
             }
-            FuturesWebsocketAPI::Custom(url) => format!("{}/ws/{}", url, subscription),
+            FuturesWebsocketAPI::Custom(url) => format!("{url}/ws/{subscription}"),
         }
     }
 }
@@ -47,7 +56,7 @@ impl FuturesWebsocketAPI {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum FuturesWebsocketEvent {
     AccountUpdate(AccountUpdateEvent),
-    OrderTrade(model::OrderTradeEvent),
+    OrderTrade(OrderTradeEvent),
     AggrTrades(AggrTradesEvent),
     Trade(TradeEvent),
     OrderBook(OrderBook),
@@ -81,7 +90,7 @@ enum FuturesEvents {
     MiniTickerEvent(MiniTickerEvent),
     VecMiniTickerEvent(Vec<MiniTickerEvent>),
     AccountUpdateEvent(AccountUpdateEvent),
-    OrderTradeEvent(model::OrderTradeEvent),
+    OrderTradeEvent(OrderTradeEvent),
     AggrTradesEvent(AggrTradesEvent),
     IndexPriceEvent(IndexPriceEvent),
     MarkPriceEvent(MarkPriceEvent),
@@ -136,7 +145,7 @@ impl<'a> FuturesWebSockets<'a> {
                 self.socket = Some(answer);
                 Ok(())
             }
-            Err(e) => bail!(format!("Error during handshake {}", e)),
+            Err(e) => bail!(format!("Error during handshake {e}")),
         }
     }
 
@@ -196,14 +205,15 @@ impl<'a> FuturesWebSockets<'a> {
                 match message {
                     Message::Text(msg) => {
                         if let Err(e) = self.handle_msg(&msg) {
-                            bail!(format!("Error on handling stream message: {}", e));
+                            bail!(format!("Error on handling stream message: {e}"));
                         }
                     }
                     Message::Ping(_) => {
                         socket.0.write_message(Message::Pong(vec![])).unwrap();
                     }
                     Message::Pong(_) | Message::Binary(_) => (),
-                    Message::Close(e) => bail!(format!("Disconnected {:?}", e)),
+                    Message::Close(e) => bail!(format!("Disconnected {e:?}")),
+                    Message::Frame(_) => (),
                 }
             }
         }
