@@ -14,7 +14,7 @@ use crate::rest::client::Client;
 use crate::rest::futures::account::{CustomOrderRequest, OrderRequest, OrderType};
 use crate::rest::futures::model::{
     AccountBalance, AccountInformation, AggTrades, CanceledOrder, ChangeLeverageResponse,
-    ComissionRate, ExchangeInformation, FundingRateHist, LiquidationOrders, MarkPrice,
+    ComissionRate, ExchangeInformation, FundingRateHist, LiquidationOrders, MarkPrice, MarkPrices,
     OpenInterest, OpenInterestHist, Order, OrderBook, OrderUpdate, PositionRisk, PriceStats,
     Symbol, Trades, Transaction,
 };
@@ -305,6 +305,11 @@ impl UsdmInterface {
         parameters.insert("symbol".into(), symbol.into());
         let request = build_request(parameters);
         self.api_request(Futures::BookTicker, RequestType::Get, Some(request))
+    }
+
+    /// Get mark prices
+    pub fn get_mark_prices(&self) -> Result<MarkPrices> {
+        self.api_request(Futures::PremiumIndex, RequestType::Get, None)
     }
 
     /// Get mark price
