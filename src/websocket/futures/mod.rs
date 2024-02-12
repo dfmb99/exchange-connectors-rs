@@ -2,6 +2,7 @@ use url::Url;
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::net::TcpStream;
+use std::time::{Duration, Instant};
 use tungstenite::{connect, Message};
 use tungstenite::protocol::WebSocket;
 use tungstenite::stream::MaybeTlsStream;
@@ -199,8 +200,13 @@ impl<'a> FuturesWebSockets<'a> {
     }
 
     pub fn event_loop(&mut self, running: &AtomicBool) -> Result<()> {
+        let start_time = Instant::now();
         while running.load(Ordering::Relaxed) {
             if let Some(ref mut socket) = self.socket {
+                if Instant::now().duration_since(start_time) >= Duration::from_secs(8 * 3600) {
+                    socket.0.close(None)?;
+                    break;
+                }
                 let message = socket.0.read_message()?;
                 match message {
                     Message::Text(msg) => {
