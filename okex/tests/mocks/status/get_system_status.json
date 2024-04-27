@@ -1,0 +1,17 @@
+{
+  "code": "0",
+  "data": [
+    {
+      "begin": "1672823400000",
+      "end": "1672823520000",
+      "href": "",
+      "preOpenBegin": "",
+      "scheDesc": "",
+      "serviceType": "8",
+      "state": "completed",
+      "system": "unified",
+      "title": "Trading account system upgrade (in batches of accounts)"
+    }
+  ],
+  "msg": ""
+}

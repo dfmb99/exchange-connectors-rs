@@ -1,0 +1,10 @@
+{
+  "code": "0",
+  "msg": "",
+  "data": [
+    {
+      "instId": "BTC-USDT-SWAP",
+      "posSide": "long"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "code": "0",
+  "data": [
+    {
+      "details": [
+        {
+          "bkLoss": "0",
+          "bkPx": "",
+          "ccy": "USDT",
+          "posSide": "",
+          "side": "",
+          "sz": "989.9123170781309932",
+          "ts": "1629962347000"
+        },
+        {
+          "bkLoss": "0",
+          "bkPx": "",
+          "ccy": "USDT",
+          "posSide": "",
+          "side": "",
+          "sz": "10.1066764750370217",
+          "ts": "1629961447000"
+        }
+      ],
+      "instId": "BTC-USDT",
+      "instType": "MARGIN",
+      "totalLoss": "0",
+      "uly": ""
+    }
+  ],
+  "msg": ""
+}
