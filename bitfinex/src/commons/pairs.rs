@@ -1,0 +1,51 @@
+pub static BTCUSD: &str = "tBTCUSD";
+pub static LTCUSD: &str = "tLTCUSD";
+pub static LTCBTC: &str = "tLTCBTC";
+pub static ETHUSD: &str = "tETHUSD";
+pub static ETHBTC: &str = "tETHBTC";
+pub static ETCUSD: &str = "tETCUSD";
+pub static ETCBTC: &str = "tETCBTC";
+pub static BFXUSD: &str = "tBFXUSD";
+pub static BFXBTC: &str = "tBFXBTC";
+pub static ZECUSD: &str = "tZECUSD";
+pub static ZECBTC: &str = "tZECBTC";
+pub static XMRUSD: &str = "tXMRUSD";
+pub static XMRBTC: &str = "tXMRBTC";
+pub static RRTUSD: &str = "tRRTUSD";
+pub static RRTBTC: &str = "tRRTBTC";
+pub static XRPUSD: &str = "tXRPUSD";
+pub static XRPBTC: &str = "tXRPBTC";
+pub static EOSETH: &str = "tEOSETH";
+pub static EOSUSD: &str = "tEOSUSD";
+pub static EOSBTC: &str = "tEOSBTC";
+pub static IOTUSD: &str = "tIOTUSD";
+pub static IOTBTC: &str = "tIOTBTC";
+pub static IOTETH: &str = "tIOTETH";
+pub static IOTEUR: &str = "tIOTEUR";
+pub static BCCBTC: &str = "tBCCBTC";
+pub static BCUBTC: &str = "tBCUBTC";
+pub static BCCUSD: &str = "tBCCUSD";
+pub static BCUUSD: &str = "tBCUUSD";
+pub static GNTETH: &str = "tGNTETH";
+pub static GNTUSD: &str = "tGNTUSD";
+pub static GNTBTC: &str = "tGNTBTC";
+pub static SANETH: &str = "tSANETH";
+pub static SANUSD: &str = "tSANUSD";
+pub static SANBTC: &str = "tSANBTC";
+pub static AVTETH: &str = "tAVTETH";
+pub static AVTUSD: &str = "tAVTUSD";
+pub static AVTBTC: &str = "tAVTBTC";
+pub static QASHETH: &str = "tQASHETH";
+pub static QASHUSD: &str = "tQASHUSD";
+pub static QASHBTC: &str = "tQASHBTC";
+
+// Derivatives
+pub static BTCPERP: &str = "tBTCF0:USTF0";
+pub static ETHPERP: &str = "tETHF0:USTF0";
+pub static DOGEPERP: &str = "tDOGEF0:USTF0";
+
+// TESTNET
+pub static TESTUSDT: &str = "TESTUSDT";
+pub static FTESTUSDT: &str = "fTESTUSDT";
+pub static TESTBTCUSDT: &str = "tTESTBTC:TESTUSDT";
+pub static TESTBTCPERP: &str = "tTESTBTCF0:TESTUSDTF0";
