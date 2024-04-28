@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub enum InstType {
     #[serde(rename = "SPOT")]
     Spot,
@@ -18,13 +18,8 @@ pub enum InstType {
     #[serde(rename = "MARGIN")]
     Margin,
     #[serde(rename = "")]
+    #[default]
     Empty,
-}
-
-impl Default for InstType {
-    fn default() -> Self {
-        InstType::Empty
-    }
 }
 
 impl Display for InstType {
@@ -40,7 +35,7 @@ impl Display for InstType {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub enum TradeMode {
     #[serde(rename = "cross")]
     Cross,
@@ -49,13 +44,8 @@ pub enum TradeMode {
     #[serde(rename = "cash")]
     Cash,
     #[serde(rename = "")]
+    #[default]
     Empty,
-}
-
-impl Default for TradeMode {
-    fn default() -> Self {
-        TradeMode::Empty
-    }
 }
 
 impl Display for TradeMode {
@@ -69,18 +59,13 @@ impl Display for TradeMode {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub enum Side {
     #[serde(rename = "buy")]
+    #[default]
     Buy,
     #[serde(rename = "sell")]
     Sell,
-}
-
-impl Default for Side {
-    fn default() -> Self {
-        Side::Buy
-    }
 }
 
 impl Display for Side {
@@ -92,20 +77,15 @@ impl Display for Side {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub enum PosSide {
     #[serde(rename = "net")]
+    #[default]
     Net,
     #[serde(rename = "long")]
     Long,
     #[serde(rename = "short")]
     Short,
-}
-
-impl Default for PosSide {
-    fn default() -> Self {
-        PosSide::Net
-    }
 }
 
 impl Display for PosSide {
@@ -118,9 +98,10 @@ impl Display for PosSide {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub enum OrdType {
     #[serde(rename = "market")]
+    #[default]
     Market,
     #[serde(rename = "limit")]
     Limit,
@@ -132,12 +113,6 @@ pub enum OrdType {
     ImmediateOrCancel,
     #[serde(rename = "optimal_limit_ioc")]
     OptimalImmediateOrCancel,
-}
-
-impl Default for OrdType {
-    fn default() -> Self {
-        OrdType::Market
-    }
 }
 
 impl Display for OrdType {
@@ -153,20 +128,15 @@ impl Display for OrdType {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub enum TriggerPriceType {
     #[serde(rename = "last")]
+    #[default]
     Last,
     #[serde(rename = "index")]
     Index,
     #[serde(rename = "mark")]
     Mark,
-}
-
-impl Default for TriggerPriceType {
-    fn default() -> Self {
-        TriggerPriceType::Last
-    }
 }
 
 impl Display for TriggerPriceType {
@@ -179,7 +149,7 @@ impl Display for TriggerPriceType {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub enum OrdState {
     #[serde(rename = "canceled")]
     Canceled,
@@ -192,13 +162,8 @@ pub enum OrdState {
     #[serde(rename = "unfilled")]
     Unfilled,
     #[serde(rename = "")]
+    #[default]
     Empty,
-}
-
-impl Default for OrdState {
-    fn default() -> Self {
-        OrdState::Empty
-    }
 }
 
 impl Display for OrdState {
@@ -214,7 +179,7 @@ impl Display for OrdState {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub enum OrdCategory {
     #[serde(rename = "normal")]
     Normal,
@@ -231,13 +196,8 @@ pub enum OrdCategory {
     #[serde(rename = "ddh")]
     Ddh,
     #[serde(rename = "")]
+    #[default]
     Empty,
-}
-
-impl Default for OrdCategory {
-    fn default() -> Self {
-        OrdCategory::Empty
-    }
 }
 
 impl Display for OrdCategory {
@@ -255,7 +215,7 @@ impl Display for OrdCategory {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub enum QuickMgnType {
     #[serde(rename = "manual")]
     Manual,
@@ -264,13 +224,8 @@ pub enum QuickMgnType {
     #[serde(rename = "auto_repay")]
     AutoRepay,
     #[serde(rename = "")]
+    #[default]
     Empty,
-}
-
-impl Default for QuickMgnType {
-    fn default() -> Self {
-        QuickMgnType::Empty
-    }
 }
 
 impl Display for QuickMgnType {
@@ -284,20 +239,15 @@ impl Display for QuickMgnType {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub enum ExecType {
     #[serde(rename = "T")]
     Taker,
     #[serde(rename = "M")]
     Maker,
     #[serde(rename = "")]
+    #[default]
     Empty,
-}
-
-impl Default for ExecType {
-    fn default() -> Self {
-        ExecType::Empty
-    }
 }
 
 impl Display for ExecType {
@@ -310,7 +260,7 @@ impl Display for ExecType {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub enum Alias {
     #[serde(rename = "this_week")]
     ThisWeek,
@@ -321,13 +271,8 @@ pub enum Alias {
     #[serde(rename = "next_quarter")]
     NextQuarter,
     #[serde(rename = "")]
+    #[default]
     Empty,
-}
-
-impl Default for Alias {
-    fn default() -> Self {
-        Alias::Empty
-    }
 }
 
 impl Display for Alias {

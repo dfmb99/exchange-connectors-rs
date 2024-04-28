@@ -98,7 +98,7 @@ impl BitmexWs {
                     serde_json::from_value(json!(instrument_data)).unwrap();
                 update_ticker_snaps(
                     inst_snaps.to_owned(),
-                    instrument_data.get(0).unwrap().to_owned(),
+                    instrument_data.first().unwrap().to_owned(),
                 );
                 drop(data);
             }
@@ -796,7 +796,7 @@ mod tests {
             .await;
             assert_eq!(result.len(), LEN_TRADE_BUCKETED);
             let start_time = result
-                .get(0)
+                .first()
                 .unwrap()
                 .get("timestamp")
                 .unwrap()

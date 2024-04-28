@@ -198,12 +198,10 @@ impl WebSockets {
 
     #[allow(dead_code)]
     fn format_symbol(&mut self, symbol: String, et: EventType) -> String {
-        let local_symbol = match et {
+        match et {
             EventType::Funding => format!("f{}", symbol),
             EventType::Trading => format!("t{}", symbol),
-        };
-
-        local_symbol
+        }
     }
 
     pub fn event_loop(&mut self) -> Result<()> {

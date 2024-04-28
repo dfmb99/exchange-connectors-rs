@@ -68,22 +68,22 @@ impl BitmexInterface {
 
     /// Gets fair price
     pub fn get_fair_price(&self) -> f64 {
-        self.ws.get_instrument().get(0).unwrap().mark_price
+        self.ws.get_instrument().first().unwrap().mark_price
     }
 
     /// Gets current mid price
     pub fn get_mid_price(&self) -> f64 {
-        self.ws.get_instrument().get(0).unwrap().mid_price
+        self.ws.get_instrument().first().unwrap().mid_price
     }
 
     /// Gets current ask price
     pub fn get_ask_price(&self) -> f64 {
-        self.ws.get_instrument().get(0).unwrap().ask_price
+        self.ws.get_instrument().first().unwrap().ask_price
     }
 
     /// Gets current bid price
     pub fn get_bid_price(&self) -> f64 {
-        self.ws.get_instrument().get(0).unwrap().bid_price
+        self.ws.get_instrument().first().unwrap().bid_price
     }
 
     /// Gets L2 orderbook size for specific price
@@ -93,7 +93,7 @@ impl BitmexInterface {
 
     /// Gets tick size of instrument
     pub fn get_tick_size(&self) -> f64 {
-        self.ws.get_instrument().get(0).unwrap().tick_size
+        self.ws.get_instrument().first().unwrap().tick_size
     }
 
     /// Gets margin balance XBT
@@ -118,12 +118,12 @@ impl BitmexInterface {
 
     /// Gets position
     pub fn get_position_ws(&self) -> Option<Position> {
-        self.ws.get_position().get(0).cloned()
+        self.ws.get_position().first().cloned()
     }
 
     /// Gets margin balance
     pub fn get_position_qty(&self) -> i64 {
-        if let Some(position) = self.ws.get_position().get(0) {
+        if let Some(position) = self.ws.get_position().first() {
             return position.current_qty;
         }
         0_i64
@@ -131,7 +131,7 @@ impl BitmexInterface {
 
     /// Gets position entry
     pub fn get_position_entry(&self) -> f64 {
-        if let Some(position) = self.ws.get_position().get(0) {
+        if let Some(position) = self.ws.get_position().first() {
             return position.avg_entry_price;
         }
         0.0
@@ -140,12 +140,13 @@ impl BitmexInterface {
     /// Get mark delta for current instrument
     pub fn get_mark_delta(&self) -> f64 {
         let instrument = self.ws.get_instrument();
-        if instrument.get(0).unwrap().is_inverse {
-            -(instrument.get(0).unwrap().multiplier as f64 / instrument.get(0).unwrap().mark_price)
+        if instrument.first().unwrap().is_inverse {
+            -(instrument.first().unwrap().multiplier as f64
+                / instrument.first().unwrap().mark_price)
                 * self.get_position_qty() as f64
         } else {
-            instrument.get(0).unwrap().multiplier as f64
-                * instrument.get(0).unwrap().mark_price
+            instrument.first().unwrap().multiplier as f64
+                * instrument.first().unwrap().mark_price
                 * self.get_position_qty() as f64
         }
     }
@@ -179,7 +180,7 @@ impl BitmexInterface {
         if let Ok(data) = res {
             let orders: Vec<Order> = serde_json::from_value(data).unwrap();
             if !orders.is_empty() {
-                return Some(orders.get(0).unwrap().to_owned());
+                return Some(orders.first().unwrap().to_owned());
             }
         }
         None
@@ -197,7 +198,7 @@ impl BitmexInterface {
             .filter(|ord| ord.order_id == order_id)
             .collect();
         if !orders.is_empty() {
-            return Some(orders.get(0).unwrap().to_owned());
+            return Some(orders.first().unwrap().to_owned());
         }
         None
     }
