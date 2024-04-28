@@ -1,5 +1,5 @@
+use crate::rest::model::{string_or_bool, string_or_float, string_or_float_opt};
 use serde::{Deserialize, Serialize};
-use crate::rest::model::{string_or_float, string_or_float_opt, string_or_bool};
 
 pub use crate::rest::model::{
     Asks, Bids, BookTickers, Filters, KlineSummaries, KlineSummary, RateLimit, ServerTime,

@@ -1,5 +1,5 @@
 use crate::commons::errors::*;
-use crate::rest::api::{API, Spot};
+use crate::rest::api::{Spot, API};
 use crate::rest::client::Client;
 use crate::rest::model::{Success, UserDataStream};
 

@@ -1,13 +1,13 @@
 use crate::commons::client::Client;
 use crate::commons::errors::*;
 use crate::commons::utils::{Alias, InstType, OrdState, TradeMode};
-use crate::rest::api::{API, ApiResponse};
 use crate::rest::api::PublicData::{
     GetDeliveryHist, GetDiscountRate, GetEstimatedDeliveryPrice, GetFundingRate,
     GetFundingRateHist, GetInstruments, GetInsuranceFund, GetInterestRate, GetLimitPrice,
-    GetLiquidationOrders, GetMarkPrice, GetOpenInterest, GetOptionsMarketData, GetOptionTrades,
+    GetLiquidationOrders, GetMarkPrice, GetOpenInterest, GetOptionTrades, GetOptionsMarketData,
     GetPositionTiers, GetSystemTime, GetUnderlying, UnitConvert,
 };
+use crate::rest::api::{ApiResponse, API};
 use crate::serde::{Deserialize, Serialize};
 
 #[derive(Clone)]
@@ -919,7 +919,8 @@ pub struct OptionTradesResponse {
 impl PublicData {
     /// Retrieve a list of instruments with open contracts.
     pub fn get_instruments(
-        &self, params: &InstrumentsParams,
+        &self,
+        params: &InstrumentsParams,
     ) -> Result<ApiResponse<Vec<InstrumentsResponse>>> {
         let tickers: ApiResponse<Vec<InstrumentsResponse>> = self
             .client
@@ -930,7 +931,8 @@ impl PublicData {
 
     /// Retrieve delivery records of Futures and exercise records of Options in the last 3 months.
     pub fn get_delivery_hist(
-        &self, params: &DeliveryHistParams,
+        &self,
+        params: &DeliveryHistParams,
     ) -> Result<ApiResponse<Vec<DeliveryHistResponse>>> {
         let delivery_hist: ApiResponse<Vec<DeliveryHistResponse>> = self
             .client
@@ -941,7 +943,8 @@ impl PublicData {
 
     /// Retrieve the total open interest for contracts on OKX.
     pub fn get_open_interest(
-        &self, params: &OpenInterestParams,
+        &self,
+        params: &OpenInterestParams,
     ) -> Result<ApiResponse<Vec<OpenInterestResponse>>> {
         let open_interest: ApiResponse<Vec<OpenInterestResponse>> = self
             .client
@@ -952,7 +955,8 @@ impl PublicData {
 
     /// Retrieve funding rate.
     pub fn get_funding_rate(
-        &self, params: &FundingRateParams,
+        &self,
+        params: &FundingRateParams,
     ) -> Result<ApiResponse<Vec<FundingRateResponse>>> {
         let funding_rate: ApiResponse<Vec<FundingRateResponse>> = self
             .client
@@ -963,7 +967,8 @@ impl PublicData {
 
     /// Retrieve funding rate history. This endpoint can retrieve data from the last 3 months.
     pub fn get_funding_rate_hist(
-        &self, params: &FundingRateHistParams,
+        &self,
+        params: &FundingRateHistParams,
     ) -> Result<ApiResponse<Vec<FundingRateHistResponse>>> {
         let funding_rate: ApiResponse<Vec<FundingRateHistResponse>> = self
             .client
@@ -974,7 +979,8 @@ impl PublicData {
 
     /// Retrieve the highest buy limit and lowest sell limit of the instrument.
     pub fn get_limit_price(
-        &self, params: &LimitPriceParams,
+        &self,
+        params: &LimitPriceParams,
     ) -> Result<ApiResponse<Vec<LimitPriceResponse>>> {
         let limit_price: ApiResponse<Vec<LimitPriceResponse>> = self
             .client
@@ -985,7 +991,8 @@ impl PublicData {
 
     /// Retrieve option market data.
     pub fn get_option_market_data(
-        &self, params: &OptionMarketDataParams,
+        &self,
+        params: &OptionMarketDataParams,
     ) -> Result<ApiResponse<Vec<OptionMarketDataResponse>>> {
         let option_data: ApiResponse<Vec<OptionMarketDataResponse>> = self.client.get(
             API::PublicData(GetOptionsMarketData),
@@ -997,7 +1004,8 @@ impl PublicData {
 
     /// Retrieve the estimated delivery price which will only have a return value one hour before the delivery/exercise.
     pub fn get_estimated_delivery_price(
-        &self, params: &EstimatedDeliveryPriceParams,
+        &self,
+        params: &EstimatedDeliveryPriceParams,
     ) -> Result<ApiResponse<Vec<EstimatedDeliveryPriceResponse>>> {
         let delivery_price: ApiResponse<Vec<EstimatedDeliveryPriceResponse>> = self.client.get(
             API::PublicData(GetEstimatedDeliveryPrice),
@@ -1009,7 +1017,8 @@ impl PublicData {
 
     /// Retrieve discount rate level and interest-free quota.
     pub fn get_discount_rate(
-        &self, params: &DiscountRateParams,
+        &self,
+        params: &DiscountRateParams,
     ) -> Result<ApiResponse<Vec<DiscountRateResponse>>> {
         let discount_rate: ApiResponse<Vec<DiscountRateResponse>> = self
             .client
@@ -1028,7 +1037,8 @@ impl PublicData {
 
     /// Retrieve information on liquidation orders in the last day.
     pub fn get_liquidation_orders(
-        &self, params: &LiquidationOrdersParams,
+        &self,
+        params: &LiquidationOrdersParams,
     ) -> Result<ApiResponse<Vec<LiquidationOrdersResponse>>> {
         let liquidations: ApiResponse<Vec<LiquidationOrdersResponse>> = self.client.get(
             API::PublicData(GetLiquidationOrders),
@@ -1041,7 +1051,8 @@ impl PublicData {
     /// Retrieve mark price.
     /// We set the mark price based on the SPOT index and at a reasonable basis to prevent individual users from manipulating the market and causing the contract price to fluctuate.
     pub fn get_mark_price(
-        &self, params: &MarkPriceParams,
+        &self,
+        params: &MarkPriceParams,
     ) -> Result<ApiResponse<Vec<MarkPriceResponse>>> {
         let mark_price: ApiResponse<Vec<MarkPriceResponse>> = self
             .client
@@ -1052,7 +1063,8 @@ impl PublicData {
 
     /// Retrieve position tiers information, maximum leverage depends on your borrowings and margin ratio.
     pub fn get_position_tiers(
-        &self, params: &PositionTiersParams,
+        &self,
+        params: &PositionTiersParams,
     ) -> Result<ApiResponse<Vec<PositionTiersResponse>>> {
         let position_tiers: ApiResponse<Vec<PositionTiersResponse>> = self
             .client
@@ -1071,7 +1083,8 @@ impl PublicData {
 
     /// Get underlying
     pub fn get_underlying(
-        &self, params: &UnderlyingParams,
+        &self,
+        params: &UnderlyingParams,
     ) -> Result<ApiResponse<Vec<Vec<String>>>> {
         let underlying: ApiResponse<Vec<Vec<String>>> = self
             .client
@@ -1082,7 +1095,8 @@ impl PublicData {
 
     /// Get insurance fund balance information
     pub fn get_insurance_fund(
-        &self, params: &InsuranceFundParams,
+        &self,
+        params: &InsuranceFundParams,
     ) -> Result<ApiResponse<Vec<InsuranceFundResponse>>> {
         let insurance_fund: ApiResponse<Vec<InsuranceFundResponse>> = self
             .client
@@ -1093,7 +1107,8 @@ impl PublicData {
 
     /// Convert the crypto value to the number of contracts, or vice versa
     pub fn unit_convert(
-        &self, params: &UnitConvertParams,
+        &self,
+        params: &UnitConvertParams,
     ) -> Result<ApiResponse<Vec<UnitConvertResponse>>> {
         let unit_convert: ApiResponse<Vec<UnitConvertResponse>> = self
             .client
@@ -1104,7 +1119,8 @@ impl PublicData {
 
     /// Get option trades. The maximum is 100.
     pub fn get_options_trades(
-        &self, params: &OptionTradesParams,
+        &self,
+        params: &OptionTradesParams,
     ) -> Result<ApiResponse<Vec<OptionTradesResponse>>> {
         let option_trades: ApiResponse<Vec<OptionTradesResponse>> = self
             .client

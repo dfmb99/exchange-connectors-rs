@@ -5,7 +5,11 @@ use sha2::Sha256;
 
 // Generate signature
 pub fn get_signature(
-    secret_key: &str, timestamp: &str, method: &str, request_path: &str, body: &str,
+    secret_key: &str,
+    timestamp: &str,
+    method: &str,
+    request_path: &str,
+    body: &str,
 ) -> String {
     let mut signed_key = Hmac::<Sha256>::new_from_slice(secret_key.as_bytes()).unwrap();
     let data = format!("{timestamp}{method}{request_path}{body}");

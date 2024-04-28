@@ -1,17 +1,17 @@
-use crate::commons::errors::Error;
 use super::derivs_ws_data::DerivsWsData;
-use crate::websocket::events::{DataEvent, NotificationEvent};
-use crate::websocket::websockets::{EventHandler, WebSockets};
+use crate::commons::errors::Error;
 use crate::rest::account::Position;
 use crate::rest::candles::Candle;
 use crate::rest::orders::OrderData;
 use crate::rest::ticker::TradingPair;
 use crate::rest::trades::TradingPair as TradesTradingPair;
+use crate::websocket::events::{DataEvent, NotificationEvent};
 use crate::websocket::model::{BalanceInfo, Wallet};
+use crate::websocket::websockets::{EventHandler, WebSockets};
 use log::{debug, error, warn};
+use std::collections::VecDeque;
 use std::thread;
 use std::time::Duration;
-use std::collections::VecDeque;
 
 #[derive(Clone)]
 pub struct DerivsWs {

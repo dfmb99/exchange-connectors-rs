@@ -1,4 +1,3 @@
-use std::time::{SystemTime, UNIX_EPOCH};
 use binance::commons::config::Config;
 use binance::commons::errors::ErrorKind as BinanceLibErrorKind;
 use binance::rest::api::Binance;
@@ -7,6 +6,7 @@ use binance::rest::futures::general::FuturesGeneral;
 use binance::rest::futures::market::FuturesMarket;
 use binance::rest::futures::model::{AggTrades, LiquidationOrders, MarkPrices, Trades};
 use binance::rest::model::{BookTickers, KlineSummaries};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 fn main() {
     general();

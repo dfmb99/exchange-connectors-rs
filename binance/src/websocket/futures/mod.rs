@@ -1,12 +1,3 @@
-use url::Url;
-use serde::{Deserialize, Serialize};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::net::TcpStream;
-use std::time::{Duration, Instant};
-use tungstenite::{connect, Message};
-use tungstenite::protocol::WebSocket;
-use tungstenite::stream::MaybeTlsStream;
-use tungstenite::handshake::client::Response;
 use crate::commons::config::Config;
 use crate::commons::errors::*;
 use crate::rest::futures::model::{OrderBook, OrderTradeEvent};
@@ -15,6 +6,15 @@ use crate::rest::model::{
     DepthOrderBookEvent, IndexKlineEvent, IndexPriceEvent, KlineEvent, LiquidationEvent,
     MarkPriceEvent, MiniTickerEvent, TradeEvent, UserDataStreamExpiredEvent,
 };
+use serde::{Deserialize, Serialize};
+use std::net::TcpStream;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::{Duration, Instant};
+use tungstenite::handshake::client::Response;
+use tungstenite::protocol::WebSocket;
+use tungstenite::stream::MaybeTlsStream;
+use tungstenite::{connect, Message};
+use url::Url;
 
 pub mod usdm;
 pub mod usdm_data;
@@ -122,7 +122,10 @@ impl<'a> FuturesWebSockets<'a> {
     }
 
     pub fn connect_with_config(
-        &mut self, market: FuturesMarket, subscription: &'a str, config: &'a Config,
+        &mut self,
+        market: FuturesMarket,
+        subscription: &'a str,
+        config: &'a Config,
     ) -> Result<()> {
         self.connect_wss(
             FuturesWebsocketAPI::Custom(config.futures_ws_endpoint.clone())
@@ -131,7 +134,10 @@ impl<'a> FuturesWebSockets<'a> {
     }
 
     pub fn connect_multiple_streams(
-        &mut self, market: FuturesMarket, endpoints: &[String], config: &Config,
+        &mut self,
+        market: FuturesMarket,
+        endpoints: &[String],
+        config: &Config,
     ) -> Result<()> {
         self.connect_wss(
             FuturesWebsocketAPI::MultiStream(config.futures_ws_endpoint.clone())

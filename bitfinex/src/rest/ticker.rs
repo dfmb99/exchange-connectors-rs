@@ -1,5 +1,5 @@
-use crate::rest::client::*;
 use crate::commons::errors::*;
+use crate::rest::client::*;
 use serde_json::from_str;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -128,7 +128,9 @@ impl Ticker {
     }
 
     pub fn funding_stats<S>(
-        &self, symbol: S, params: &FundingStatusParams,
+        &self,
+        symbol: S,
+        params: &FundingStatusParams,
     ) -> Result<Vec<FundingStats>>
     where
         S: Into<String>,

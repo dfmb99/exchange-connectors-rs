@@ -20,18 +20,18 @@
 - [ ] `Taker Buy/Sell Volume (MARKET_DATA)`
 */
 
-use std::collections::BTreeMap;
-use serde_json::Value;
-use std::convert::TryInto;
 use crate::commons::errors::*;
 use crate::commons::util::{build_request, build_signed_request};
-use crate::rest::api::{API, Futures};
+use crate::rest::api::{Futures, API};
 use crate::rest::client::Client;
 use crate::rest::futures::model::{
     AggTrades, FundingRateHist, LiquidationOrders, MarkPrices, OpenInterest, OpenInterestHist,
     OrderBook, PriceStats, Trades,
 };
 use crate::rest::model::{BookTickers, KlineSummaries, KlineSummary, Prices, SymbolPrice, Tickers};
+use serde_json::Value;
+use std::collections::BTreeMap;
+use std::convert::TryInto;
 
 #[derive(Clone)]
 pub struct FuturesMarket {
@@ -78,7 +78,10 @@ impl FuturesMarket {
     }
 
     pub fn get_historical_trades<S1, S2, S3>(
-        &self, symbol: S1, from_id: S2, limit: S3,
+        &self,
+        symbol: S1,
+        from_id: S2,
+        limit: S3,
     ) -> Result<Trades>
     where
         S1: Into<String>,
@@ -104,7 +107,12 @@ impl FuturesMarket {
     }
 
     pub fn get_agg_trades<S1, S2, S3, S4, S5>(
-        &self, symbol: S1, from_id: S2, start_time: S3, end_time: S4, limit: S5,
+        &self,
+        symbol: S1,
+        from_id: S2,
+        start_time: S3,
+        end_time: S4,
+        limit: S5,
     ) -> Result<AggTrades>
     where
         S1: Into<String>,
@@ -140,7 +148,12 @@ impl FuturesMarket {
     // Returns up to 'limit' klines for given symbol and interval ("1m", "5m", ...)
     // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#klinecandlestick-data
     pub fn get_klines<S1, S2, S3, S4, S5>(
-        &self, symbol: S1, interval: S2, limit: S3, start_time: S4, end_time: S5,
+        &self,
+        symbol: S1,
+        interval: S2,
+        limit: S3,
+        start_time: S4,
+        end_time: S5,
     ) -> Result<KlineSummaries>
     where
         S1: Into<String>,
@@ -256,7 +269,12 @@ impl FuturesMarket {
     }
 
     pub fn open_interest_statistics<S1, S2, S3, S4, S5>(
-        &self, symbol: S1, period: S2, limit: S3, start_time: S4, end_time: S5,
+        &self,
+        symbol: S1,
+        period: S2,
+        limit: S3,
+        start_time: S4,
+        end_time: S5,
     ) -> Result<Vec<OpenInterestHist>>
     where
         S1: Into<String>,
@@ -285,7 +303,11 @@ impl FuturesMarket {
     }
 
     pub fn funding_rate_history<S1, S2, S3, S4>(
-        &self, symbol: S1, limit: S2, start_time: S3, end_time: S4,
+        &self,
+        symbol: S1,
+        limit: S2,
+        start_time: S3,
+        end_time: S4,
     ) -> Result<Vec<FundingRateHist>>
     where
         S1: Into<Option<String>>,

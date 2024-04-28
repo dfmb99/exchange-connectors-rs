@@ -5,7 +5,9 @@ use crate::rest::book::{
 use crate::rest::candles::Candle;
 use crate::rest::orders::OrderData;
 use crate::rest::ticker::*;
-use crate::rest::trades::{FundingCurrency as TradesFundingCurrency, TradingPair as TradesTradingPair};
+use crate::rest::trades::{
+    FundingCurrency as TradesFundingCurrency, TradingPair as TradesTradingPair,
+};
 use crate::websocket::model::{BalanceInfo, Trade, Wallet};
 use serde_json::Value;
 

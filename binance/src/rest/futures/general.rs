@@ -1,5 +1,5 @@
 use crate::commons::errors::*;
-use crate::rest::api::{API, Futures};
+use crate::rest::api::{Futures, API};
 use crate::rest::client::Client;
 use crate::rest::futures::model::{ExchangeInformation, Symbol};
 use crate::rest::model::ServerTime;

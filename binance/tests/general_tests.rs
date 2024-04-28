@@ -6,8 +6,8 @@ use binance::rest::spot::general::General;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mockito::mock;
     use float_cmp::*;
+    use mockito::mock;
 
     #[test]
     fn ping() {

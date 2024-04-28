@@ -1,8 +1,8 @@
 use dotenv::dotenv;
-use mockito::{Matcher, mock};
-use okx::commons::config::Config;
-use okx::rest::api::Okx;
-use okx::rest::status::{Status, SystemStatusParams};
+use mockito::{mock, Matcher};
+use okex::commons::config::Config;
+use okex::rest::api::Okx;
+use okex::rest::status::{Status, SystemStatusParams};
 
 #[cfg(test)]
 mod tests {

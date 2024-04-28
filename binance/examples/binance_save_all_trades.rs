@@ -1,9 +1,9 @@
+use binance::rest::model::DayTickerEvent;
+use binance::websocket::spot::{WebSockets, WebsocketEvent};
+use csv::Writer;
 use std::error::Error;
 use std::fs::File;
-use csv::Writer;
-use std::sync::atomic::{AtomicBool};
-use binance::rest::model::DayTickerEvent;
-use binance::websocket::spot::{WebsocketEvent, WebSockets};
+use std::sync::atomic::AtomicBool;
 
 fn main() {
     save_all_trades_websocket();

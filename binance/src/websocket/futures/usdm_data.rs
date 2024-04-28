@@ -1,10 +1,10 @@
-use std::collections::VecDeque;
-use indexmap::IndexMap;
-use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
-use crate::rest::futures::model::{OrderUpdate};
+use crate::rest::futures::model::OrderUpdate;
 use crate::rest::model::{
     AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder,
 };
+use indexmap::IndexMap;
+use std::collections::VecDeque;
+use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 type MarkPriceWs = Arc<RwLock<Option<IndexPriceEvent>>>;
 type MarkPriceSnapsWs = Arc<RwLock<VecDeque<IndexPriceEvent>>>;
@@ -170,7 +170,9 @@ impl WsData {
 }
 
 fn insert_order_index_map(
-    mut index_map: RwLockWriteGuard<IndexMap<u64, OrderUpdate>>, order_id: u64, order: OrderUpdate,
+    mut index_map: RwLockWriteGuard<IndexMap<u64, OrderUpdate>>,
+    order_id: u64,
+    order: OrderUpdate,
 ) {
     if index_map.insert(order_id, order).is_none() && index_map.len() == DATA_SIZE + 1 {
         index_map.shift_remove_index(0);
@@ -178,7 +180,8 @@ fn insert_order_index_map(
 }
 
 fn remove_order_index_map(
-    mut index_map: RwLockWriteGuard<IndexMap<u64, OrderUpdate>>, order_id: u64,
+    mut index_map: RwLockWriteGuard<IndexMap<u64, OrderUpdate>>,
+    order_id: u64,
 ) {
     index_map.shift_remove(&order_id);
 }
@@ -191,7 +194,8 @@ fn insert_vec<T>(mut vec: RwLockWriteGuard<VecDeque<T>>, value: T) {
 }
 
 fn get_order(
-    index_map: RwLockReadGuard<IndexMap<u64, OrderUpdate>>, order_id: u64,
+    index_map: RwLockReadGuard<IndexMap<u64, OrderUpdate>>,
+    order_id: u64,
 ) -> Option<OrderUpdate> {
     let result: Option<&OrderUpdate> = index_map.get(&order_id);
     result.cloned()

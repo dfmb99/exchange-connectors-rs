@@ -1,5 +1,5 @@
-use crate::rest::client::*;
 use crate::commons::errors::*;
+use crate::rest::client::*;
 use serde_json::{from_str, to_string, Map, Value};
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -326,7 +326,8 @@ impl Account {
     }
 
     pub fn transfer_between_wallets(
-        &self, params: &TransferWalletParams,
+        &self,
+        params: &TransferWalletParams,
     ) -> Result<TransferWallet> {
         let payload: String = to_string(params)?;
 

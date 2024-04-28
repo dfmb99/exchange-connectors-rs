@@ -1,5 +1,5 @@
-use crate::rest::client::*;
 use crate::commons::errors::*;
+use crate::rest::client::*;
 use serde_json::from_str;
 
 #[derive(Debug, Clone, Default)]
@@ -89,7 +89,10 @@ impl Candles {
     }
 
     pub fn history<S>(
-        &self, symbol: S, timeframe: S, params: &CandleHistoryParams,
+        &self,
+        symbol: S,
+        timeframe: S,
+        params: &CandleHistoryParams,
     ) -> Result<Vec<Candle>>
     where
         S: Into<String>,

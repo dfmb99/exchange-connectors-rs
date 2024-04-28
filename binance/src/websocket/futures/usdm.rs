@@ -1,21 +1,21 @@
-use std::collections::VecDeque;
-use log::{debug, error, warn};
-use std::sync::atomic::AtomicBool;
-use std::sync::mpsc;
-use std::sync::mpsc::Receiver;
-use std::thread;
-use std::time::Duration;
 use crate::commons::config::Config;
-use crate::commons::errors::{BinanceContentError, Error};
 use crate::commons::errors::ErrorKind::BinanceError;
+use crate::commons::errors::{BinanceContentError, Error};
 use crate::rest::api::Binance;
 use crate::rest::futures::model::OrderUpdate;
 use crate::rest::model::{
     AggrTradesEvent, EventBalance, EventPosition, IndexPriceEvent, LiquidationOrder,
 };
-use crate::websocket::futures::{FuturesMarket, FuturesWebsocketEvent, FuturesWebSockets};
 use crate::websocket::futures::usdm_data::WsData;
 use crate::websocket::futures::userstream::FuturesUserStream;
+use crate::websocket::futures::{FuturesMarket, FuturesWebSockets, FuturesWebsocketEvent};
+use log::{debug, error, warn};
+use std::collections::VecDeque;
+use std::sync::atomic::AtomicBool;
+use std::sync::mpsc;
+use std::sync::mpsc::Receiver;
+use std::thread;
+use std::time::Duration;
 
 #[derive(Clone)]
 pub struct WsInterface {
@@ -30,7 +30,10 @@ impl WsInterface {
     /// * `api_secret` - Option<String>
     /// * `config` - Config
     pub fn new(
-        symbol: String, api_key: Option<String>, api_secret: Option<String>, config: &Config,
+        symbol: String,
+        api_key: Option<String>,
+        api_secret: Option<String>,
+        config: &Config,
     ) -> WsInterface {
         let ws_data = WsData::default();
         user_stream_websocket(
@@ -118,7 +121,10 @@ impl WsInterface {
 }
 
 fn user_stream_websocket(
-    symbol: String, api_key: Option<String>, api_secret: Option<String>, config: Config,
+    symbol: String,
+    api_key: Option<String>,
+    api_secret: Option<String>,
+    config: Config,
     ws_data: WsData,
 ) {
     thread::spawn(move || {
@@ -146,7 +152,7 @@ fn user_stream_websocket(
                                     .filter(|event| event.symbol.to_lowercase() == symbol)
                                     .collect();
                                 if !positions.is_empty() {
-                                    ws_data.update_position(positions.get(0).unwrap().to_owned())
+                                    ws_data.update_position(positions[0].to_owned())
                                 }
 
                                 let balances: Vec<EventBalance> = account_update
@@ -156,7 +162,7 @@ fn user_stream_websocket(
                                     .filter(|event| event.asset == "USDT")
                                     .collect();
                                 if !balances.is_empty() {
-                                    ws_data.update_balance(balances.get(0).unwrap().to_owned())
+                                    ws_data.update_balance(balances[0].to_owned())
                                 }
                             }
                             FuturesWebsocketEvent::OrderTrade(trade) => {

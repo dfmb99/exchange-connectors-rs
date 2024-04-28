@@ -1,5 +1,5 @@
-use crate::rest::client::*;
 use crate::commons::errors::*;
+use crate::rest::client::*;
 use serde_json::from_str;
 
 #[derive(Serialize, Deserialize)]

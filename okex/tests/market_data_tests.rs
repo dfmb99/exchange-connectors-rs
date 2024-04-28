@@ -1,9 +1,9 @@
-use okx::commons::config::Config;
-use okx::rest::api::Okx;
-use okx::rest::market_data::MarketData;
-use mockito::{mock, Matcher};
 use dotenv::dotenv;
-use okx::rest::market_data::{
+use mockito::{mock, Matcher};
+use okex::commons::config::Config;
+use okex::rest::api::Okx;
+use okex::rest::market_data::MarketData;
+use okex::rest::market_data::{
     CandleSticksParams, IndexTickerParams, OrderBookParams, TickerParams, TickersParams,
     TradesParams,
 };

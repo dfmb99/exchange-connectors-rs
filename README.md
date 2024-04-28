@@ -1,3 +1,3 @@
-# binance-rs
+# exchange-connectors-rs
 
-Unofficial Rust Library for the [Binance API](https://github.com/binance/binance-spot-api-docs) and [Binance Futures API](https://binance-docs.github.io/apidocs/futures/en/#general-info)
+Rust crypto exchange connectors for binance, bitfinex, bitmex and okx.

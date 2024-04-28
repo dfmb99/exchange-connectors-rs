@@ -1,16 +1,16 @@
 use binance::commons::config::Config;
 use binance::rest::api::Binance;
-use binance::rest::model::{Bids, KlineSummary, Prices};
-use binance::rest::spot::market::Market;
 use binance::rest::model::BookTickers::AllBookTickers;
 use binance::rest::model::KlineSummaries::AllKlineSummaries;
 use binance::rest::model::Prices::AllPrices;
+use binance::rest::model::{Bids, KlineSummary, Prices};
+use binance::rest::spot::market::Market;
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mockito::{mock, Matcher};
     use float_cmp::*;
+    use mockito::{mock, Matcher};
 
     #[test]
     fn get_depth() {

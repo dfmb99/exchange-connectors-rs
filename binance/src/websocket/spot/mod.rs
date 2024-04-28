@@ -1,18 +1,18 @@
-use url::Url;
-use serde::{Deserialize, Serialize};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::net::TcpStream;
-use std::time::{Duration, Instant};
-use tungstenite::{connect, Message};
-use tungstenite::protocol::WebSocket;
-use tungstenite::stream::MaybeTlsStream;
-use tungstenite::handshake::client::Response;
 use crate::commons::config::Config;
 use crate::commons::errors::*;
 use crate::rest::model::{
     AccountUpdateEvent, AggrTradesEvent, BalanceUpdateEvent, BookTickerEvent, DayTickerEvent,
     DepthOrderBookEvent, KlineEvent, OrderBook, OrderTradeEvent, TradeEvent,
 };
+use serde::{Deserialize, Serialize};
+use std::net::TcpStream;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::{Duration, Instant};
+use tungstenite::handshake::client::Response;
+use tungstenite::protocol::WebSocket;
+use tungstenite::stream::MaybeTlsStream;
+use tungstenite::{connect, Message};
+use url::Url;
 
 pub mod userstream;
 

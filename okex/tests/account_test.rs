@@ -1,12 +1,12 @@
 use dotenv::dotenv;
-use mockito::{Matcher, mock};
-use okx::commons::config::Config;
-use okx::rest::api::Okx;
-use okx::commons::utils::TradeMode;
-use okx::rest::account::{
-    Account, AccountPositionRiskParams, BalanceParams, GetLeverageParams, PositionsParams,
-    SetLeverageParams, PositionModeParams, BillsDetailsParams, FeeRatesParams,
+use mockito::{mock, Matcher};
+use okex::commons::config::Config;
+use okex::commons::utils::TradeMode;
+use okex::rest::account::{
+    Account, AccountPositionRiskParams, BalanceParams, BillsDetailsParams, FeeRatesParams,
+    GetLeverageParams, PositionModeParams, PositionsParams, SetLeverageParams,
 };
+use okex::rest::api::Okx;
 
 #[cfg(test)]
 mod tests {

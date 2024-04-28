@@ -1,12 +1,12 @@
-use std::collections::BTreeMap;
-use std::fmt::Display;
 use crate::commons::errors::*;
 use crate::commons::util::build_signed_request;
-use crate::rest::api::{API, Spot};
+use crate::rest::api::{Spot, API};
 use crate::rest::client::Client;
 use crate::rest::model::{
     AccountInformation, Balance, Empty, Order, OrderCanceled, TradeHistory, Transaction,
 };
+use std::collections::BTreeMap;
+use std::fmt::Display;
 
 #[derive(Clone)]
 pub struct Account {
@@ -314,7 +314,9 @@ impl Account {
 
     // Place a MARKET order with quote quantity - BUY
     pub fn market_buy_using_quote_quantity<S, F>(
-        &self, symbol: S, quote_order_qty: F,
+        &self,
+        symbol: S,
+        quote_order_qty: F,
     ) -> Result<Transaction>
     where
         S: Into<String>,
@@ -338,7 +340,9 @@ impl Account {
     ///
     /// This order is sandboxed: it is validated, but not sent to the matching engine.
     pub fn test_market_buy_using_quote_quantity<S, F>(
-        &self, symbol: S, quote_order_qty: F,
+        &self,
+        symbol: S,
+        quote_order_qty: F,
     ) -> Result<()>
     where
         S: Into<String>,
@@ -408,7 +412,9 @@ impl Account {
 
     // Place a MARKET order with quote quantity - SELL
     pub fn market_sell_using_quote_quantity<S, F>(
-        &self, symbol: S, quote_order_qty: F,
+        &self,
+        symbol: S,
+        quote_order_qty: F,
     ) -> Result<Transaction>
     where
         S: Into<String>,
@@ -432,7 +438,9 @@ impl Account {
     ///
     /// This order is sandboxed: it is validated, but not sent to the matching engine.
     pub fn test_market_sell_using_quote_quantity<S, F>(
-        &self, symbol: S, quote_order_qty: F,
+        &self,
+        symbol: S,
+        quote_order_qty: F,
     ) -> Result<()>
     where
         S: Into<String>,
@@ -469,7 +477,12 @@ impl Account {
     /// }
     /// ```
     pub fn stop_limit_buy_order<S, F>(
-        &self, symbol: S, qty: F, price: f64, stop_price: f64, time_in_force: TimeInForce,
+        &self,
+        symbol: S,
+        qty: F,
+        price: f64,
+        stop_price: f64,
+        time_in_force: TimeInForce,
     ) -> Result<Transaction>
     where
         S: Into<String>,
@@ -507,7 +520,12 @@ impl Account {
     /// }
     /// ```
     pub fn test_stop_limit_buy_order<S, F>(
-        &self, symbol: S, qty: F, price: f64, stop_price: f64, time_in_force: TimeInForce,
+        &self,
+        symbol: S,
+        qty: F,
+        price: f64,
+        stop_price: f64,
+        time_in_force: TimeInForce,
     ) -> Result<()>
     where
         S: Into<String>,
@@ -545,7 +563,12 @@ impl Account {
     /// }
     /// ```
     pub fn stop_limit_sell_order<S, F>(
-        &self, symbol: S, qty: F, price: f64, stop_price: f64, time_in_force: TimeInForce,
+        &self,
+        symbol: S,
+        qty: F,
+        price: f64,
+        stop_price: f64,
+        time_in_force: TimeInForce,
     ) -> Result<Transaction>
     where
         S: Into<String>,
@@ -583,7 +606,12 @@ impl Account {
     /// }
     /// ```
     pub fn test_stop_limit_sell_order<S, F>(
-        &self, symbol: S, qty: F, price: f64, stop_price: f64, time_in_force: TimeInForce,
+        &self,
+        symbol: S,
+        qty: F,
+        price: f64,
+        stop_price: f64,
+        time_in_force: TimeInForce,
     ) -> Result<()>
     where
         S: Into<String>,
@@ -609,8 +637,15 @@ impl Account {
     /// Place a custom order
     #[allow(clippy::too_many_arguments)]
     pub fn custom_order<S, F>(
-        &self, symbol: S, qty: F, price: f64, stop_price: Option<f64>, order_side: OrderSide,
-        order_type: OrderType, time_in_force: TimeInForce, new_client_order_id: Option<String>,
+        &self,
+        symbol: S,
+        qty: F,
+        price: f64,
+        stop_price: Option<f64>,
+        order_side: OrderSide,
+        order_type: OrderType,
+        time_in_force: TimeInForce,
+        new_client_order_id: Option<String>,
     ) -> Result<Transaction>
     where
         S: Into<String>,
@@ -636,8 +671,15 @@ impl Account {
     /// This order is sandboxed: it is validated, but not sent to the matching engine.
     #[allow(clippy::too_many_arguments)]
     pub fn test_custom_order<S, F>(
-        &self, symbol: S, qty: F, price: f64, stop_price: Option<f64>, order_side: OrderSide,
-        order_type: OrderType, time_in_force: TimeInForce, new_client_order_id: Option<String>,
+        &self,
+        symbol: S,
+        qty: F,
+        price: f64,
+        stop_price: Option<f64>,
+        order_side: OrderSide,
+        order_type: OrderType,
+        time_in_force: TimeInForce,
+        new_client_order_id: Option<String>,
     ) -> Result<()>
     where
         S: Into<String>,
@@ -675,7 +717,9 @@ impl Account {
     }
 
     pub fn cancel_order_with_client_id<S>(
-        &self, symbol: S, orig_client_order_id: String,
+        &self,
+        symbol: S,
+        orig_client_order_id: String,
     ) -> Result<OrderCanceled>
     where
         S: Into<String>,
@@ -742,7 +786,8 @@ impl Account {
     }
 
     fn build_quote_quantity_order(
-        &self, order: OrderQuoteQuantityRequest,
+        &self,
+        order: OrderQuoteQuantityRequest,
     ) -> BTreeMap<String, String> {
         let mut order_parameters: BTreeMap<String, String> = BTreeMap::new();
 

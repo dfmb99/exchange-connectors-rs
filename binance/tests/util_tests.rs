@@ -5,9 +5,9 @@ use binance::commons::util::build_signed_request_custom;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use float_cmp::*;
     use std::collections::BTreeMap;
     use std::time::{SystemTime, UNIX_EPOCH};
-    use float_cmp::*;
 
     #[test]
     fn build_request_empty() {

@@ -1,12 +1,12 @@
-use hex::encode as hex_encode;
-use hmac::{Hmac, Mac};
-use reqwest::StatusCode;
-use reqwest::blocking::Response;
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue, USER_AGENT, CONTENT_TYPE};
-use sha2::Sha256;
-use serde::de::DeserializeOwned;
 use crate::commons::errors::*;
 use crate::rest::api::API;
+use hex::encode as hex_encode;
+use hmac::{Hmac, Mac};
+use reqwest::blocking::Response;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue, CONTENT_TYPE, USER_AGENT};
+use reqwest::StatusCode;
+use serde::de::DeserializeOwned;
+use sha2::Sha256;
 
 #[derive(Clone)]
 pub struct Client {
@@ -27,7 +27,9 @@ impl Client {
     }
 
     pub fn get_signed<T: DeserializeOwned>(
-        &self, endpoint: API, request: Option<String>,
+        &self,
+        endpoint: API,
+        request: Option<String>,
     ) -> Result<T> {
         let url = self.sign_request(endpoint, request);
         let client = &self.inner_client;
@@ -51,7 +53,9 @@ impl Client {
     }
 
     pub fn delete_signed<T: DeserializeOwned>(
-        &self, endpoint: API, request: Option<String>,
+        &self,
+        endpoint: API,
+        request: Option<String>,
     ) -> Result<T> {
         let url = self.sign_request(endpoint, request);
         let client = &self.inner_client;

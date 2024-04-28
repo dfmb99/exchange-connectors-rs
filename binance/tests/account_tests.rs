@@ -1,13 +1,13 @@
 use binance::commons::config::Config;
 use binance::rest::api::Binance;
-use binance::rest::model::{Order, OrderCanceled, Transaction, TradeHistory};
+use binance::rest::model::{Order, OrderCanceled, TradeHistory, Transaction};
 use binance::rest::spot::account::{Account, OrderSide, OrderType, TimeInForce};
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mockito::{mock, Matcher};
     use float_cmp::*;
+    use mockito::{mock, Matcher};
 
     #[test]
     fn get_account() {

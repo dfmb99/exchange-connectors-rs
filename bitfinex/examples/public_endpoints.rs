@@ -1,9 +1,9 @@
 extern crate bitfinex;
 
-use bitfinex::rest::api::*;
-use bitfinex::commons::pairs::*;
 use bitfinex::commons::currency::*;
+use bitfinex::commons::pairs::*;
 use bitfinex::commons::precision::*;
+use bitfinex::rest::api::*;
 use bitfinex::rest::candles::*;
 use bitfinex::rest::derivs::*;
 use bitfinex::rest::ticker::*;

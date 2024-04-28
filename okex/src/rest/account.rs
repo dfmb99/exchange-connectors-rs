@@ -1,13 +1,13 @@
-use serde_json::to_string;
-use crate::commons::errors::*;
 use crate::commons::client::Client;
+use crate::commons::errors::*;
 use crate::commons::utils::{ExecType, InstType, PosSide, TradeMode};
-use crate::rest::api::{API, ApiResponse};
 use crate::rest::api::Account::{
     GetAccountPositionRisk, GetBalance, GetBillsDetails, GetFeeRates, GetLeverage, GetPosition,
     SetLeverage, SetPositionMode,
 };
+use crate::rest::api::{ApiResponse, API};
 use crate::serde::{Deserialize, Serialize};
+use serde_json::to_string;
 
 #[derive(Clone)]
 pub struct Account {
@@ -542,7 +542,8 @@ impl Account {
 
     /// Retrieve information on your positions. When the account is in net mode, net positions will be displayed, and when the account is in long/short mode, long or short positions will be displayed. Return in reverse chronological order using ctime.
     pub fn get_positions(
-        &self, params: &PositionsParams,
+        &self,
+        params: &PositionsParams,
     ) -> Result<ApiResponse<Vec<PositionResponse>>> {
         let positions: ApiResponse<Vec<PositionResponse>> = self
             .client
@@ -553,7 +554,8 @@ impl Account {
 
     /// Get account and position risk
     pub fn get_acc_position_risk(
-        &self, params: &AccountPositionRiskParams,
+        &self,
+        params: &AccountPositionRiskParams,
     ) -> Result<ApiResponse<Vec<AccountPositionRiskResponse>>> {
         let acc_position_risk: ApiResponse<Vec<AccountPositionRiskResponse>> =
             self.client.get_signed(
@@ -567,7 +569,8 @@ impl Account {
     /// Single-currency mode and Multi-currency mode: FUTURES and SWAP support both long/short mode and net mode. In net mode, users can only have positions in one direction; In long/short mode, users can hold positions in long and short directions.
     /// Portfolio margin mode: FUTURES and SWAP only support net mode
     pub fn set_position_mode(
-        &self, params: &PositionModeParams,
+        &self,
+        params: &PositionModeParams,
     ) -> Result<ApiResponse<Vec<PositionModeResponse>>> {
         let payload: String = to_string(params)?;
         let position_mode: ApiResponse<Vec<PositionModeResponse>> = self
@@ -593,7 +596,8 @@ impl Account {
     /// Note that the request parameter posSide is only required when margin mode is isolated in long/short position mode for FUTURES/SWAP instruments (see scenario 6 and 9 above).
     /// Please refer to the request examples on the right side for each case.
     pub fn set_leverage(
-        &self, params: &SetLeverageParams,
+        &self,
+        params: &SetLeverageParams,
     ) -> Result<ApiResponse<Vec<LeverageResponse>>> {
         let payload: String = to_string(params)?;
         let leverage: ApiResponse<Vec<LeverageResponse>> = self
@@ -605,7 +609,8 @@ impl Account {
 
     /// Get leverage
     pub fn get_leverage(
-        &self, params: &GetLeverageParams,
+        &self,
+        params: &GetLeverageParams,
     ) -> Result<ApiResponse<Vec<LeverageResponse>>> {
         let leverage: ApiResponse<Vec<LeverageResponse>> = self
             .client
@@ -616,7 +621,8 @@ impl Account {
 
     /// Retrieve the bills of the account. The bill refers to all transaction records that result in changing the balance of an account. Pagination is supported, and the response is sorted with the most recent first. This endpoint can retrieve data from the last 7 days.
     pub fn get_bills_details(
-        &self, params: &BillsDetailsParams,
+        &self,
+        params: &BillsDetailsParams,
     ) -> Result<ApiResponse<Vec<BillDetailsResponse>>> {
         let bills: ApiResponse<Vec<BillDetailsResponse>> = self
             .client
@@ -627,7 +633,8 @@ impl Account {
 
     /// Get fee rates
     pub fn get_fee_rates(
-        &self, params: &FeeRatesParams,
+        &self,
+        params: &FeeRatesParams,
     ) -> Result<ApiResponse<Vec<FeeRatesResponse>>> {
         let trade_fees: ApiResponse<Vec<FeeRatesResponse>> = self
             .client

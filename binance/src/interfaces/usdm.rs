@@ -1,15 +1,8 @@
-use std::collections::{BTreeMap, VecDeque};
-use std::convert::TryInto;
-use std::thread;
-use std::time::Duration;
-use log::{error};
-use serde::de::DeserializeOwned;
-use serde_json::Value;
-use crate::commons::errors::*;
 use crate::commons::config::Config;
+use crate::commons::errors::*;
 use crate::commons::util::{build_request, build_signed_request};
 use crate::interfaces::usdm_data::{UsdmConfig, UsdmData};
-use crate::rest::api::{API, Futures};
+use crate::rest::api::{Futures, API};
 use crate::rest::client::Client;
 use crate::rest::futures::account::{CustomOrderRequest, OrderRequest, OrderType};
 use crate::rest::futures::model::{
@@ -18,13 +11,20 @@ use crate::rest::futures::model::{
     OpenInterest, OpenInterestHist, Order, OrderBook, OrderUpdate, PositionRisk, PriceStats,
     Symbol, Trades, Transaction,
 };
-use crate::rest::spot::account::{OrderSide, TimeInForce};
+use crate::rest::model::KlineSummaries::AllKlineSummaries;
 use crate::rest::model::{
     AggrTradesEvent, BookTickers, Empty, EventBalance, EventPosition, IndexPriceEvent,
-    KlineSummaries, KlineSummary, ServerTime, SymbolPrice, Tickers, LiquidationOrder, Prices,
+    KlineSummaries, KlineSummary, LiquidationOrder, Prices, ServerTime, SymbolPrice, Tickers,
 };
-use crate::rest::model::KlineSummaries::AllKlineSummaries;
+use crate::rest::spot::account::{OrderSide, TimeInForce};
 use crate::websocket::futures::usdm::WsInterface;
+use log::error;
+use serde::de::DeserializeOwned;
+use serde_json::Value;
+use std::collections::{BTreeMap, VecDeque};
+use std::convert::TryInto;
+use std::thread;
+use std::time::Duration;
 
 enum RequestType {
     Get,
@@ -51,8 +51,11 @@ impl UsdmInterface {
     /// * `api_secret` - Option<String>
     /// * `config` - Config
     pub fn new(
-        symbol: String, api_key: Option<String>, api_secret: Option<String>,
-        client_config: &Config, config: UsdmConfig,
+        symbol: String,
+        api_key: Option<String>,
+        api_secret: Option<String>,
+        client_config: &Config,
+        config: UsdmConfig,
     ) -> UsdmInterface {
         let client = Client::new(
             api_key.to_owned(),
@@ -155,7 +158,10 @@ impl UsdmInterface {
 
     /// Get historical trades
     pub fn get_historical_trades<S1, S2, S3>(
-        &self, symbol: S1, from_id: S2, limit: S3,
+        &self,
+        symbol: S1,
+        from_id: S2,
+        limit: S3,
     ) -> Result<Trades>
     where
         S1: Into<String>,
@@ -184,7 +190,12 @@ impl UsdmInterface {
 
     /// Get aggr trades
     pub fn get_agg_trades<S1, S2, S3, S4, S5>(
-        &self, symbol: S1, from_id: S2, start_time: S3, end_time: S4, limit: S5,
+        &self,
+        symbol: S1,
+        from_id: S2,
+        start_time: S3,
+        end_time: S4,
+        limit: S5,
     ) -> Result<AggTrades>
     where
         S1: Into<String>,
@@ -218,7 +229,12 @@ impl UsdmInterface {
     /// Returns up to 'limit' klines for given symbol and interval ("1m", "5m", ...)
     /// https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#klinecandlestick-data
     pub fn get_klines<S1, S2, S3, S4, S5>(
-        &self, symbol: S1, interval: S2, limit: S3, start_time: S4, end_time: S5,
+        &self,
+        symbol: S1,
+        interval: S2,
+        limit: S3,
+        start_time: S4,
+        end_time: S5,
     ) -> Result<KlineSummaries>
     where
         S1: Into<String>,
@@ -342,7 +358,12 @@ impl UsdmInterface {
 
     /// Get open interest statistics
     pub fn open_interest_statistics<S1, S2, S3, S4, S5>(
-        &self, symbol: S1, period: S2, limit: S3, start_time: S4, end_time: S5,
+        &self,
+        symbol: S1,
+        period: S2,
+        limit: S3,
+        start_time: S4,
+        end_time: S5,
     ) -> Result<Vec<OpenInterestHist>>
     where
         S1: Into<String>,
@@ -371,7 +392,11 @@ impl UsdmInterface {
 
     /// Get funding rate history
     pub fn funding_rate_history<S1, S2, S3, S4>(
-        &self, symbol: S1, limit: S2, start_time: S3, end_time: S4,
+        &self,
+        symbol: S1,
+        limit: S2,
+        start_time: S3,
+        end_time: S4,
     ) -> Result<Vec<FundingRateHist>>
     where
         S1: Into<Option<String>>,
@@ -411,7 +436,10 @@ impl UsdmInterface {
 
     /// Place limit buy order
     pub fn limit_buy(
-        &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64,
+        &self,
+        symbol: impl Into<String>,
+        qty: impl Into<f64>,
+        price: f64,
     ) -> Result<Transaction> {
         let buy = OrderRequest {
             symbol: symbol.into(),
@@ -436,7 +464,10 @@ impl UsdmInterface {
 
     /// Place limit sell order
     pub fn limit_sell(
-        &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64,
+        &self,
+        symbol: impl Into<String>,
+        qty: impl Into<f64>,
+        price: f64,
     ) -> Result<Transaction> {
         let sell = OrderRequest {
             symbol: symbol.into(),
@@ -528,7 +559,9 @@ impl UsdmInterface {
 
     /// Cancel an order with a given client id
     pub fn cancel_order_with_client_id<S>(
-        &self, symbol: S, orig_client_order_id: String,
+        &self,
+        symbol: S,
+        orig_client_order_id: String,
     ) -> Result<CanceledOrder>
     where
         S: Into<String>,
@@ -697,7 +730,9 @@ impl UsdmInterface {
 
     /// Change initial leverage
     pub fn change_initial_leverage<S>(
-        &self, symbol: S, leverage: u8,
+        &self,
+        symbol: S,
+        leverage: u8,
     ) -> Result<ChangeLeverageResponse>
     where
         S: Into<String>,
@@ -796,7 +831,7 @@ impl UsdmInterface {
     pub fn get_last_price_ws(&self) -> Option<f64> {
         let aggr_trades = self.ws.get_aggr_trades();
         if !aggr_trades.is_empty() {
-            return Some(aggr_trades.get(0).unwrap().price.parse().unwrap());
+            return Some(aggr_trades[0].price.parse().unwrap());
         }
         None
     }
@@ -831,8 +866,8 @@ impl UsdmInterface {
         self.get_open_orders_ws()
             .into_iter()
             .filter(|ord| ord.order_id == order_id)
-            .count() >
-            0
+            .count()
+            > 0
     }
 
     /// Returns true if order is filled, false otherwise
@@ -840,8 +875,8 @@ impl UsdmInterface {
         self.get_filled_orders_ws()
             .into_iter()
             .filter(|ord| ord.order_id == order_id)
-            .count() >
-            0
+            .count()
+            > 0
     }
 
     /// Get canceled orders, false otherwise
@@ -849,8 +884,8 @@ impl UsdmInterface {
         self.get_canceled_orders_ws()
             .into_iter()
             .filter(|ord| ord.order_id == order_id)
-            .count() >
-            0
+            .count()
+            > 0
     }
 
     /// Get order
@@ -936,7 +971,10 @@ impl UsdmInterface {
     }
 
     fn api_request<T: DeserializeOwned>(
-        &self, endpoint: Futures, req_type: RequestType, req: Option<String>,
+        &self,
+        endpoint: Futures,
+        req_type: RequestType,
+        req: Option<String>,
     ) -> Result<T> {
         let result: Result<T> = match req_type {
             RequestType::Get => self.api.get(API::Futures(endpoint), req.to_owned()),
@@ -957,14 +995,18 @@ impl UsdmInterface {
     }
 
     fn err_handler<T: DeserializeOwned>(
-        &self, endpoint: Futures, req_type: RequestType, req: Option<String>, result: Result<T>,
+        &self,
+        endpoint: Futures,
+        req_type: RequestType,
+        req: Option<String>,
+        result: Result<T>,
     ) -> Result<T> {
         match &result {
             Err(Error(ErrorKind::BinanceError(err), ..)) => {
-                if err.msg == "Request occur unknown error." ||
-                    err.msg == "Service Unavailable." ||
-                    err.msg ==
-                        "Internal error; unable to process your request. Please try again."
+                if err.msg == "Request occur unknown error."
+                    || err.msg == "Service Unavailable."
+                    || err.msg
+                        == "Internal error; unable to process your request. Please try again."
                 {
                     thread::sleep(Duration::from_millis(self.config.retry_timeout));
                     return self.api_request(endpoint, req_type, req);

@@ -1,13 +1,13 @@
-use okx::commons::config::Config;
-use okx::rest::api::Okx;
-use std::env::var;
 use dotenv::dotenv;
 use mockito::{mock, Matcher};
-use okx::commons::utils::{OrdType, Side, TradeMode};
-use okx::rest::trade::{
-    PlaceOrderParams, Trade, CancelOrderParams, AmendOrderParams, ClosePositionParams,
-    OrderDetailsParams, OrderListParams, FillsParams,
+use okex::commons::config::Config;
+use okex::commons::utils::{OrdType, Side, TradeMode};
+use okex::rest::api::Okx;
+use okex::rest::trade::{
+    AmendOrderParams, CancelOrderParams, ClosePositionParams, FillsParams, OrderDetailsParams,
+    OrderListParams, PlaceOrderParams, Trade,
 };
+use std::env::var;
 
 #[cfg(test)]
 mod tests {

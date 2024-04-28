@@ -1,16 +1,16 @@
 extern crate bitfinex;
 
-use std::time::SystemTime;
+use bitfinex::commons::currency::*;
+use bitfinex::commons::pairs::*;
 use bitfinex::rest::account::{AvailableBalanceParams, MovementParams, TransferWalletParams};
 use bitfinex::rest::api::*;
-use bitfinex::commons::pairs::*;
-use bitfinex::commons::currency::*;
 use bitfinex::rest::derivs::{DerivsPosCollaterallLimitsParams, DerivsPosCollaterallParams};
 use bitfinex::rest::funding::{CancelAllOffersParams, CancelOfferParams, SubmitOfferParams};
 use bitfinex::rest::orders::{
     OrderCancelParams, OrderMultiCancelParams, OrderSubmitParams, OrderType, OrderUpdateParams,
     TradeParams,
 };
+use std::time::SystemTime;
 
 fn main() {
     // TESTNET

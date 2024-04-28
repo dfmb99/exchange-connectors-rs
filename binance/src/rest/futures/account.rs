@@ -1,17 +1,17 @@
 use std::collections::BTreeMap;
 use std::fmt::Display;
 
+use super::model::{
+    AccountBalance, AccountInformation, CanceledOrder, ChangeLeverageResponse, PositionRisk,
+    Transaction,
+};
 use crate::commons::errors::*;
 use crate::commons::util::build_signed_request;
-use crate::rest::api::{API, Futures};
+use crate::rest::api::{Futures, API};
 use crate::rest::client::Client;
 use crate::rest::futures::model::{ComissionRate, Order};
 use crate::rest::model::Empty;
 use crate::rest::spot::account::{OrderSide, TimeInForce};
-use super::model::{
-    ChangeLeverageResponse, Transaction, CanceledOrder, PositionRisk, AccountBalance,
-    AccountInformation,
-};
 
 #[derive(Clone)]
 pub struct FuturesAccount {
@@ -129,7 +129,10 @@ pub struct CustomOrderRequest {
 
 impl FuturesAccount {
     pub fn limit_buy(
-        &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64,
+        &self,
+        symbol: impl Into<String>,
+        qty: impl Into<f64>,
+        price: f64,
         time_in_force: TimeInForce,
     ) -> Result<Transaction> {
         let buy = OrderRequest {
@@ -155,7 +158,10 @@ impl FuturesAccount {
     }
 
     pub fn limit_sell(
-        &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64,
+        &self,
+        symbol: impl Into<String>,
+        qty: impl Into<f64>,
+        price: f64,
         time_in_force: TimeInForce,
     ) -> Result<Transaction> {
         let sell = OrderRequest {
@@ -250,7 +256,9 @@ impl FuturesAccount {
     }
 
     pub fn cancel_order_with_client_id<S>(
-        &self, symbol: S, orig_client_order_id: String,
+        &self,
+        symbol: S,
+        orig_client_order_id: String,
     ) -> Result<CanceledOrder>
     where
         S: Into<String>,
@@ -422,7 +430,9 @@ impl FuturesAccount {
     }
 
     pub fn change_initial_leverage<S>(
-        &self, symbol: S, leverage: u8,
+        &self,
+        symbol: S,
+        leverage: u8,
     ) -> Result<ChangeLeverageResponse>
     where
         S: Into<String>,

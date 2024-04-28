@@ -1,5 +1,5 @@
-use crate::rest::client::Client;
 use crate::commons::errors::*;
+use crate::rest::client::Client;
 use serde::Serializer;
 use serde_json::{from_str, to_string, Value};
 
@@ -149,7 +149,8 @@ impl Funding {
     }
 
     pub fn cancel_all_offers(
-        &self, params: &CancelAllOffersParams,
+        &self,
+        params: &CancelAllOffersParams,
     ) -> Result<CanceledFundingOffer> {
         let payload: String = to_string(params)?;
         let data = self

@@ -21,8 +21,11 @@ pub struct Client {
 
 impl Client {
     pub fn new(
-        api_key: Option<String>, secret_key: Option<String>, passphrase: Option<String>,
-        host: String, simulated_trading: bool,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        passphrase: Option<String>,
+        host: String,
+        simulated_trading: bool,
     ) -> Self {
         Client {
             api_key: api_key.unwrap_or_else(|| "".into()),
@@ -91,7 +94,9 @@ impl Client {
     }
 
     pub fn get_signed<T: DeserializeOwned>(
-        &self, endpoint: API, request: Option<String>,
+        &self,
+        endpoint: API,
+        request: Option<String>,
     ) -> Result<T> {
         let request_path = String::from(endpoint);
         let mut url: String = format!("{}{}", self.host, request_path);
@@ -205,7 +210,10 @@ impl Client {
     }
 
     fn build_signed_headers(
-        &self, content_type: bool, timestamp: SystemTime, signature: String,
+        &self,
+        content_type: bool,
+        timestamp: SystemTime,
+        signature: String,
     ) -> Result<HeaderMap> {
         let mut custom_headers = self.build_headers(content_type)?;
 

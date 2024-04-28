@@ -168,7 +168,9 @@ impl From<API> for String {
 pub trait Binance {
     fn new(api_key: Option<String>, secret_key: Option<String>) -> Self;
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        config: &Config,
     ) -> Self;
 }
 
@@ -178,7 +180,9 @@ impl Binance for General {
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        config: &Config,
     ) -> General {
         General {
             client: Client::new(api_key, secret_key, config.rest_api_endpoint.clone()),
@@ -192,7 +196,9 @@ impl Binance for Account {
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        config: &Config,
     ) -> Account {
         Account {
             client: Client::new(api_key, secret_key, config.rest_api_endpoint.clone()),
@@ -207,7 +213,9 @@ impl Binance for Savings {
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        config: &Config,
     ) -> Self {
         Self {
             client: Client::new(api_key, secret_key, config.rest_api_endpoint.clone()),
@@ -222,7 +230,9 @@ impl Binance for Market {
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        config: &Config,
     ) -> Market {
         Market {
             client: Client::new(api_key, secret_key, config.rest_api_endpoint.clone()),
@@ -237,7 +247,9 @@ impl Binance for UserStream {
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        config: &Config,
     ) -> UserStream {
         UserStream {
             client: Client::new(api_key, secret_key, config.rest_api_endpoint.clone()),
@@ -256,7 +268,9 @@ impl Binance for FuturesGeneral {
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        config: &Config,
     ) -> FuturesGeneral {
         FuturesGeneral {
             client: Client::new(
@@ -274,7 +288,9 @@ impl Binance for FuturesMarket {
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        config: &Config,
     ) -> FuturesMarket {
         FuturesMarket {
             client: Client::new(
@@ -293,7 +309,9 @@ impl Binance for FuturesAccount {
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        config: &Config,
     ) -> Self {
         Self {
             client: Client::new(
@@ -312,7 +330,9 @@ impl Binance for FuturesUserStream {
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        config: &Config,
     ) -> FuturesUserStream {
         FuturesUserStream {
             client: Client::new(

@@ -1,28 +1,28 @@
-use std::collections::VecDeque;
-use std::sync::{Arc, RwLock};
-use std::thread;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use log::error;
+use crate::commons::currency::USTF0;
+use crate::commons::errors::*;
 use crate::rest::account::{
     AvailableBalance, AvailableBalanceParams, FeeSummary, Position, TransferWallet,
     TransferWalletParams, Wallet,
 };
 use crate::rest::api::Bitfinex;
 use crate::rest::candles::{Candle, CandleHistoryParams};
-use crate::commons::currency::USTF0;
 use crate::rest::derivs::{
-    DerivsPosCollaterall, DerivsPosCollaterallLimits, DerivsPosCollaterallLimitsParams,
-    DerivsPosCollaterallParams, DerivStatus, DerivStatusHist, DerivStatusHistParams,
+    DerivStatus, DerivStatusHist, DerivStatusHistParams, DerivsPosCollaterall,
+    DerivsPosCollaterallLimits, DerivsPosCollaterallLimitsParams, DerivsPosCollaterallParams,
 };
-use crate::websocket::derivs_ws::DerivsWs;
-use crate::rest::ticker::TradingPair;
-use crate::commons::errors::*;
 use crate::rest::orders::{
-    OrderCancelParams, OrderData, OrderMultiCancelParams, OrderSubmitParams, OrdersUpdate,
-    OrderUpdate, Trade, TradeParams,
+    OrderCancelParams, OrderData, OrderMultiCancelParams, OrderSubmitParams, OrderUpdate,
+    OrdersUpdate, Trade, TradeParams,
 };
+use crate::rest::ticker::TradingPair;
 use crate::rest::trades::TradingPair as TradesTradingPair;
+use crate::websocket::derivs_ws::DerivsWs;
 use crate::websocket::model::{BalanceInfo, Wallet as WalletWs};
+use log::error;
+use std::collections::VecDeque;
+use std::sync::{Arc, RwLock};
+use std::thread;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 #[derive(Clone)]
 pub struct Derivs {
@@ -212,7 +212,10 @@ impl Derivs {
     }
 
     pub fn transfer_between_wallets(
-        &self, from: String, to: String, amount: f64,
+        &self,
+        from: String,
+        to: String,
+        amount: f64,
     ) -> Result<TransferWallet> {
         self.api
             .account

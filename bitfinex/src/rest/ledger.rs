@@ -1,5 +1,5 @@
-use crate::rest::client::*;
 use crate::commons::errors::*;
+use crate::rest::client::*;
 use serde_json::from_str;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -35,7 +35,11 @@ impl Ledger {
     }
 
     pub fn get_history<S>(
-        &self, symbol: S, start: u128, end: u128, limit: i32,
+        &self,
+        symbol: S,
+        start: u128,
+        end: u128,
+        limit: i32,
     ) -> Result<Vec<Entry>>
     where
         S: Into<String>,

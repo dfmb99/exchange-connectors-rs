@@ -1,7 +1,7 @@
-use crate::rest::api::{API, Futures};
+use crate::commons::errors::*;
+use crate::rest::api::{Futures, API};
 use crate::rest::client::Client;
 use crate::rest::model::{Success, UserDataStream};
-use crate::commons::errors::*;
 
 #[derive(Clone)]
 pub struct FuturesUserStream {

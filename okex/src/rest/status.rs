@@ -1,7 +1,7 @@
-use crate::commons::errors::*;
 use crate::commons::client::Client;
-use crate::rest::api::{API, ApiResponse};
+use crate::commons::errors::*;
 use crate::rest::api::Status::SystemStatus;
+use crate::rest::api::{ApiResponse, API};
 use crate::serde::{Deserialize, Serialize};
 
 #[derive(Clone)]
@@ -47,7 +47,8 @@ pub struct SystemStatusResponse {
 impl Status {
     /// Get event status of system upgrade
     pub fn get_system_status(
-        &self, params: &SystemStatusParams,
+        &self,
+        params: &SystemStatusParams,
     ) -> Result<ApiResponse<Vec<SystemStatusResponse>>> {
         let system_status: ApiResponse<Vec<SystemStatusResponse>> = self
             .client

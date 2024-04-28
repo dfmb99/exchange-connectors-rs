@@ -1,11 +1,11 @@
 use dotenv::dotenv;
-use okx::commons::errors::*;
-use okx::commons::utils::{Side, TradeMode};
-use okx::rest::api::Okx;
-use okx::rest::market_data::{MarketData, TickerParams};
-use okx::rest::trade::{Trade, PlaceOrderParams};
+use okex::commons::config::Config;
+use okex::commons::errors::*;
+use okex::commons::utils::{Side, TradeMode};
+use okex::rest::api::Okx;
+use okex::rest::market_data::{MarketData, TickerParams};
+use okex::rest::trade::{PlaceOrderParams, Trade};
 use std::env::var;
-use okx::commons::config::Config;
 
 fn main() {
     market_data();

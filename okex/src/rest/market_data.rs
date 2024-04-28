@@ -332,7 +332,8 @@ impl MarketData {
 
     /// Retrieve index tickers.
     pub fn get_index_tickers(
-        &self, params: &IndexTickerParams,
+        &self,
+        params: &IndexTickerParams,
     ) -> Result<ApiResponse<Vec<IndexTickerResponse>>> {
         let index_tickers: ApiResponse<Vec<IndexTickerResponse>> = self
             .client
@@ -343,7 +344,8 @@ impl MarketData {
 
     /// Retrieve order book of the instrument.
     pub fn get_order_book(
-        &self, params: &OrderBookParams,
+        &self,
+        params: &OrderBookParams,
     ) -> Result<ApiResponse<Vec<OrderBookResponse>>> {
         let order_book: ApiResponse<Vec<OrderBookResponse>> = self
             .client
@@ -354,7 +356,8 @@ impl MarketData {
 
     /// Retrieve order top 25 book of the instrument more quickly.
     pub fn get_order_book_lite(
-        &self, params: &OrderBookParams,
+        &self,
+        params: &OrderBookParams,
     ) -> Result<ApiResponse<Vec<OrderBookResponse>>> {
         let order_book: ApiResponse<Vec<OrderBookResponse>> = self
             .client
@@ -365,7 +368,8 @@ impl MarketData {
 
     /// Retrieve the candlestick charts. This endpoint can retrieve the latest 1,440 data entries. Charts are returned in groups based on the requested bar.
     pub fn get_candles(
-        &self, params: &CandleSticksParams,
+        &self,
+        params: &CandleSticksParams,
     ) -> Result<ApiResponse<Vec<CandleSticksResponse>>> {
         let candles: ApiResponse<Vec<CandleSticksResponse>> = self
             .client
@@ -376,7 +380,8 @@ impl MarketData {
 
     /// Retrieve history candlestick charts from recent years.
     pub fn get_candles_hist(
-        &self, params: &CandleSticksParams,
+        &self,
+        params: &CandleSticksParams,
     ) -> Result<ApiResponse<Vec<CandleSticksResponse>>> {
         let candles: ApiResponse<Vec<CandleSticksResponse>> = self
             .client
@@ -387,7 +392,8 @@ impl MarketData {
 
     /// Retrieve the candlestick charts of the index. This endpoint can retrieve the latest 1,440 data entries. Charts are returned in groups based on the requested bar.
     pub fn get_index_candles(
-        &self, params: &CandleSticksParams,
+        &self,
+        params: &CandleSticksParams,
     ) -> Result<ApiResponse<Vec<CandleStickNoVolResponse>>> {
         let candles: ApiResponse<Vec<CandleStickNoVolResponse>> = self
             .client
@@ -398,7 +404,8 @@ impl MarketData {
 
     /// Retrieve the candlestick charts of the index from recent years.
     pub fn get_index_candles_hist(
-        &self, params: &CandleSticksParams,
+        &self,
+        params: &CandleSticksParams,
     ) -> Result<ApiResponse<Vec<CandleStickNoVolResponse>>> {
         let candles: ApiResponse<Vec<CandleStickNoVolResponse>> = self.client.get(
             API::MarketData(GetIndexCandlesHist),
@@ -410,7 +417,8 @@ impl MarketData {
 
     /// Retrieve the candlestick charts of mark price. This endpoint can retrieve the latest 1,440 data entries. Charts are returned in groups based on the requested bar.
     pub fn get_mark_price_candles(
-        &self, params: &CandleSticksParams,
+        &self,
+        params: &CandleSticksParams,
     ) -> Result<ApiResponse<Vec<CandleStickNoVolResponse>>> {
         let candles: ApiResponse<Vec<CandleStickNoVolResponse>> = self.client.get(
             API::MarketData(GetMarkPriceCandles),
@@ -422,7 +430,8 @@ impl MarketData {
 
     /// Retrieve the candlestick charts of mark price from recent years.
     pub fn get_mark_price_candles_hist(
-        &self, params: &CandleSticksParams,
+        &self,
+        params: &CandleSticksParams,
     ) -> Result<ApiResponse<Vec<CandleStickNoVolResponse>>> {
         let candles: ApiResponse<Vec<CandleStickNoVolResponse>> = self.client.get(
             API::MarketData(GetMarkPriceCandles),
@@ -443,7 +452,8 @@ impl MarketData {
 
     /// Retrieve the recent transactions of an instrument from the last 3 months with pagination.
     pub fn get_trades_hist(
-        &self, params: &TradesHistParams,
+        &self,
+        params: &TradesHistParams,
     ) -> Result<ApiResponse<Vec<TradesResponse>>> {
         let trades: ApiResponse<Vec<TradesResponse>> = self
             .client

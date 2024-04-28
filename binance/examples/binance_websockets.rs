@@ -1,7 +1,7 @@
-use std::sync::atomic::{AtomicBool, Ordering};
 use binance::rest::api::Binance;
 use binance::websocket::spot::userstream::UserStream;
-use binance::websocket::spot::{WebsocketEvent, WebSockets};
+use binance::websocket::spot::{WebSockets, WebsocketEvent};
+use std::sync::atomic::{AtomicBool, Ordering};
 
 fn main() {
     //user_stream();

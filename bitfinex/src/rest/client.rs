@@ -1,8 +1,8 @@
 use crate::commons::auth;
 use crate::commons::errors::*;
-use reqwest::StatusCode;
 use reqwest::blocking::Response;
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue, USER_AGENT, CONTENT_TYPE};
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue, CONTENT_TYPE, USER_AGENT};
+use reqwest::StatusCode;
 use serde::Serialize;
 use std::io::Read;
 
@@ -65,7 +65,10 @@ impl Client {
     }
 
     pub fn post_signed_params_read<P: Serialize + ?Sized>(
-        &self, request: String, payload: String, params: &P,
+        &self,
+        request: String,
+        payload: String,
+        params: &P,
     ) -> Result<String> {
         let url: String = format!("{}auth/r/{}", API_HOST, request);
 
@@ -89,7 +92,10 @@ impl Client {
     }
 
     pub fn post_signed_params_write<P: Serialize + ?Sized>(
-        &self, request: String, payload: String, params: &P,
+        &self,
+        request: String,
+        payload: String,
+        params: &P,
     ) -> Result<String> {
         let url: String = format!("{}auth/w/{}", API_HOST, request);
 
@@ -108,7 +114,10 @@ impl Client {
     }
 
     fn build_headers(
-        &self, request: String, payload: String, sig_path: String,
+        &self,
+        request: String,
+        payload: String,
+        sig_path: String,
     ) -> Result<HeaderMap> {
         let nonce: String = auth::generate_nonce()?;
         let signature_path: String = format!("{}{}{}{}", sig_path, request, nonce, payload);

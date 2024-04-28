@@ -1,15 +1,15 @@
-use std::net::TcpStream;
 use crate::commons::auth;
 use crate::commons::errors::*;
 use crate::websocket::events::*;
 use serde_json::from_str;
+use std::net::TcpStream;
 use url::Url;
 
 use tungstenite::connect;
 use tungstenite::handshake::client::Response;
 use tungstenite::protocol::WebSocket;
-use tungstenite::Message;
 use tungstenite::stream::MaybeTlsStream;
+use tungstenite::Message;
 
 use std::sync::mpsc::{self, channel};
 

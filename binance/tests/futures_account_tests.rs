@@ -7,8 +7,8 @@ use binance::rest::spot::account::OrderSide;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mockito::{mock, Matcher};
     use float_cmp::*;
+    use mockito::{mock, Matcher};
 
     #[test]
     fn change_initial_leverage() {

@@ -1,10 +1,10 @@
-use crate::commons::errors::*;
 use crate::commons::client::Client;
-use crate::rest::api::{API, ApiResponse};
+use crate::commons::errors::*;
 use crate::rest::api::TradingData::{
     GetContractsOIVolume, GetLongShortRatio, GetMarginLendingRatio, GetOptionsOIVolume,
     GetPutCallRatio, GetSupportCoin, GetTakerFlow, GetTakerVolume,
 };
+use crate::rest::api::{ApiResponse, API};
 use crate::serde::{Deserialize, Serialize};
 
 #[derive(Clone)]
@@ -237,7 +237,8 @@ impl TradingData {
 
     /// Retrieve the taker volume for both buyers and sellers.
     pub fn get_taker_volume(
-        &self, params: &TakerVolumeParams,
+        &self,
+        params: &TakerVolumeParams,
     ) -> Result<ApiResponse<Vec<Vec<String>>>> {
         let taker_flow: ApiResponse<Vec<Vec<String>>> = self
             .client
@@ -248,7 +249,8 @@ impl TradingData {
 
     /// Retrieve the ratio of cumulative amount between currency margin quote currency and base currency.
     pub fn get_margin_lending_ratio(
-        &self, params: &MarginLendingRatioParams,
+        &self,
+        params: &MarginLendingRatioParams,
     ) -> Result<ApiResponse<Vec<Vec<String>>>> {
         let margin_lending_ratio: ApiResponse<Vec<Vec<String>>> = self.client.get(
             API::TradingData(GetMarginLendingRatio),
@@ -260,7 +262,8 @@ impl TradingData {
 
     /// Retrieve the ratio of users with net long vs net short positions for futures and perpetual swaps.
     pub fn get_long_short_ratio(
-        &self, params: &LongShortRatioParams,
+        &self,
+        params: &LongShortRatioParams,
     ) -> Result<ApiResponse<Vec<Vec<String>>>> {
         let long_short_ratio: ApiResponse<Vec<Vec<String>>> = self
             .client
@@ -271,7 +274,8 @@ impl TradingData {
 
     /// Retrieve the open interest and trading volume for futures and perpetual swaps.
     pub fn get_contracts_oi_volume(
-        &self, params: &ContractsOIVolumeParams,
+        &self,
+        params: &ContractsOIVolumeParams,
     ) -> Result<ApiResponse<Vec<Vec<String>>>> {
         let contracts_data: ApiResponse<Vec<Vec<String>>> = self.client.get(
             API::TradingData(GetContractsOIVolume),
@@ -283,7 +287,8 @@ impl TradingData {
 
     /// Retrieve the open interest and trading volume for options.
     pub fn get_options_oi_volume(
-        &self, params: &OptionsOIVolumeParams,
+        &self,
+        params: &OptionsOIVolumeParams,
     ) -> Result<ApiResponse<Vec<Vec<String>>>> {
         let options_data: ApiResponse<Vec<Vec<String>>> = self.client.get(
             API::TradingData(GetOptionsOIVolume),
@@ -295,7 +300,8 @@ impl TradingData {
 
     /// Retrieve the open interest ratio and trading volume ratio of calls vs puts.
     pub fn get_put_call_ratio(
-        &self, params: &PutCallRatioParams,
+        &self,
+        params: &PutCallRatioParams,
     ) -> Result<ApiResponse<Vec<Vec<String>>>> {
         let put_call_ratio: ApiResponse<Vec<Vec<String>>> = self
             .client

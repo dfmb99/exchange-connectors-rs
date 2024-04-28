@@ -1,16 +1,16 @@
-use serde_json::to_string;
 use crate::commons::client::Client;
 use crate::commons::errors::*;
 use crate::commons::utils::{
     ExecType, InstType, OrdCategory, OrdState, OrdType, PosSide, QuickMgnType, Side, TradeMode,
     TriggerPriceType,
 };
-use crate::rest::api::{API, ApiResponse};
 use crate::rest::api::Trade::{
     AmendMultipleOrders, AmendOrder, CancelMultipleOrders, CancelOrder, ClosePositions, GetFills,
     GetFillsHist, GetOrderDetails, GetOrderHist, GetOrderList, PlaceMultipleOrders, PlaceOrder,
 };
+use crate::rest::api::{ApiResponse, API};
 use crate::serde::{Deserialize, Serialize};
+use serde_json::to_string;
 
 #[derive(Clone)]
 pub struct Trade {
@@ -532,7 +532,8 @@ impl Trade {
     /// You can place an order only if you have sufficient funds.
     /// For leading contracts, this endpoint supports placement, but can't close positions.
     pub fn place_order(
-        &self, params: &PlaceOrderParams,
+        &self,
+        params: &PlaceOrderParams,
     ) -> Result<ApiResponse<Vec<PlaceOrderResponse>>> {
         let payload: String = to_string(params)?;
         let order: ApiResponse<Vec<PlaceOrderResponse>> =
@@ -544,7 +545,8 @@ impl Trade {
     /// Place orders in batches. Maximum 20 orders can be placed per request. Request parameters should be passed in the form of an array.
     /// For leading contracts, this endpoint supports placement, but can't close positions.
     pub fn place_multiple_orders(
-        &self, params: &Vec<PlaceOrderParams>,
+        &self,
+        params: &Vec<PlaceOrderParams>,
     ) -> Result<ApiResponse<Vec<PlaceOrderResponse>>> {
         let payload: String = to_string(params)?;
         let orders: ApiResponse<Vec<PlaceOrderResponse>> = self
@@ -557,7 +559,8 @@ impl Trade {
     /// Cancel an incomplete order.
     /// Cancel order returns with sCode equal to 0. It is not strictly considered that the order has been canceled. It only means that your cancelation request has been accepted by the system server. The result of the cancelation is subject to the state pushed by the order channel or the get order state.
     pub fn cancel_order(
-        &self, params: &CancelOrderParams,
+        &self,
+        params: &CancelOrderParams,
     ) -> Result<ApiResponse<Vec<CancelOrderResponse>>> {
         let payload: String = to_string(params)?;
         let order: ApiResponse<Vec<CancelOrderResponse>> =
@@ -569,7 +572,8 @@ impl Trade {
     /// Cancel an incomplete order.
     /// Cancel order returns with sCode equal to 0. It is not strictly considered that the order has been canceled. It only means that your cancelation request has been accepted by the system server. The result of the cancelation is subject to the state pushed by the order channel or the get order state.
     pub fn cancel_multiple_orders(
-        &self, params: &Vec<CancelOrderParams>,
+        &self,
+        params: &Vec<CancelOrderParams>,
     ) -> Result<ApiResponse<Vec<CancelOrderResponse>>> {
         let payload: String = to_string(params)?;
         let orders: ApiResponse<Vec<CancelOrderResponse>> = self
@@ -581,7 +585,8 @@ impl Trade {
 
     /// Amend an incomplete order.
     pub fn amend_order(
-        &self, params: &AmendOrderParams,
+        &self,
+        params: &AmendOrderParams,
     ) -> Result<ApiResponse<Vec<AmendOrderResponse>>> {
         let payload: String = to_string(params)?;
         let order: ApiResponse<Vec<AmendOrderResponse>> =
@@ -592,7 +597,8 @@ impl Trade {
 
     /// Amend incomplete orders in batches. Maximum 20 orders can be amended per request. Request parameters should be passed in the form of an array.
     pub fn amend_multiple_order(
-        &self, params: &Vec<AmendOrderParams>,
+        &self,
+        params: &Vec<AmendOrderParams>,
     ) -> Result<ApiResponse<Vec<AmendOrderResponse>>> {
         let payload: String = to_string(params)?;
         let orders: ApiResponse<Vec<AmendOrderResponse>> = self
@@ -605,7 +611,8 @@ impl Trade {
     /// Amend incomplete orders in batches. Maximum 20 orders can be amended per request. Request parameters should be passed in the form of an array.
     /// if there are any pending orders for closing out and the orders do not need to be automatically canceled, it will return an error code and message to prompt users to cancel pending orders before closing the positions.
     pub fn close_position(
-        &self, params: &ClosePositionParams,
+        &self,
+        params: &ClosePositionParams,
     ) -> Result<ApiResponse<Vec<ClosePositionResponse>>> {
         let payload: String = to_string(params)?;
         let order: ApiResponse<Vec<ClosePositionResponse>> = self
@@ -617,7 +624,8 @@ impl Trade {
 
     /// Retrieve order details.
     pub fn get_order_details(
-        &self, params: &OrderDetailsParams,
+        &self,
+        params: &OrderDetailsParams,
     ) -> Result<ApiResponse<Vec<OrderDetailsResponse>>> {
         let order: ApiResponse<Vec<OrderDetailsResponse>> = self
             .client
@@ -628,7 +636,8 @@ impl Trade {
 
     /// Retrieve all incomplete orders under the current account.
     pub fn get_order_list(
-        &self, params: &OrderListParams,
+        &self,
+        params: &OrderListParams,
     ) -> Result<ApiResponse<Vec<OrderDetailsResponse>>> {
         let order: ApiResponse<Vec<OrderDetailsResponse>> = self
             .client
@@ -639,7 +648,8 @@ impl Trade {
 
     /// Retrieve the completed order data of the last 3 months.
     pub fn get_order_hist(
-        &self, params: &OrderListParams,
+        &self,
+        params: &OrderListParams,
     ) -> Result<ApiResponse<Vec<OrderDetailsResponse>>> {
         let order: ApiResponse<Vec<OrderDetailsResponse>> = self
             .client

@@ -1,8 +1,8 @@
 extern crate bitfinex;
 
+use bitfinex::commons::{errors::*, pairs::*, precision::*};
 use bitfinex::websocket::events::*;
 use bitfinex::websocket::websockets::*;
-use bitfinex::commons::{pairs::*, precision::*, errors::*};
 
 struct WebSocketHandler;
 

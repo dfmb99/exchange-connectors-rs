@@ -1,9 +1,9 @@
 use dotenv::dotenv;
-use mockito::{Matcher, mock};
-use okx::commons::config::Config;
-use okx::commons::utils::{InstType, TradeMode};
-use okx::rest::api::Okx;
-use okx::rest::public_data::{
+use mockito::{mock, Matcher};
+use okex::commons::config::Config;
+use okex::commons::utils::{InstType, TradeMode};
+use okex::rest::api::Okx;
+use okex::rest::public_data::{
     DeliveryHistParams, DiscountRateParams, EstimatedDeliveryPriceParams, FundingRateHistParams,
     FundingRateParams, InstrumentsParams, InsuranceFundParams, LimitPriceParams,
     LiquidationOrdersParams, MarkPriceParams, OpenInterestParams, OptionMarketDataParams,

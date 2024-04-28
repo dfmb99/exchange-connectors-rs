@@ -207,27 +207,33 @@ pub trait Okx {
     fn new(api_key: Option<String>, secret_key: Option<String>, passphrase: Option<String>)
         -> Self;
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, passphrase: Option<String>,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        passphrase: Option<String>,
         config: &Config,
     ) -> Self;
 }
 
-use crate::rest::market_data::MarketData as RestMarketData;
-use crate::rest::trade::Trade as RestTrade;
 use crate::rest::account::Account as RestAccount;
+use crate::rest::market_data::MarketData as RestMarketData;
 use crate::rest::public_data::PublicData as RestPublicData;
-use crate::rest::trading_data::TradingData as RestTradingData;
 use crate::rest::status::Status as RestStatus;
+use crate::rest::trade::Trade as RestTrade;
+use crate::rest::trading_data::TradingData as RestTradingData;
 
 impl Okx for RestMarketData {
     fn new(
-        api_key: Option<String>, secret_key: Option<String>, passphrase: Option<String>,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        passphrase: Option<String>,
     ) -> Self {
         Self::new_with_config(api_key, secret_key, passphrase, &Config::default())
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, passphrase: Option<String>,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        passphrase: Option<String>,
         config: &Config,
     ) -> RestMarketData {
         RestMarketData {
@@ -244,13 +250,17 @@ impl Okx for RestMarketData {
 
 impl Okx for RestTrade {
     fn new(
-        api_key: Option<String>, secret_key: Option<String>, passphrase: Option<String>,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        passphrase: Option<String>,
     ) -> Self {
         Self::new_with_config(api_key, secret_key, passphrase, &Config::default())
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, passphrase: Option<String>,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        passphrase: Option<String>,
         config: &Config,
     ) -> RestTrade {
         RestTrade {
@@ -267,13 +277,17 @@ impl Okx for RestTrade {
 
 impl Okx for RestAccount {
     fn new(
-        api_key: Option<String>, secret_key: Option<String>, passphrase: Option<String>,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        passphrase: Option<String>,
     ) -> Self {
         Self::new_with_config(api_key, secret_key, passphrase, &Config::default())
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, passphrase: Option<String>,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        passphrase: Option<String>,
         config: &Config,
     ) -> RestAccount {
         RestAccount {
@@ -290,13 +304,17 @@ impl Okx for RestAccount {
 
 impl Okx for RestPublicData {
     fn new(
-        api_key: Option<String>, secret_key: Option<String>, passphrase: Option<String>,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        passphrase: Option<String>,
     ) -> Self {
         Self::new_with_config(api_key, secret_key, passphrase, &Config::default())
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, passphrase: Option<String>,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        passphrase: Option<String>,
         config: &Config,
     ) -> RestPublicData {
         RestPublicData {
@@ -313,13 +331,17 @@ impl Okx for RestPublicData {
 
 impl Okx for RestTradingData {
     fn new(
-        api_key: Option<String>, secret_key: Option<String>, passphrase: Option<String>,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        passphrase: Option<String>,
     ) -> Self {
         Self::new_with_config(api_key, secret_key, passphrase, &Config::default())
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, passphrase: Option<String>,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        passphrase: Option<String>,
         config: &Config,
     ) -> RestTradingData {
         RestTradingData {
@@ -336,13 +358,17 @@ impl Okx for RestTradingData {
 
 impl Okx for RestStatus {
     fn new(
-        api_key: Option<String>, secret_key: Option<String>, passphrase: Option<String>,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        passphrase: Option<String>,
     ) -> Self {
         Self::new_with_config(api_key, secret_key, passphrase, &Config::default())
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, passphrase: Option<String>,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        passphrase: Option<String>,
         config: &Config,
     ) -> RestStatus {
         RestStatus {

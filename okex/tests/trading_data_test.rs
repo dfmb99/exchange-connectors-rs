@@ -1,8 +1,8 @@
 use dotenv::dotenv;
-use mockito::{Matcher, mock};
-use okx::commons::config::Config;
-use okx::rest::api::Okx;
-use okx::rest::trading_data::{
+use mockito::{mock, Matcher};
+use okex::commons::config::Config;
+use okex::rest::api::Okx;
+use okex::rest::trading_data::{
     ContractsOIVolumeParams, LongShortRatioParams, MarginLendingRatioParams, OptionsOIVolumeParams,
     PutCallRatioParams, TakerFlowParams, TakerVolumeParams, TradingData,
 };

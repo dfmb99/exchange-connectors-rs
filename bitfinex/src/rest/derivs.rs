@@ -1,5 +1,5 @@
-use crate::rest::client::*;
 use crate::commons::errors::*;
+use crate::rest::client::*;
 use serde_json::{from_str, to_string};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -161,7 +161,9 @@ impl Derivs {
     }
 
     pub fn derivs_status_hist<S>(
-        &self, symbol: S, params: &DerivStatusHistParams,
+        &self,
+        symbol: S,
+        params: &DerivStatusHistParams,
     ) -> Result<Vec<DerivStatusHist>>
     where
         S: Into<String>,
@@ -177,7 +179,8 @@ impl Derivs {
     }
 
     pub fn derivs_pos_collateral(
-        &self, params: &DerivsPosCollaterallParams,
+        &self,
+        params: &DerivsPosCollaterallParams,
     ) -> Result<Vec<DerivsPosCollaterall>> {
         let payload: String = to_string(params)?;
         let data = self
@@ -190,7 +193,8 @@ impl Derivs {
     }
 
     pub fn derivs_pos_collateral_limits(
-        &self, params: &DerivsPosCollaterallLimitsParams,
+        &self,
+        params: &DerivsPosCollaterallLimitsParams,
     ) -> Result<DerivsPosCollaterallLimits> {
         let payload: String = to_string(params)?;
         let data = self

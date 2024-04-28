@@ -1,9 +1,9 @@
 extern crate bitfinex;
 
-use bitfinex::websocket::derivs_ws::DerivsWs;
 use bitfinex::commons::pairs::TESTBTCPERP;
-use std::thread;
+use bitfinex::websocket::derivs_ws::DerivsWs;
 use dotenv::dotenv;
+use std::thread;
 
 fn main() {
     dotenv().ok();
