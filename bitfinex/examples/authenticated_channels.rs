@@ -1,6 +1,6 @@
 extern crate bitfinex;
 
-use bitfinex::commons::errors::*;
+use bitfinex::commons::errors::WebSocketError;
 use bitfinex::websocket::events::*;
 use bitfinex::websocket::websockets::*;
 
@@ -81,7 +81,7 @@ impl EventHandler for WebSocketHandler {
         }
     }
 
-    fn on_error(&mut self, message: Error) {
+    fn on_error(&mut self, message: WebSocketError) {
         println!("{:?}", message);
     }
 }

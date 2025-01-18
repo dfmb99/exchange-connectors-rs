@@ -102,7 +102,7 @@ impl<'a> WebSockets<'a> {
                 self.socket = Some(answer);
                 Ok(())
             }
-            Err(e) => bail!(format!("Error during handshake {e}")),
+            Err(_) => Err(BinanceError::WebSocket(WebSocketError::Disconnected)),
         }
     }
 
@@ -111,7 +111,7 @@ impl<'a> WebSockets<'a> {
             socket.0.close(None)?;
             return Ok(());
         }
-        bail!("Not able to close the connection");
+        Err(BinanceError::WebSocket(WebSocketError::Disconnected))
     }
 
     pub fn test_handle_msg(&mut self, msg: &str) -> Result<()> {
@@ -156,15 +156,13 @@ impl<'a> WebSockets<'a> {
                 let message = socket.0.read_message()?;
                 match message {
                     Message::Text(msg) => {
-                        if let Err(e) = self.handle_msg(&msg) {
-                            bail!(format!("Error on handling stream message: {e}"));
-                        }
+                        self.handle_msg(&msg)?
                     }
                     Message::Ping(_) => {
                         socket.0.write_message(Message::Pong(vec![])).unwrap();
                     }
                     Message::Pong(_) | Message::Binary(_) => (),
-                    Message::Close(e) => bail!(format!("Disconnected {e:?}")),
+                    Message::Close(_) => return Err(BinanceError::WebSocket(WebSocketError::Disconnected)),
                     Message::Frame(_) => (),
                 }
             }

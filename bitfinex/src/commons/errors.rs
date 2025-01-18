@@ -1,30 +1,56 @@
 use reqwest;
-use serde_json;
 use std;
-use tungstenite;
-use url;
+use thiserror::Error;
 
-error_chain! {
-    types {
-        Error, ErrorKind, ResultExt, Result;
-    }
+#[derive(Error, Debug)]
+pub enum BitfinexError {
+    #[error("Internal Server Error: {0}")]
+    InternalServerError(String),
 
-    errors {
-        Internal(t: String) {
-            description("invalid toolchain name")
-            display("invalid toolchain name: '{}'", t)
-        }
-    }
+    #[error("Service Unavailable: {0}")]
+    ServiceUnavailable(String),
 
-    foreign_links {
-        ReqError(reqwest::Error);
-        InvalidHeaderError(reqwest::header::InvalidHeaderValue);
-        IoError(std::io::Error);
-        ParseFloatError(std::num::ParseFloatError);
-        UrlParserError(url::ParseError);
-        Json(serde_json::Error);
-        Tungstenite(tungstenite::Error);
-        TimestampError(std::time::SystemTimeError);
-    }
+    #[error("Unauthorized: {0}")]
+    Unauthorized(String),
 
+    #[error("Bad Request: {0}")]
+    BadRequest(String),
+
+    #[error("Request Error: {0}")]
+    RequestError(#[from] reqwest::Error),
+
+    #[error("Invalid header value: {0}")]
+    InvalidHeader(#[from] reqwest::header::InvalidHeaderValue),
+
+    #[error("IO Error: {0}")]
+    IoError(#[from] std::io::Error),
+
+    #[error("JSON parsing error: {0}")]
+    JsonError(#[from] serde_json::Error),
+
+    #[error("Unknown Error: {0}")]
+    Unknown(String),
 }
+
+#[derive(Error, Debug)]
+pub enum WebSocketError {
+    #[error("WebSocket error: {0}")]
+    WsError(#[from] tungstenite::Error),
+
+    #[error("Channel send error: {0}")]
+    SendError(String),
+
+    #[error("Connection disconnected: {0}")]
+    Disconnected(String),
+
+    #[error("JSON parsing error: {0}")]
+    JsonError(#[from] serde_json::Error),
+
+    #[error("URL parsing error: {0}")]
+    UrlError(#[from] url::ParseError),
+
+    #[error("Auth error: {0}")]
+    AuthError(String),
+}
+
+pub type Result<T> = std::result::Result<T, BitfinexError>;

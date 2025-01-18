@@ -1,5 +1,4 @@
 use binance::commons::config::Config;
-use binance::commons::errors::ErrorKind as BinanceLibErrorKind;
 use binance::rest::api::Binance;
 use binance::rest::model::KlineSummaries::AllKlineSummaries;
 use binance::rest::model::KlineSummary;
@@ -34,15 +33,8 @@ fn general(use_testnet: bool) {
     let ping = general.ping();
     match ping {
         Ok(answer) => println!("{answer:?}"),
-        Err(err) => {
-            match err.0 {
-                BinanceLibErrorKind::BinanceError(response) => match response.code {
-                    -1000_i16 => println!("An unknown error occured while processing the request"),
-                    _ => println!("Non-catched code {}: {}", response.code, response.msg),
-                },
-                BinanceLibErrorKind::Msg(msg) => println!("Binancelib error msg: {msg}"),
-                _ => println!("Other errors: {}.", err.0),
-            };
+        Err(_) => {
+            return;
         }
     }
 

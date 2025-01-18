@@ -98,12 +98,10 @@ impl Account {
         match self.get_account() {
             Ok(account) => {
                 let cmp_asset = asset.into();
-                for balance in account.balances {
-                    if balance.asset == cmp_asset {
-                        return Ok(balance);
-                    }
-                }
-                bail!("Asset not found");
+                account.balances
+                .into_iter()
+                .find(|item| item.asset == cmp_asset)
+                .ok_or(BinanceError::SymbolNotFound)
             }
             Err(e) => Err(e),
         }

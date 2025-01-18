@@ -166,25 +166,25 @@ impl Client {
             StatusCode::INTERNAL_SERVER_ERROR => {
                 let error: BinanceContentError = response.json()?;
 
-                Err(ErrorKind::BinanceError(error).into())
+                Err(BinanceError::BinanceError { response: error })
             }
             StatusCode::SERVICE_UNAVAILABLE => {
                 let error: BinanceContentError = response.json()?;
 
-                Err(ErrorKind::BinanceError(error).into())
+                Err(BinanceError::BinanceError { response: error })
             }
             StatusCode::UNAUTHORIZED => {
                 let error: BinanceContentError = response.json()?;
 
-                Err(ErrorKind::BinanceError(error).into())
+                Err(BinanceError::BinanceError { response: error })
             }
             StatusCode::BAD_REQUEST => {
                 let error: BinanceContentError = response.json()?;
 
-                Err(ErrorKind::BinanceError(error).into())
+                Err(BinanceError::BinanceError { response: error })
             }
             s => {
-                bail!(format!("Received response: {s:?}"));
+                Err(BinanceError::UnkownStatusCode(s))
             }
         }
     }

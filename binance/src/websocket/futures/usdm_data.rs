@@ -454,8 +454,8 @@ mod tests {
     }"#;
         let ws_data = WsData::default();
         let v: AccountUpdateEvent = serde_json::from_str(json).unwrap();
-        ws_data.update_balance(v.data.balances.get(0).unwrap().to_owned());
-        ws_data.update_position(v.data.positions.get(0).unwrap().to_owned());
+        ws_data.update_balance(v.data.balances.first().unwrap().to_owned());
+        ws_data.update_position(v.data.positions.first().unwrap().to_owned());
         assert!(ws_data.get_balance_event().is_some());
         assert!(ws_data.get_position_event().is_some());
     }
@@ -526,7 +526,7 @@ mod tests {
         let mut inserts: usize = 0;
         for _ in 0..=DATA_SIZE * 2 {
             let mut v2 = v.clone();
-            v2.order_id = v2.order_id + inserts as u64;
+            v2.order_id += inserts as u64;
             ws_data.add_order(v2);
             inserts += 1;
         }
