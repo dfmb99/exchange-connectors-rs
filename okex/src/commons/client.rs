@@ -246,9 +246,7 @@ impl Client {
             StatusCode::SERVICE_UNAVAILABLE => Err(Error::OkxError(response.json()?)),
             StatusCode::UNAUTHORIZED => Err(Error::OkxError(response.json()?)),
             StatusCode::BAD_REQUEST => Err(Error::OkxError(response.json()?)),
-            s => {
-                Err(Error::UnkownStatusCode(s))
-            }
+            s => Err(Error::UnkownStatusCode(s)),
         }
     }
 }

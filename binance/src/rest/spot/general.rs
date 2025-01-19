@@ -33,12 +33,11 @@ impl General {
     {
         let upper_symbol = symbol.into().to_uppercase();
         match self.exchange_info() {
-            Ok(info) => {
-                info.symbols
+            Ok(info) => info
+                .symbols
                 .into_iter()
                 .find(|item| item.symbol == upper_symbol)
-                .ok_or(BinanceError::SymbolNotFound)
-            }
+                .ok_or(BinanceError::SymbolNotFound),
             Err(e) => Err(e),
         }
     }

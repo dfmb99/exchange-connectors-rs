@@ -19,9 +19,9 @@ pub fn generate_signature(
 ) -> String {
     let input_msg = &(method.to_owned() + path + expires + data);
     // Create new HMAC instance
-    let mut mac = Hmac::<Sha256>::new_from_slice(secret.as_bytes())
-        .expect("HMAC can take key of any size");
-        
+    let mut mac =
+        Hmac::<Sha256>::new_from_slice(secret.as_bytes()).expect("HMAC can take key of any size");
+
     // Add message to digest
     mac.update(input_msg.as_bytes());
 

@@ -1,6 +1,6 @@
 use crate::commons::config::Config;
-use crate::commons::errors::BinanceError;
 use crate::commons::errors::BinanceContentError;
+use crate::commons::errors::BinanceError;
 use crate::rest::api::Binance;
 use crate::rest::futures::model::OrderUpdate;
 use crate::rest::model::{

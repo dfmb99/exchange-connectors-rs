@@ -996,7 +996,7 @@ impl UsdmInterface {
         result: Result<T>,
     ) -> Result<T> {
         match &result {
-            Err(BinanceError::BinanceError{ response: err }) => {
+            Err(BinanceError::BinanceError { response: err }) => {
                 if err.msg == "Request occur unknown error."
                     || err.msg == "Service Unavailable."
                     || err.msg

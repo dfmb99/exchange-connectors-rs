@@ -4,7 +4,7 @@ use binance::commons::util::build_signed_request_custom;
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     use std::collections::BTreeMap;
     use std::time::{SystemTime, UNIX_EPOCH};
 

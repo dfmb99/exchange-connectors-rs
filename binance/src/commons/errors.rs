@@ -11,15 +11,10 @@ pub struct BinanceContentError {
 #[derive(Error, Debug)]
 pub enum BinanceError {
     #[error("Binance API error: {response:?}")]
-    BinanceError {
-        response: BinanceContentError,
-    },
+    BinanceError { response: BinanceContentError },
 
     #[error("{name} at {index} is missing")]
-    KlineValueMissing {
-        index: usize,
-        name: &'static str,
-    },
+    KlineValueMissing { index: usize, name: &'static str },
 
     #[error("Request error: {0}")]
     ReqError(#[from] reqwest::Error),
@@ -50,13 +45,13 @@ pub enum BinanceError {
 
     #[error("Unkown status code {0}")]
     UnkownStatusCode(StatusCode),
-    
+
     #[error("Request error: {0}")]
     RequestError(String),
-    
+
     #[error("WebSocket error: {0}")]
     WebSocketError(String),
-    
+
     #[error("Parsing error: {0}")]
     ParseError(String),
 
@@ -74,22 +69,22 @@ pub enum BinanceError {
 pub enum WebSocketError {
     #[error("WebSocket connection error: {0}")]
     ConnectionError(String),
-    
+
     #[error("WebSocket message error: {0}")]
     MessageError(String),
-    
+
     #[error("Disconnected")]
     Disconnected,
-    
+
     #[error("JSON parse error: {0}")]
     JsonError(#[from] serde_json::Error),
-    
+
     #[error("URL parse error: {0}")]
     UrlError(#[from] url::ParseError),
-    
+
     #[error("WebSocket error: {0}")]
     WsError(#[from] tungstenite::Error),
-    
+
     #[error("Loop closed")]
     LoopClosed,
 }
@@ -98,10 +93,10 @@ pub enum WebSocketError {
 pub enum UtilError {
     #[error("Failed to parse JSON value to number: {0}")]
     JsonParseError(String),
-    
+
     #[error("Failed to parse string to float: {0}")]
     FloatParseError(#[from] std::num::ParseFloatError),
-    
+
     #[error("Failed to get timestamp: {0}")]
     TimestampError(#[from] std::time::SystemTimeError),
 }

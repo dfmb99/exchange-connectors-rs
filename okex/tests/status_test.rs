@@ -1,5 +1,4 @@
-use dotenv::dotenv;
-use mockito::{mock, Matcher};
+use mockito::{Matcher, Server};
 use okex::commons::config::Config;
 use okex::rest::api::Okx;
 use okex::rest::status::{Status, SystemStatusParams};
@@ -10,16 +9,15 @@ mod tests {
 
     #[test]
     fn get_system_status() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
-
-        let mock = mock("GET", "/api/v5/system/status")
+        let mut server = Server::new();
+        let mock = server
+            .mock("GET", "/api/v5/system/status")
             .with_header("content-type", "application/json")
             .match_query(Matcher::Regex("state=canceled".into()))
             .with_body_from_file("tests/mocks/status/get_system_status.json")
             .create();
 
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let public_data: Status = Okx::new_with_config(None, None, None, &config);
 
         let params = SystemStatusParams {

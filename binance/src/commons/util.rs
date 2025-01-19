@@ -27,18 +27,20 @@ pub fn build_signed_request_custom(
     if recv_window > 0 {
         parameters.insert("recvWindow".to_string(), recv_window.to_string());
     }
-    
+
     let timestamp = get_timestamp(start)?;
     parameters.insert("timestamp".to_string(), timestamp.to_string());
     Ok(build_request(parameters))
 }
 
 pub fn to_i64(v: &Value) -> Result<i64, UtilError> {
-    v.as_i64().ok_or_else(|| UtilError::JsonParseError("Failed to parse i64".to_string()))
+    v.as_i64()
+        .ok_or_else(|| UtilError::JsonParseError("Failed to parse i64".to_string()))
 }
 
 pub fn to_f64(v: &Value) -> Result<f64, UtilError> {
-    let str_val = v.as_str()
+    let str_val = v
+        .as_str()
         .ok_or_else(|| UtilError::JsonParseError("Failed to get string value".to_string()))?;
     Ok(str_val.parse()?)
 }

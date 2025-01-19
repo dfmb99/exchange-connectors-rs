@@ -954,7 +954,7 @@ pub struct KlineSummary {
 fn get_value(row: &[Value], index: usize, name: &'static str) -> Result<Value> {
     Ok(row
         .get(index)
-        .ok_or_else(|| BinanceError::KlineValueMissing {index, name})?
+        .ok_or_else(|| BinanceError::KlineValueMissing { index, name })?
         .clone())
 }
 

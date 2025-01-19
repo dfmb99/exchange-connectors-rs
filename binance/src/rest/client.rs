@@ -183,9 +183,7 @@ impl Client {
 
                 Err(BinanceError::BinanceError { response: error })
             }
-            s => {
-                Err(BinanceError::UnkownStatusCode(s))
-            }
+            s => Err(BinanceError::UnkownStatusCode(s)),
         }
     }
 }

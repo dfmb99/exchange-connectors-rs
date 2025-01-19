@@ -155,14 +155,14 @@ impl<'a> WebSockets<'a> {
                 }
                 let message = socket.0.read()?;
                 match message {
-                    Message::Text(msg) => {
-                        self.handle_msg(&msg)?
-                    }
+                    Message::Text(msg) => self.handle_msg(&msg)?,
                     Message::Ping(data) => {
                         socket.0.send(Message::Pong(data)).unwrap();
                     }
                     Message::Pong(_) | Message::Binary(_) => (),
-                    Message::Close(_) => return Err(BinanceError::WebSocket(WebSocketError::Disconnected)),
+                    Message::Close(_) => {
+                        return Err(BinanceError::WebSocket(WebSocketError::Disconnected))
+                    }
                     Message::Frame(_) => (),
                 }
             }

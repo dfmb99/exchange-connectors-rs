@@ -1,5 +1,4 @@
-use dotenv::dotenv;
-use mockito::{mock, Matcher};
+use mockito::{Matcher, Server};
 use okex::commons::config::Config;
 use okex::rest::api::Okx;
 use okex::rest::trading_data::{
@@ -13,15 +12,14 @@ mod tests {
 
     #[test]
     fn get_support_coins_test() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
-
-        let mock = mock("GET", "/api/v5/rubik/stat/trading-data/support-coin")
+        let mut server = Server::new();
+        let mock = server
+            .mock("GET", "/api/v5/rubik/stat/trading-data/support-coin")
             .with_header("content-type", "application/json")
             .with_body_from_file("tests/mocks/trading_data/get_support_coins.json")
             .create();
 
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let public_data: TradingData = Okx::new_with_config(None, None, None, &config);
 
         let response = public_data.get_support_coins().unwrap();
@@ -34,16 +32,15 @@ mod tests {
 
     #[test]
     fn get_taker_volume_test() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
-
-        let mock = mock("GET", "/api/v5/rubik/stat/taker-volume")
+        let mut server = Server::new();
+        let mock = server
+            .mock("GET", "/api/v5/rubik/stat/taker-volume")
             .with_header("content-type", "application/json")
             .match_query(Matcher::Regex("ccy=BTC&.*instType=SPOT".into()))
             .with_body_from_file("tests/mocks/trading_data/get_taker_volume.json")
             .create();
 
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let public_data: TradingData = Okx::new_with_config(None, None, None, &config);
 
         let params = TakerVolumeParams {
@@ -61,16 +58,15 @@ mod tests {
 
     #[test]
     fn get_margin_lending_ratio_test() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
-
-        let mock = mock("GET", "/api/v5/rubik/stat/margin/loan-ratio")
+        let mut server = Server::new();
+        let mock = server
+            .mock("GET", "/api/v5/rubik/stat/margin/loan-ratio")
             .with_header("content-type", "application/json")
             .match_query(Matcher::Regex("ccy=BTC".into()))
             .with_body_from_file("tests/mocks/trading_data/get_margin_lending_ratio.json")
             .create();
 
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let public_data: TradingData = Okx::new_with_config(None, None, None, &config);
 
         let params = MarginLendingRatioParams {
@@ -88,19 +84,18 @@ mod tests {
 
     #[test]
     fn get_long_short_ratio_test() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
+        let mut server = Server::new();
+        let mock = server
+            .mock(
+                "GET",
+                "/api/v5/rubik/stat/contracts/long-short-account-ratio",
+            )
+            .with_header("content-type", "application/json")
+            .match_query(Matcher::Regex("ccy=BTC".into()))
+            .with_body_from_file("tests/mocks/trading_data/get_long_short_ratio.json")
+            .create();
 
-        let mock = mock(
-            "GET",
-            "/api/v5/rubik/stat/contracts/long-short-account-ratio",
-        )
-        .with_header("content-type", "application/json")
-        .match_query(Matcher::Regex("ccy=BTC".into()))
-        .with_body_from_file("tests/mocks/trading_data/get_long_short_ratio.json")
-        .create();
-
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let public_data: TradingData = Okx::new_with_config(None, None, None, &config);
 
         let params = LongShortRatioParams {
@@ -118,16 +113,15 @@ mod tests {
 
     #[test]
     fn get_contracts_oi_volume_test() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
-
-        let mock = mock("GET", "/api/v5/rubik/stat/contracts/open-interest-volume")
+        let mut server = Server::new();
+        let mock = server
+            .mock("GET", "/api/v5/rubik/stat/contracts/open-interest-volume")
             .with_header("content-type", "application/json")
             .match_query(Matcher::Regex("ccy=BTC".into()))
             .with_body_from_file("tests/mocks/trading_data/get_contracts_oi_volume.json")
             .create();
 
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let public_data: TradingData = Okx::new_with_config(None, None, None, &config);
 
         let params = ContractsOIVolumeParams {
@@ -145,16 +139,15 @@ mod tests {
 
     #[test]
     fn get_options_oi_volume_test() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
-
-        let mock = mock("GET", "/api/v5/rubik/stat/option/open-interest-volume")
+        let mut server = Server::new();
+        let mock = server
+            .mock("GET", "/api/v5/rubik/stat/option/open-interest-volume")
             .with_header("content-type", "application/json")
             .match_query(Matcher::Regex("ccy=BTC".into()))
             .with_body_from_file("tests/mocks/trading_data/get_options_oi_volume.json")
             .create();
 
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let public_data: TradingData = Okx::new_with_config(None, None, None, &config);
 
         let params = OptionsOIVolumeParams {
@@ -172,19 +165,18 @@ mod tests {
 
     #[test]
     fn get_put_call_ratio_test() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
+        let mut server = Server::new();
+        let mock = server
+            .mock(
+                "GET",
+                "/api/v5/rubik/stat/option/open-interest-volume-ratio",
+            )
+            .with_header("content-type", "application/json")
+            .match_query(Matcher::Regex("ccy=BTC".into()))
+            .with_body_from_file("tests/mocks/trading_data/get_put_call_ratio.json")
+            .create();
 
-        let mock = mock(
-            "GET",
-            "/api/v5/rubik/stat/option/open-interest-volume-ratio",
-        )
-        .with_header("content-type", "application/json")
-        .match_query(Matcher::Regex("ccy=BTC".into()))
-        .with_body_from_file("tests/mocks/trading_data/get_put_call_ratio.json")
-        .create();
-
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let public_data: TradingData = Okx::new_with_config(None, None, None, &config);
 
         let params = PutCallRatioParams {
@@ -202,16 +194,15 @@ mod tests {
 
     #[test]
     fn get_taker_flow_test() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
-
-        let mock = mock("GET", "/api/v5/rubik/stat/option/taker-block-volume")
+        let mut server = Server::new();
+        let mock = server
+            .mock("GET", "/api/v5/rubik/stat/option/taker-block-volume")
             .with_header("content-type", "application/json")
             .match_query(Matcher::Regex("ccy=BTC".into()))
             .with_body_from_file("tests/mocks/trading_data/get_taker_flow.json")
             .create();
 
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let public_data: TradingData = Okx::new_with_config(None, None, None, &config);
 
         let params = TakerFlowParams {
