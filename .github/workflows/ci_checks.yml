@@ -1,0 +1,111 @@
+name: CI Checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build_and_test_binance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and Test Binance
+        run: |
+          cargo build -p binance
+          cargo clippy -p binance -- -D warnings
+          cargo test -p binance
+
+  fmt_binance:
+    name: Format Binance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: rustfmt
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --package binance -- --check
+
+  build_and_test_bitmex:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and Test Bitmex
+        run: |
+          cargo build -p bitmex
+          cargo clippy -p bitmex -- -D warnings
+          cargo test -p bitmex
+
+  fmt_bitmex:
+    name: Format Bitmex
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: rustfmt
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --package bitmex -- --check
+
+  build_and_test_okex:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and Test Okex
+        run: |
+          cargo build -p okex
+          cargo clippy -p okex -- -D warnings
+          cargo test -p okex
+
+  fmt_okex:
+    name: Format Okex
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: rustfmt
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --package okex -- --check
+
+  build_and_test_bitfinex:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and Test Bitfinex
+        run: |
+          cargo build -p bitfinex
+          cargo clippy -p bitfinex -- -D warnings
+          cargo test -p bitfinex
+
+  fmt_bitfinex:
+    name: Format Bitfinex
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: rustfmt
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --package bitfinex -- --check

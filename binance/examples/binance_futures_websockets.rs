@@ -105,14 +105,11 @@ fn get_trades_btc_usdt() {
     let agg_trade = String::from("btcusdt@aggTrade");
     let mut web_socket: FuturesWebSockets<'_> =
         FuturesWebSockets::new(|event: FuturesWebsocketEvent| {
-            match event {
-                FuturesWebsocketEvent::AggrTrades(trade) => {
-                    println!(
-                        "Symbol: {}, price: {}, qty: {}",
-                        trade.symbol, trade.price, trade.qty
-                    );
-                }
-                _ => (),
+            if let FuturesWebsocketEvent::AggrTrades(trade) = event {
+                println!(
+                    "Symbol: {}, price: {}, qty: {}",
+                    trade.symbol, trade.price, trade.qty
+                );
             };
 
             Ok(())

@@ -1,5 +1,4 @@
-use dotenv::dotenv;
-use mockito::{mock, Matcher};
+use mockito::{Matcher, Server};
 use okex::commons::config::Config;
 use okex::commons::utils::TradeMode;
 use okex::rest::account::{
@@ -14,18 +13,16 @@ mod tests {
 
     #[test]
     fn get_balance_test() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
-
-        let mock = mock("GET", "/api/v5/account/balance")
+        let mut server = Server::new();
+        let mock = server
+            .mock("GET", "/api/v5/account/balance")
             .with_header("content-type", "application/json")
             .match_query(Matcher::Regex("ccy=USDT,BTC".into()))
             .with_body_from_file("tests/mocks/account/get_balance.json")
             .create();
 
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let account: Account = Okx::new_with_config(None, None, None, &config);
-        let _ = env_logger::try_init();
 
         let params = BalanceParams {
             ccy: Some("USDT,BTC".into()),
@@ -41,16 +38,15 @@ mod tests {
 
     #[test]
     fn get_positions_test() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
-
-        let mock = mock("GET", "/api/v5/account/positions")
+        let mut server = Server::new();
+        let mock = server
+            .mock("GET", "/api/v5/account/positions")
             .with_header("content-type", "application/json")
             .match_query(Matcher::Regex("instId=ETH-USD-210430".into()))
             .with_body_from_file("tests/mocks/account/get_positions.json")
             .create();
 
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let account: Account = Okx::new_with_config(None, None, None, &config);
         let _ = env_logger::try_init();
 
@@ -72,16 +68,15 @@ mod tests {
 
     #[test]
     fn get_acc_position_risk_test() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
-
-        let mock = mock("GET", "/api/v5/account/account-position-risk")
+        let mut server = Server::new();
+        let mock = server
+            .mock("GET", "/api/v5/account/account-position-risk")
             .with_header("content-type", "application/json")
             .match_query(Matcher::Regex("instType=".into()))
             .with_body_from_file("tests/mocks/account/get_acc_position_risk.json")
             .create();
 
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let account: Account = Okx::new_with_config(None, None, None, &config);
         let _ = env_logger::try_init();
 
@@ -96,16 +91,15 @@ mod tests {
 
     #[test]
     fn set_position_mode_test() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
-
-        let mock = mock("POST", "/api/v5/account/set-position-mode")
+        let mut server = Server::new();
+        let mock = server
+            .mock("POST", "/api/v5/account/set-position-mode")
             .with_header("content-type", "application/json")
             .match_body(r#"{"posMode":"long_short_mode"}"#)
             .with_body_from_file("tests/mocks/account/set_position_mode.json")
             .create();
 
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let account: Account = Okx::new_with_config(None, None, None, &config);
         let _ = env_logger::try_init();
 
@@ -122,16 +116,15 @@ mod tests {
 
     #[test]
     fn set_leverage_test() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
-
-        let mock = mock("POST", "/api/v5/account/set-leverage")
+        let mut server = Server::new();
+        let mock = server
+            .mock("POST", "/api/v5/account/set-leverage")
             .with_header("content-type", "application/json")
             .match_body(r#"{"instId":"BTC-USDT-SWAP","lever":"30","mgnMode":"isolated"}"#)
             .with_body_from_file("tests/mocks/account/set_leverage.json")
             .create();
 
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let account: Account = Okx::new_with_config(None, None, None, &config);
         let _ = env_logger::try_init();
 
@@ -151,10 +144,9 @@ mod tests {
 
     #[test]
     fn get_leverage_test() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
-
-        let mock = mock("GET", "/api/v5/account/leverage-info")
+        let mut server = Server::new();
+        let mock = server
+            .mock("GET", "/api/v5/account/leverage-info")
             .with_header("content-type", "application/json")
             .match_query(Matcher::Regex(
                 "instId=BTC-USDT-200626&mgnMode=cross".into(),
@@ -162,7 +154,7 @@ mod tests {
             .with_body_from_file("tests/mocks/account/get_leverage.json")
             .create();
 
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let account: Account = Okx::new_with_config(None, None, None, &config);
         let _ = env_logger::try_init();
 
@@ -180,16 +172,15 @@ mod tests {
 
     #[test]
     fn get_bills_details_test() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
-
-        let mock = mock("GET", "/api/v5/account/bills")
+        let mut server = Server::new();
+        let mock = server
+            .mock("GET", "/api/v5/account/bills")
             .with_header("content-type", "application/json")
             .match_query(Matcher::Regex("instType=SPOT".into()))
             .with_body_from_file("tests/mocks/account/get_bills_details.json")
             .create();
 
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let account: Account = Okx::new_with_config(None, None, None, &config);
         let _ = env_logger::try_init();
 
@@ -207,16 +198,15 @@ mod tests {
 
     #[test]
     fn get_fee_rates_test() {
-        dotenv().ok();
-        let _ = env_logger::try_init();
-
-        let mock = mock("GET", "/api/v5/account/trade-fee")
+        let mut server = Server::new();
+        let mock = server
+            .mock("GET", "/api/v5/account/trade-fee")
             .with_header("content-type", "application/json")
             .match_query(Matcher::Regex("instType=SPOT&instId=BTC-USDT".into()))
             .with_body_from_file("tests/mocks/account/get_fee_rates.json")
             .create();
 
-        let config = Config::default().set_rest_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_endpoint(server.url());
         let account: Account = Okx::new_with_config(None, None, None, &config);
         let _ = env_logger::try_init();
 

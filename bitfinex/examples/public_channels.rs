@@ -1,6 +1,7 @@
 extern crate bitfinex;
 
-use bitfinex::commons::{errors::*, pairs::*, precision::*};
+use bitfinex::commons::errors::WebSocketError;
+use bitfinex::commons::{pairs::*, precision::*};
 use bitfinex::websocket::events::*;
 use bitfinex::websocket::websockets::*;
 
@@ -48,7 +49,7 @@ impl EventHandler for WebSocketHandler {
         // ... Add for all events you have subscribed (Trades, Books, ...)
     }
 
-    fn on_error(&mut self, message: Error) {
+    fn on_error(&mut self, message: WebSocketError) {
         println!("{:?}", message);
     }
 }
@@ -60,19 +61,16 @@ fn main() {
     web_socket.connect().unwrap(); // check error
 
     // TICKER
-    web_socket.subscribe_ticker(BTCUSD);
+    let _ = web_socket.subscribe_ticker(BTCUSD);
 
     // TRADES
-    web_socket.subscribe_trades(BTCUSD);
+    let _ = web_socket.subscribe_trades(BTCUSD);
 
     // BOOKS
-    web_socket.subscribe_books(BTCUSD, P0, "F0", 25);
-
-    // RAW BOOKS
-    web_socket.subscribe_raw_books(BTCUSD);
+    let _ = web_socket.subscribe_books(BTCUSD, P0, "F0", 25);
 
     // CANDLES
-    web_socket.subscribe_candles(BTCUSD, "1m");
+    let _ = web_socket.subscribe_candles(BTCUSD, "1m");
 
-    web_socket.event_loop().unwrap(); // check error
+    let _ = web_socket.event_loop().unwrap(); // check error
 }

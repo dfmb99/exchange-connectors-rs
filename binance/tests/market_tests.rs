@@ -10,17 +10,19 @@ use binance::rest::spot::market::Market;
 mod tests {
     use super::*;
     use float_cmp::*;
-    use mockito::{mock, Matcher};
+    use mockito::{Matcher, Server};
 
     #[test]
     fn get_depth() {
-        let mock_get_depth = mock("GET", "/api/v3/depth")
+        let mut server = Server::new();
+        let mock_get_depth = server
+            .mock("GET", "/api/v3/depth")
             .with_header("content-type", "application/json;charset=UTF-8")
             .match_query(Matcher::Regex("symbol=LTCBTC".into()))
             .with_body_from_file("tests/mocks/market/get_depth.json")
             .create();
 
-        let config = Config::default().set_rest_api_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_api_endpoint(server.url());
         let market: Market = Binance::new_with_config(None, None, &config);
 
         let order_book = market.get_depth("LTCBTC").unwrap();
@@ -32,13 +34,15 @@ mod tests {
 
     #[test]
     fn get_custom_depth() {
-        let mock_get_custom_depth = mock("GET", "/api/v3/depth")
+        let mut server = Server::new();
+        let mock_get_custom_depth = server
+            .mock("GET", "/api/v3/depth")
             .with_header("content-type", "application/json;charset=UTF-8")
             .match_query(Matcher::Regex("limit=10&symbol=LTCBTC".into()))
             .with_body_from_file("tests/mocks/market/get_depth.json")
             .create();
 
-        let config = Config::default().set_rest_api_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_api_endpoint(server.url());
         let market: Market = Binance::new_with_config(None, None, &config);
 
         let order_book = market.get_custom_depth("LTCBTC", 10).unwrap();
@@ -50,12 +54,14 @@ mod tests {
 
     #[test]
     fn get_all_prices() {
-        let mock_get_all_prices = mock("GET", "/api/v3/ticker/price")
+        let mut server = Server::new();
+        let mock_get_all_prices = server
+            .mock("GET", "/api/v3/ticker/price")
             .with_header("content-type", "application/json;charset=UTF-8")
             .with_body_from_file("tests/mocks/market/get_all_prices.json")
             .create();
 
-        let config = Config::default().set_rest_api_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_api_endpoint(server.url());
         let market: Market = Binance::new_with_config(None, None, &config);
 
         let prices: Prices = market.get_all_prices().unwrap();
@@ -76,13 +82,15 @@ mod tests {
 
     #[test]
     fn get_price() {
-        let mock_get_price = mock("GET", "/api/v3/ticker/price")
+        let mut server = Server::new();
+        let mock_get_price = server
+            .mock("GET", "/api/v3/ticker/price")
             .with_header("content-type", "application/json;charset=UTF-8")
             .match_query(Matcher::Regex("symbol=LTCBTC".into()))
             .with_body_from_file("tests/mocks/market/get_price.json")
             .create();
 
-        let config = Config::default().set_rest_api_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_api_endpoint(server.url());
         let market: Market = Binance::new_with_config(None, None, &config);
 
         let symbol = market.get_price("LTCBTC").unwrap();
@@ -94,13 +102,15 @@ mod tests {
 
     #[test]
     fn get_average_price() {
-        let mock_get_average_price = mock("GET", "/api/v3/avgPrice")
+        let mut server = Server::new();
+        let mock_get_average_price = server
+            .mock("GET", "/api/v3/avgPrice")
             .with_header("content-type", "application/json;charset=UTF-8")
             .match_query(Matcher::Regex("symbol=LTCBTC".into()))
             .with_body_from_file("tests/mocks/market/get_average_price.json")
             .create();
 
-        let config = Config::default().set_rest_api_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_api_endpoint(server.url());
         let market: Market = Binance::new_with_config(None, None, &config);
 
         let symbol = market.get_average_price("LTCBTC").unwrap();
@@ -112,12 +122,14 @@ mod tests {
 
     #[test]
     fn get_all_book_tickers() {
-        let mock_get_all_book_tickers = mock("GET", "/api/v3/ticker/bookTicker")
+        let mut server = Server::new();
+        let mock_get_all_book_tickers = server
+            .mock("GET", "/api/v3/ticker/bookTicker")
             .with_header("content-type", "application/json;charset=UTF-8")
             .with_body_from_file("tests/mocks/market/get_all_book_tickers.json")
             .create();
 
-        let config = Config::default().set_rest_api_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_api_endpoint(server.url());
         let market: Market = Binance::new_with_config(None, None, &config);
 
         let book_tickers = market.get_all_book_tickers().unwrap();
@@ -174,13 +186,15 @@ mod tests {
 
     #[test]
     fn get_book_ticker() {
-        let mock_get_book_ticker = mock("GET", "/api/v3/ticker/bookTicker")
+        let mut server = Server::new();
+        let mock_get_book_ticker = server
+            .mock("GET", "/api/v3/ticker/bookTicker")
             .with_header("content-type", "application/json;charset=UTF-8")
             .match_query(Matcher::Regex("symbol=LTCBTC".into()))
             .with_body_from_file("tests/mocks/market/get_book_ticker.json")
             .create();
 
-        let config = Config::default().set_rest_api_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_api_endpoint(server.url());
         let market: Market = Binance::new_with_config(None, None, &config);
 
         let book_ticker = market.get_book_ticker("LTCBTC").unwrap();
@@ -195,13 +209,15 @@ mod tests {
 
     #[test]
     fn get_24h_price_stats() {
-        let mock_get_24h_price_stats = mock("GET", "/api/v3/ticker/24hr")
+        let mut server = Server::new();
+        let mock_get_24h_price_stats = server
+            .mock("GET", "/api/v3/ticker/24hr")
             .with_header("content-type", "application/json;charset=UTF-8")
             .match_query(Matcher::Regex("symbol=BNBBTC".into()))
             .with_body_from_file("tests/mocks/market/get_24h_price_stats.json")
             .create();
 
-        let config = Config::default().set_rest_api_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_api_endpoint(server.url());
         let market: Market = Binance::new_with_config(None, None, &config);
 
         let price_stats = market.get_24h_price_stats("BNBBTC").unwrap();
@@ -248,12 +264,14 @@ mod tests {
 
     #[test]
     fn get_all_24h_price_stats() {
-        let mock_get_all_24h_price_stats = mock("GET", "/api/v3/ticker/24hr")
+        let mut server = Server::new();
+        let mock_get_all_24h_price_stats = server
+            .mock("GET", "/api/v3/ticker/24hr")
             .with_header("content-type", "application/json;charset=UTF-8")
             .with_body_from_file("tests/mocks/market/get_all_24h_price_stats.json")
             .create();
 
-        let config = Config::default().set_rest_api_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_api_endpoint(server.url());
         let market: Market = Binance::new_with_config(None, None, &config);
 
         let prices_stats = market.get_all_24h_price_stats().unwrap();
@@ -304,13 +322,15 @@ mod tests {
 
     #[test]
     fn get_klines() {
-        let mock_get_klines = mock("GET", "/api/v3/klines")
+        let mut server = Server::new();
+        let mock_get_klines = server
+            .mock("GET", "/api/v3/klines")
             .with_header("content-type", "application/json;charset=UTF-8")
             .match_query(Matcher::Regex("interval=5m&limit=10&symbol=LTCBTC".into()))
             .with_body_from_file("tests/mocks/market/get_klines.json")
             .create();
 
-        let config = Config::default().set_rest_api_endpoint(mockito::server_url());
+        let config = Config::default().set_rest_api_endpoint(server.url());
         let market: Market = Binance::new_with_config(None, None, &config);
 
         let klines = market.get_klines("LTCBTC", "5m", 10, None, None).unwrap();

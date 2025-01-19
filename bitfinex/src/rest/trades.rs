@@ -1,8 +1,8 @@
-use crate::commons::errors::*;
+use crate::commons::errors::BitfinexError;
 use crate::rest::client::*;
 use serde_json::from_str;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Trade {
     pub id: i64,
     pub pair: String,
@@ -41,72 +41,63 @@ pub struct Trades {
 
 impl Default for Trades {
     fn default() -> Self {
-        Self::new()
+        Self::new().unwrap()
     }
 }
 
 impl Trades {
-    pub fn new() -> Self {
-        Trades {
+    pub fn new() -> Result<Self, BitfinexError> {
+        Ok(Trades {
             client: Client::new(None, None),
-        }
+        })
     }
 
-    pub fn funding_currency<S>(&self, symbol: S) -> Result<Vec<FundingCurrency>>
+    pub fn funding_currency<S>(&self, symbol: S) -> Result<Vec<FundingCurrency>, BitfinexError>
     where
         S: Into<String>,
     {
-        let endpoint: String = format!("trades/{}/hist", symbol.into());
+        let endpoint = format!("trades/{}/hist", symbol.into());
         let data = self.client.get(endpoint, String::new())?;
-
-        let trades: Vec<FundingCurrency> = from_str(data.as_str())?;
-
+        let trades = from_str(&data).map_err(BitfinexError::JsonError)?;
         Ok(trades)
     }
 
-    pub fn trading_pair<S>(&self, symbol: S) -> Result<Vec<TradingPair>>
+    pub fn trading_pair<S>(&self, symbol: S) -> Result<Vec<TradingPair>, BitfinexError>
     where
         S: Into<String>,
     {
-        let endpoint: String = format!("trades/{}/hist", symbol.into());
+        let endpoint = format!("trades/{}/hist", symbol.into());
         let data = self.client.get(endpoint, String::new())?;
-
-        let trades: Vec<TradingPair> = from_str(data.as_str())?;
-
+        let trades = from_str(&data).map_err(BitfinexError::JsonError)?;
         Ok(trades)
     }
 
-    pub fn history<S>(&self, symbol: S) -> Result<Vec<Trade>>
+    pub fn history<S>(&self, symbol: S) -> Result<Vec<Trade>, BitfinexError>
     where
         S: Into<String>,
     {
-        let payload: String = "{}".to_string();
-
-        let request: String = format!("trades/{}/hist", symbol.into());
-
+        let payload = "{}".to_string();
+        let request = format!("trades/{}/hist", symbol.into());
         self.trades(request, payload)
     }
 
-    pub fn generated_by_order<S>(&self, symbol: S, order_id: S) -> Result<Vec<Trade>>
+    pub fn generated_by_order<S>(&self, symbol: S, order_id: S) -> Result<Vec<Trade>, BitfinexError>
     where
         S: Into<String>,
     {
-        let payload: String = "{}".to_string();
-
-        let request: String = format!("order/{}:{}/trades", symbol.into(), order_id.into());
+        let payload = "{}".to_string();
+        let request = format!("order/{}:{}/trades", symbol.into(), order_id.into());
         self.trades(request, payload)
     }
 
-    pub fn trades<S>(&self, request: S, payload: S) -> Result<Vec<Trade>>
+    fn trades<S>(&self, request: S, payload: S) -> Result<Vec<Trade>, BitfinexError>
     where
         S: Into<String>,
     {
         let data = self
             .client
             .post_signed_read(request.into(), payload.into())?;
-
-        let orders: Vec<Trade> = from_str(data.as_str())?;
-
-        Ok(orders)
+        let trades = from_str(&data).map_err(BitfinexError::JsonError)?;
+        Ok(trades)
     }
 }

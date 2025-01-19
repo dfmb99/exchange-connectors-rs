@@ -8,8 +8,8 @@ pub enum HttpMethod {
     Delete,
 }
 
-impl<'a> HttpMethod {
-    pub fn value(&self) -> &'a str {
+impl HttpMethod {
+    pub fn value(&self) -> &str {
         match self {
             HttpMethod::Get => "GET",
             HttpMethod::Post => "POST",
@@ -88,8 +88,8 @@ pub enum Subscriptions {
     Wallet,
 }
 
-impl<'a> Subscriptions {
-    pub fn value(&self) -> &'a str {
+impl Subscriptions {
+    pub fn value(&self) -> &str {
         match self {
             Subscriptions::Instrument => "instrument",
             Subscriptions::Announcement => "announcement",

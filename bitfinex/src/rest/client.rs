@@ -1,5 +1,5 @@
 use crate::commons::auth;
-use crate::commons::errors::*;
+use crate::commons::errors::BitfinexError;
 use reqwest::blocking::Response;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue, CONTENT_TYPE, USER_AGENT};
 use reqwest::StatusCode;
@@ -21,46 +21,48 @@ pub struct Client {
 
 impl Client {
     pub fn new(api_key: Option<String>, secret_key: Option<String>) -> Self {
+        let client = reqwest::blocking::Client::builder()
+            .pool_idle_timeout(None)
+            .build()
+            .expect("Failed to create HTTP client");
+
         Client {
-            api_key: api_key.unwrap_or_else(|| "".into()),
-            secret_key: secret_key.unwrap_or_else(|| "".into()),
-            inner_client: reqwest::blocking::Client::builder()
-                .pool_idle_timeout(None)
-                .build()
-                .unwrap(),
+            api_key: api_key.unwrap_or_default(),
+            secret_key: secret_key.unwrap_or_default(),
+            inner_client: client,
         }
     }
 
-    pub fn get(&self, endpoint: String, request: String) -> Result<String> {
-        let mut url: String = format!("{}{}", API_HOST, endpoint);
-        if !request.is_empty() {
-            url.push_str(format!("?{}", request).as_str());
-        }
+    pub fn get(&self, endpoint: String, request: String) -> Result<String, BitfinexError> {
+        let url = if request.is_empty() {
+            format!("{}{}", API_HOST, endpoint)
+        } else {
+            format!("{}{}?{}", API_HOST, endpoint, request)
+        };
 
-        let client = &self.inner_client;
-        let response = client.get(url.as_str()).send()?;
-
+        let response = self.inner_client.get(&url).send()?;
         self.handler(response)
     }
 
-    pub fn post_signed(&self, request: String, payload: String) -> Result<String> {
-        let url: String = format!("{}auth/{}", API_HOST, request);
+    pub fn post_signed(&self, request: String, payload: String) -> Result<String, BitfinexError> {
+        let url = format!("{}auth/{}", API_HOST, request);
+        let headers = self.build_headers(&request, &payload, API_SIGNATURE_PATH)?;
 
-        let client = &self.inner_client;
-        let response = client
-            .post(url.as_str())
-            .headers(self.build_headers(
-                request,
-                payload.clone(),
-                API_SIGNATURE_PATH.to_string(),
-            )?)
+        let response = self
+            .inner_client
+            .post(&url)
+            .headers(headers)
             .body(payload)
             .send()?;
 
         self.handler(response)
     }
 
-    pub fn post_signed_read(&self, request: String, payload: String) -> Result<String> {
+    pub fn post_signed_read(
+        &self,
+        request: String,
+        payload: String,
+    ) -> Result<String, BitfinexError> {
         self.post_signed_params_read(request, payload, NO_PARAMS)
     }
 
@@ -69,17 +71,14 @@ impl Client {
         request: String,
         payload: String,
         params: &P,
-    ) -> Result<String> {
-        let url: String = format!("{}auth/r/{}", API_HOST, request);
+    ) -> Result<String, BitfinexError> {
+        let url = format!("{}auth/r/{}", API_HOST, request);
+        let headers = self.build_headers(&request, &payload, API_SIGNATURE_READ_PATH)?;
 
-        let client = &self.inner_client;
-        let response = client
-            .post(url.as_str())
-            .headers(self.build_headers(
-                request,
-                payload.clone(),
-                API_SIGNATURE_READ_PATH.to_string(),
-            )?)
+        let response = self
+            .inner_client
+            .post(&url)
+            .headers(headers)
             .body(payload)
             .query(params)
             .send()?;
@@ -87,7 +86,11 @@ impl Client {
         self.handler(response)
     }
 
-    pub fn post_signed_write(&self, request: String, payload: String) -> Result<String> {
+    pub fn post_signed_write(
+        &self,
+        request: String,
+        payload: String,
+    ) -> Result<String, BitfinexError> {
         self.post_signed_params_write(request, payload, NO_PARAMS)
     }
 
@@ -96,80 +99,62 @@ impl Client {
         request: String,
         payload: String,
         params: &P,
-    ) -> Result<String> {
-        let url: String = format!("{}auth/w/{}", API_HOST, request);
+    ) -> Result<String, BitfinexError> {
+        let url = format!("{}auth/w/{}", API_HOST, request);
+        let headers = self.build_headers(&request, &payload, API_SIGNATURE_WRITE_PATH)?;
 
-        let client = &self.inner_client;
-        let response = client
-            .post(url.as_str())
-            .headers(self.build_headers(
-                request,
-                payload.clone(),
-                API_SIGNATURE_WRITE_PATH.to_string(),
-            )?)
+        let response = self
+            .inner_client
+            .post(&url)
+            .headers(headers)
             .body(payload)
             .query(params)
-            .send()?;
-        self.handler(response)
+            .send()
+            .map_err(BitfinexError::RequestError);
+
+        self.handler(response?)
     }
 
     fn build_headers(
         &self,
-        request: String,
-        payload: String,
-        sig_path: String,
-    ) -> Result<HeaderMap> {
-        let nonce: String = auth::generate_nonce()?;
-        let signature_path: String = format!("{}{}{}{}", sig_path, request, nonce, payload);
-
+        request: &str,
+        payload: &str,
+        sig_path: &str,
+    ) -> Result<HeaderMap, BitfinexError> {
+        let nonce = auth::generate_nonce()?;
+        let signature_path = format!("{}{}{}{}", sig_path, request, nonce, payload);
         let signature = auth::sign_payload(self.secret_key.as_bytes(), signature_path.as_bytes())?;
 
         let mut headers = HeaderMap::new();
         headers.insert(USER_AGENT, HeaderValue::from_static("bitfinex-rs"));
         headers.insert(
             HeaderName::from_static("bfx-nonce"),
-            HeaderValue::from_str(nonce.as_str())?,
+            HeaderValue::from_str(&nonce).map_err(BitfinexError::InvalidHeader)?,
         );
         headers.insert(
             HeaderName::from_static("bfx-apikey"),
-            HeaderValue::from_str(self.api_key.as_str())?,
+            HeaderValue::from_str(&self.api_key).map_err(BitfinexError::InvalidHeader)?,
         );
         headers.insert(
             HeaderName::from_static("bfx-signature"),
-            HeaderValue::from_str(signature.as_str())?,
+            HeaderValue::from_str(&signature).map_err(BitfinexError::InvalidHeader)?,
         );
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
         Ok(headers)
     }
 
-    fn handler(&self, mut response: Response) -> Result<String> {
+    fn handler(&self, mut response: Response) -> Result<String, BitfinexError> {
         let mut body = String::new();
+        response.read_to_string(&mut body)?;
+
         match response.status() {
-            StatusCode::OK => {
-                response.read_to_string(&mut body)?;
-                Ok(body)
-            }
-            StatusCode::INTERNAL_SERVER_ERROR => {
-                response.read_to_string(&mut body)?;
-                bail!("Internal Server Error: {}", body);
-            }
-            StatusCode::SERVICE_UNAVAILABLE => {
-                response.read_to_string(&mut body)?;
-                bail!("Service Unavailable: {}", body);
-            }
-            StatusCode::UNAUTHORIZED => {
-                response.read_to_string(&mut body)?;
-                bail!("Unauthorized {}", body);
-            }
-            StatusCode::BAD_REQUEST => {
-                response.read_to_string(&mut body)?;
-                bail!(format!("Bad Request: {}", body));
-            }
-            _ => {
-                response.read_to_string(&mut body)?;
-                bail!(format!("Received response: {}", body));
-            }
+            StatusCode::OK => Ok(body),
+            StatusCode::INTERNAL_SERVER_ERROR => Err(BitfinexError::InternalServerError(body)),
+            StatusCode::SERVICE_UNAVAILABLE => Err(BitfinexError::ServiceUnavailable(body)),
+            StatusCode::UNAUTHORIZED => Err(BitfinexError::Unauthorized(body)),
+            StatusCode::BAD_REQUEST => Err(BitfinexError::BadRequest(body)),
+            _ => Err(BitfinexError::Unknown(body)),
         }
     }
 }

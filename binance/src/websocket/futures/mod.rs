@@ -147,12 +147,14 @@ impl<'a> FuturesWebSockets<'a> {
 
     fn connect_wss(&mut self, wss: String) -> Result<()> {
         let url = Url::parse(&wss)?;
-        match connect(url) {
+        match connect(url.as_str()) {
             Ok(answer) => {
                 self.socket = Some(answer);
                 Ok(())
             }
-            Err(e) => bail!(format!("Error during handshake {e}")),
+            Err(e) => Err(BinanceError::WebSocket(WebSocketError::ConnectionError(
+                e.to_string(),
+            ))),
         }
     }
 
@@ -161,7 +163,7 @@ impl<'a> FuturesWebSockets<'a> {
             socket.0.close(None)?;
             return Ok(());
         }
-        bail!("Not able to close the connection");
+        Err(BinanceError::WebSocket(WebSocketError::Disconnected))
     }
 
     pub fn test_handle_msg(&mut self, msg: &str) -> Result<()> {
@@ -213,22 +215,20 @@ impl<'a> FuturesWebSockets<'a> {
                     socket.0.close(None)?;
                     break;
                 }
-                let message = socket.0.read_message()?;
+                let message = socket.0.read()?;
                 match message {
-                    Message::Text(msg) => {
-                        if let Err(e) = self.handle_msg(&msg) {
-                            bail!(format!("Error on handling stream message: {e}"));
-                        }
-                    }
-                    Message::Ping(_) => {
-                        socket.0.write_message(Message::Pong(vec![])).unwrap();
+                    Message::Text(msg) => self.handle_msg(&msg)?,
+                    Message::Ping(data) => {
+                        socket.0.send(Message::Pong(data)).unwrap();
                     }
                     Message::Pong(_) | Message::Binary(_) => (),
-                    Message::Close(e) => bail!(format!("Disconnected {e:?}")),
+                    Message::Close(_) => {
+                        return Err(BinanceError::WebSocket(WebSocketError::Disconnected))
+                    }
                     Message::Frame(_) => (),
                 }
             }
         }
-        bail!("running loop closed");
+        Err(BinanceError::WebSocket(WebSocketError::LoopClosed))
     }
 }

@@ -1,4 +1,4 @@
-use crate::commons::errors::{Error, ErrorKind, Result};
+use crate::commons::errors::{BinanceError, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{from_value, Value};
 use std::convert::TryFrom;
@@ -954,12 +954,12 @@ pub struct KlineSummary {
 fn get_value(row: &[Value], index: usize, name: &'static str) -> Result<Value> {
     Ok(row
         .get(index)
-        .ok_or_else(|| ErrorKind::KlineValueMissingError(index, name))?
+        .ok_or_else(|| BinanceError::KlineValueMissing { index, name })?
         .clone())
 }
 
 impl TryFrom<&Vec<Value>> for KlineSummary {
-    type Error = Error;
+    type Error = BinanceError;
 
     fn try_from(row: &Vec<Value>) -> Result<Self> {
         Ok(Self {

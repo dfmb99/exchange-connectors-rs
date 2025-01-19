@@ -1,7 +1,7 @@
 use crate::commons::auth;
-use crate::commons::errors::*;
+use crate::commons::errors::WebSocketError;
 use crate::websocket::events::*;
-use serde_json::from_str;
+use serde_json::{from_str, json};
 use std::net::TcpStream;
 use url::Url;
 
@@ -11,7 +11,13 @@ use tungstenite::protocol::WebSocket;
 use tungstenite::stream::MaybeTlsStream;
 use tungstenite::Message;
 
-use std::sync::mpsc::{self, channel};
+use std::sync::mpsc::{self, channel, SendError};
+
+impl From<SendError<WsMessage>> for WebSocketError {
+    fn from(err: SendError<WsMessage>) -> Self {
+        WebSocketError::SendError(err.to_string())
+    }
+}
 
 static INFO: &str = "info";
 static SUBSCRIBED: &str = "subscribed";
@@ -24,7 +30,7 @@ pub trait EventHandler {
     fn on_auth(&mut self, event: NotificationEvent);
     fn on_subscribed(&mut self, event: NotificationEvent);
     fn on_data_event(&mut self, event: DataEvent);
-    fn on_error(&mut self, message: Error);
+    fn on_error(&mut self, message: WebSocketError);
 }
 
 pub enum EventType {
@@ -60,19 +66,10 @@ impl Default for WebSockets {
 }
 
 impl WebSockets {
-    pub fn connect(&mut self) -> Result<()> {
-        let wss: String = WEBSOCKET_URL.to_string();
-        let url = Url::parse(&wss)?;
-
-        match connect(url) {
-            Ok(answer) => {
-                self.socket = Some(answer);
-                Ok(())
-            }
-            Err(e) => {
-                bail!(format!("Error during handshake {}", e))
-            }
-        }
+    pub fn connect(&mut self) -> Result<(), WebSocketError> {
+        let url = Url::parse(WEBSOCKET_URL)?;
+        self.socket = Some(connect(url.as_str())?);
+        Ok(())
     }
 
     pub fn add_event_handler<H>(&mut self, handler: H)
@@ -82,24 +79,20 @@ impl WebSockets {
         self.event_handler = Some(Box::new(handler));
     }
 
-    /// Authenticates the connection.
-    ///
-    /// The connection will be authenticated until it is disconnected.
-    ///
-    /// # Arguments
-    ///
-    /// * `api_key` - The API key
-    /// * `api_secret` - The API secret
-    /// * `dms` - Whether the dead man switch is enabled. If true, all account orders will be
-    ///           cancelled when the socket is closed.
-    pub fn auth<S>(&mut self, api_key: S, api_secret: S, dms: bool, filters: &[&str]) -> Result<()>
+    pub fn auth<S>(
+        &mut self,
+        api_key: S,
+        api_secret: S,
+        dms: bool,
+        filters: &[&str],
+    ) -> Result<(), WebSocketError>
     where
         S: AsRef<str>,
     {
-        let nonce = auth::generate_nonce()?;
+        let nonce = auth::generate_nonce().map_err(|e| WebSocketError::AuthError(e.to_string()))?;
         let auth_payload = format!("AUTH{}", nonce);
-        let signature =
-            auth::sign_payload(api_secret.as_ref().as_bytes(), auth_payload.as_bytes())?;
+        let signature = auth::sign_payload(api_secret.as_ref().as_bytes(), auth_payload.as_bytes())
+            .map_err(|e| WebSocketError::AuthError(e.to_string()))?;
 
         let msg = json!({
             "event": "auth",
@@ -111,55 +104,60 @@ impl WebSockets {
             "filters": filters,
         });
 
-        if let Err(error_msg) = self.sender.send(&msg.to_string()) {
-            self.error_hander(error_msg);
-        }
-
+        self.sender.send(&msg.to_string())?;
         Ok(())
     }
 
-    pub fn subscribe_ticker<S>(&mut self, symbol: S)
+    pub fn subscribe_ticker<S>(&mut self, symbol: S) -> Result<(), WebSocketError>
     where
         S: Into<String>,
     {
-        let msg = json!({"event": "subscribe", "channel": "ticker", "symbol": symbol.into() });
-
-        if let Err(error_msg) = self.sender.send(&msg.to_string()) {
-            self.error_hander(error_msg);
-        }
+        let msg = json!({
+            "event": "subscribe",
+            "channel": "ticker",
+            "symbol": symbol.into()
+        });
+        self.sender.send(&msg.to_string())
     }
 
-    pub fn subscribe_trades<S>(&mut self, symbol: S)
+    pub fn subscribe_trades<S>(&mut self, symbol: S) -> Result<(), WebSocketError>
     where
         S: Into<String>,
     {
-        let msg = json!({"event": "subscribe", "channel": "trades", "symbol": symbol.into() });
-
-        if let Err(error_msg) = self.sender.send(&msg.to_string()) {
-            self.error_hander(error_msg);
-        }
+        let msg = json!({
+            "event": "subscribe",
+            "channel": "trades",
+            "symbol": symbol.into()
+        });
+        self.sender.send(&msg.to_string())
     }
 
-    pub fn subscribe_candles<S>(&mut self, symbol: S, timeframe: S)
+    pub fn subscribe_candles<S>(&mut self, symbol: S, timeframe: S) -> Result<(), WebSocketError>
     where
         S: Into<String>,
     {
-        let key: String = format!("trade:{}:{}", timeframe.into(), symbol.into());
-        let msg = json!({"event": "subscribe", "channel": "candles", "key": key });
-
-        if let Err(error_msg) = self.sender.send(&msg.to_string()) {
-            self.error_hander(error_msg);
-        }
+        let key = format!("trade:{}:{}", timeframe.into(), symbol.into());
+        let msg = json!({
+            "event": "subscribe",
+            "channel": "candles",
+            "key": key
+        });
+        self.sender.send(&msg.to_string())
     }
 
-    pub fn subscribe_books<S, P, F>(&mut self, symbol: S, prec: P, freq: F, len: u32)
+    pub fn subscribe_books<S, P, F>(
+        &mut self,
+        symbol: S,
+        prec: P,
+        freq: F,
+        len: u32,
+    ) -> Result<(), WebSocketError>
     where
         S: Into<String>,
         P: Into<String>,
         F: Into<String>,
     {
-        let msg = json!(
-        {
+        let msg = json!({
             "event": "subscribe",
             "channel": "book",
             "symbol": symbol.into(),
@@ -167,93 +165,58 @@ impl WebSockets {
             "freq": freq.into(),
             "len": len
         });
-
-        if let Err(error_msg) = self.sender.send(&msg.to_string()) {
-            self.error_hander(error_msg);
-        }
+        self.sender.send(&msg.to_string())
     }
 
-    pub fn subscribe_raw_books<S>(&mut self, symbol: S)
-    where
-        S: Into<String>,
-    {
-        let msg = json!(
-        {
-            "event": "subscribe",
-            "channel": "book",
-            "prec": "R0",
-            "pair": symbol.into()
-        });
-
-        if let Err(error_msg) = self.sender.send(&msg.to_string()) {
-            self.error_hander(error_msg);
-        }
-    }
-
-    fn error_hander(&mut self, error_msg: Error) {
-        if let Some(ref mut h) = self.event_handler {
-            h.on_error(error_msg);
-        }
-    }
-
-    #[allow(dead_code)]
-    fn format_symbol(&mut self, symbol: String, et: EventType) -> String {
-        match et {
-            EventType::Funding => format!("f{}", symbol),
-            EventType::Trading => format!("t{}", symbol),
-        }
-    }
-
-    pub fn event_loop(&mut self) -> Result<()> {
+    pub fn event_loop(&mut self) -> Result<(), WebSocketError> {
         loop {
             if let Some(ref mut socket) = self.socket {
-                loop {
-                    match self.rx.try_recv() {
-                        Ok(msg) => match msg {
-                            WsMessage::Text(text) => {
-                                socket.0.write_message(Message::Text(text))?;
-                            }
-                            WsMessage::Close => {
-                                return socket.0.close(None).map_err(|e| e.into());
-                            }
-                        },
-                        Err(mpsc::TryRecvError::Disconnected) => {
-                            bail!("Disconnected")
+                // Handle pending messages
+                while let Ok(msg) = self.rx.try_recv() {
+                    match msg {
+                        WsMessage::Text(text) => socket.0.send(Message::Text(text.into()))?,
+                        WsMessage::Close => {
+                            return socket.0.close(None).map_err(WebSocketError::from)
                         }
-                        Err(mpsc::TryRecvError::Empty) => break,
                     }
                 }
 
-                let message = socket.0.read_message()?;
+                match self.rx.try_recv() {
+                    Err(mpsc::TryRecvError::Disconnected) => {
+                        return Err(WebSocketError::Disconnected(
+                            "Channel disconnected".to_string(),
+                        ))
+                    }
+                    Err(mpsc::TryRecvError::Empty) => {}
+                    Ok(_) => {}
+                }
 
-                match message {
-                    Message::Text(text) => {
-                        if let Some(ref mut h) = self.event_handler {
+                let message = socket.0.read()?;
+
+                if let Some(ref mut handler) = self.event_handler {
+                    match message {
+                        Message::Text(text) => {
                             if text.contains(INFO) {
-                                let event: NotificationEvent = from_str(&text)?;
-                                h.on_connect(event);
+                                handler.on_connect(from_str(&text)?);
                             } else if text.contains(SUBSCRIBED) {
-                                let event: NotificationEvent = from_str(&text)?;
-                                h.on_subscribed(event);
+                                handler.on_subscribed(from_str(&text)?);
                             } else if text.contains(AUTH) {
-                                let event: NotificationEvent = from_str(&text)?;
-                                h.on_auth(event);
+                                handler.on_auth(from_str(&text)?);
                             } else {
                                 let event: DataEvent = from_str(&text)?;
-                                if let DataEvent::HeartbeatEvent(_a, _b) = event {
-                                    continue;
-                                } else {
-                                    h.on_data_event(event);
+                                if !matches!(event, DataEvent::HeartbeatEvent(_, _)) {
+                                    handler.on_data_event(event);
                                 }
                             }
                         }
+                        Message::Close(e) => {
+                            return Err(WebSocketError::Disconnected(format!(
+                                "Connection closed: {:?}",
+                                e
+                            )))
+                        }
+                        _ => {}
                     }
-                    Message::Binary(_) => {}
-                    Message::Ping(_) | Message::Pong(_) => {}
-                    Message::Close(e) => {
-                        bail!(format!("Disconnected {:?}", e));
-                    }
-                    Message::Frame(_) => {}
                 }
             }
         }
@@ -266,16 +229,13 @@ pub struct Sender {
 }
 
 impl Sender {
-    pub fn send(&self, raw: &str) -> Result<()> {
-        self.tx
-            .send(WsMessage::Text(raw.to_string()))
-            .map_err(|e| Error::with_chain(e, "Not able to send a message"))?;
+    pub fn send(&self, raw: &str) -> Result<(), WebSocketError> {
+        self.tx.send(WsMessage::Text(raw.to_string()))?;
         Ok(())
     }
 
-    pub fn shutdown(&self) -> Result<()> {
-        self.tx
-            .send(WsMessage::Close)
-            .map_err(|e| Error::with_chain(e, "Error during shutdown"))
+    pub fn shutdown(&self) -> Result<(), WebSocketError> {
+        self.tx.send(WsMessage::Close)?;
+        Ok(())
     }
 }

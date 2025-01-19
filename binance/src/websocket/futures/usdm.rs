@@ -1,6 +1,6 @@
 use crate::commons::config::Config;
-use crate::commons::errors::ErrorKind::BinanceError;
-use crate::commons::errors::{BinanceContentError, Error};
+use crate::commons::errors::BinanceContentError;
+use crate::commons::errors::BinanceError;
 use crate::rest::api::Binance;
 use crate::rest::futures::model::OrderUpdate;
 use crate::rest::model::{
@@ -180,7 +180,7 @@ fn user_stream_websocket(
                                     code: -32768,
                                     msg: "User data listen key is expired".to_string(),
                                 };
-                                return Err(Error(BinanceError(err), Default::default()));
+                                return Err(BinanceError::BinanceError { response: err });
                             }
                             _ => {
                                 warn!("Received unhandled event : {:?}", event)

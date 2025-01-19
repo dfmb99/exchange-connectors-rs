@@ -107,17 +107,11 @@ impl UsdmInterface {
         S: Into<String>,
     {
         let upper_symbol = symbol.into().to_uppercase();
-        match self.exchange_info() {
-            Ok(info) => {
-                for item in info.symbols {
-                    if item.symbol == upper_symbol {
-                        return Ok(item);
-                    }
-                }
-                bail!("Symbol not found")
-            }
-            Err(e) => Err(e),
-        }
+        let info = self.exchange_info()?;
+        info.symbols
+            .into_iter()
+            .find(|item| item.symbol == upper_symbol)
+            .ok_or(BinanceError::SymbolNotFound)
     }
 
     /// Order book (Default 100; max 1000)
@@ -1002,7 +996,7 @@ impl UsdmInterface {
         result: Result<T>,
     ) -> Result<T> {
         match &result {
-            Err(Error(ErrorKind::BinanceError(err), ..)) => {
+            Err(BinanceError::BinanceError { response: err }) => {
                 if err.msg == "Request occur unknown error."
                     || err.msg == "Service Unavailable."
                     || err.msg
@@ -1013,7 +1007,7 @@ impl UsdmInterface {
                 }
                 result
             }
-            Err(Error(ErrorKind::ReqError(_), ..)) => {
+            Err(BinanceError::RequestError(_)) => {
                 thread::sleep(Duration::from_millis(self.config.retry_timeout));
                 self.api_request(endpoint, req_type, req)
             }

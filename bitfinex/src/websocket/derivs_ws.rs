@@ -1,5 +1,5 @@
 use super::derivs_ws_data::DerivsWsData;
-use crate::commons::errors::Error;
+use crate::commons::errors::WebSocketError;
 use crate::rest::account::Position;
 use crate::rest::candles::Candle;
 use crate::rest::orders::OrderData;
@@ -47,9 +47,11 @@ impl DerivsWs {
                 ws_data: ws_data.clone(),
             });
             if web_socket.connect().is_ok() {
-                web_socket.subscribe_ticker(symbol.to_owned());
-                web_socket.subscribe_trades(symbol.to_owned());
-                web_socket.subscribe_candles(symbol.to_owned(), "1m".into());
+                web_socket.subscribe_ticker(symbol.to_owned()).unwrap();
+                web_socket.subscribe_trades(symbol.to_owned()).unwrap();
+                web_socket
+                    .subscribe_candles(symbol.to_owned(), "1m".into())
+                    .unwrap();
                 web_socket
                     .auth(api_key.to_owned(), api_secret.to_owned(), false, &[])
                     .unwrap();
@@ -218,7 +220,7 @@ impl EventHandler for WebSocketHandler {
         }
     }
 
-    fn on_error(&mut self, message: Error) {
+    fn on_error(&mut self, message: WebSocketError) {
         error!("{:?}", message);
     }
 }

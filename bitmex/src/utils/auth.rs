@@ -1,11 +1,7 @@
 use hex;
-use hmac::{Hmac, Mac, NewMac};
+use hmac::{Hmac, Mac};
 use sha2::Sha256;
 use std::str;
-
-type HmacSha256 = Hmac<Sha256>;
-
-const ERR_MSG: &str = "Error in initializing HMAC-SHA256 instance";
 
 #[derive(Clone, Debug)]
 pub enum AuthData {
@@ -22,9 +18,14 @@ pub fn generate_signature(
     data: &str,
 ) -> String {
     let input_msg = &(method.to_owned() + path + expires + data);
-    let mut mac = HmacSha256::new_varkey(secret.as_bytes()).expect(ERR_MSG);
+    // Create new HMAC instance
+    let mut mac =
+        Hmac::<Sha256>::new_from_slice(secret.as_bytes()).expect("HMAC can take key of any size");
+
+    // Add message to digest
     mac.update(input_msg.as_bytes());
 
+    // Get the result
     let result = mac.finalize();
     let code_bytes = result.into_bytes();
     hex::encode(code_bytes)
@@ -32,11 +33,17 @@ pub fn generate_signature(
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::auth::generate_signature;
+    use super::*;
 
     #[test]
     fn signature() {
-        let sig = generate_signature("chNOOS4KvNXR_Xq4k4c9qsfoKWvnDecLATCRlcBwyKDYnWgO", "POST", "/api/v1/order", "1518064238", "{\"symbol\":\"XBTM15\",\"price\":219.0,\"clOrdID\":\"mm_bitmex_1a/oemUeQ4CAJZgP3fjHsA\",\"orderQty\":98}");
+        let sig = generate_signature(
+            "chNOOS4KvNXR_Xq4k4c9qsfoKWvnDecLATCRlcBwyKDYnWgO",
+            "POST",
+            "/api/v1/order",
+            "1518064238",
+            "{\"symbol\":\"XBTM15\",\"price\":219.0,\"clOrdID\":\"mm_bitmex_1a/oemUeQ4CAJZgP3fjHsA\",\"orderQty\":98}"
+        );
         assert_eq!(
             sig,
             "1749cd2ccae4aa49048ae09f0b95110cee706e0944e6a14ad0b3a8cb45bd336b"

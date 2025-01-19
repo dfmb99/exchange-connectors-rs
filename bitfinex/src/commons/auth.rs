@@ -12,7 +12,7 @@ pub fn sign_payload(secret: &[u8], payload: &[u8]) -> Result<String> {
 
 pub fn generate_nonce() -> Result<String> {
     let start = SystemTime::now();
-    let since_epoch = start.duration_since(UNIX_EPOCH)?;
+    let since_epoch = start.duration_since(UNIX_EPOCH).unwrap();
 
     let timestamp = since_epoch.as_secs() * 1000 + since_epoch.subsec_nanos() as u64 / 1_000_000;
 

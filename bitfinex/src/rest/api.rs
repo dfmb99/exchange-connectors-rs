@@ -26,7 +26,7 @@ impl Bitfinex {
         Bitfinex {
             book: Book::new(),
             ticker: Ticker::new(),
-            trades: Trades::new(),
+            trades: Trades::new().unwrap(),
             candles: Candles::new(),
             derivs: Derivs::new(api_key.clone(), secret_key.clone()),
             orders: Orders::new(api_key.clone(), secret_key.clone()),
