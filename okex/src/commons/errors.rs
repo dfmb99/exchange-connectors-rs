@@ -4,6 +4,7 @@ use std::num::ParseFloatError;
 use std::io;
 use url::ParseError;
 use reqwest::header::InvalidHeaderValue;
+use reqwest::StatusCode;
 
 #[derive(Debug, Deserialize)]
 pub struct OkxContentError {
@@ -39,6 +40,9 @@ pub enum Error {
     
     #[error("Timestamp error: {0}")]
     TimestampError(#[from] std::time::SystemTimeError),
+
+    #[error("Unkown status code {0}")]
+    UnkownStatusCode(StatusCode)
 }
 
 // Type alias for Result with our custom error type

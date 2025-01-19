@@ -1,8 +1,7 @@
 use crate::commons::auth::get_signature;
-use crate::commons::errors::*;
+use crate::commons::errors::{Error, Result};
 use crate::commons::utils::*;
 use crate::rest::api::API;
-use error_chain::bail;
 use reqwest::blocking::Response;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue, CONTENT_TYPE, USER_AGENT};
 use reqwest::StatusCode;
@@ -243,12 +242,12 @@ impl Client {
     fn handler<T: DeserializeOwned>(&self, response: Response) -> Result<T> {
         match response.status() {
             StatusCode::OK => Ok(response.json::<T>()?),
-            StatusCode::INTERNAL_SERVER_ERROR => Err(ErrorKind::OkxError(response.json()?).into()),
-            StatusCode::SERVICE_UNAVAILABLE => Err(ErrorKind::OkxError(response.json()?).into()),
-            StatusCode::UNAUTHORIZED => Err(ErrorKind::OkxError(response.json()?).into()),
-            StatusCode::BAD_REQUEST => Err(ErrorKind::OkxError(response.json()?).into()),
+            StatusCode::INTERNAL_SERVER_ERROR => Err(Error::OkxError(response.json()?)),
+            StatusCode::SERVICE_UNAVAILABLE => Err(Error::OkxError(response.json()?)),
+            StatusCode::UNAUTHORIZED => Err(Error::OkxError(response.json()?)),
+            StatusCode::BAD_REQUEST => Err(Error::OkxError(response.json()?)),
             s => {
-                bail!(format!("Received response: {s:?}"));
+                Err(Error::UnkownStatusCode(s))
             }
         }
     }

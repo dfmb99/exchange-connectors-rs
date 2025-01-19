@@ -97,7 +97,7 @@ impl<'a> WebSockets<'a> {
 
     fn connect_wss(&mut self, wss: String) -> Result<()> {
         let url = Url::parse(&wss)?;
-        match connect(url) {
+        match connect(url.as_str()) {
             Ok(answer) => {
                 self.socket = Some(answer);
                 Ok(())
@@ -153,13 +153,13 @@ impl<'a> WebSockets<'a> {
                     socket.0.close(None)?;
                     break;
                 }
-                let message = socket.0.read_message()?;
+                let message = socket.0.read()?;
                 match message {
                     Message::Text(msg) => {
                         self.handle_msg(&msg)?
                     }
-                    Message::Ping(_) => {
-                        socket.0.write_message(Message::Pong(vec![])).unwrap();
+                    Message::Ping(data) => {
+                        socket.0.send(Message::Pong(data)).unwrap();
                     }
                     Message::Pong(_) | Message::Binary(_) => (),
                     Message::Close(_) => return Err(BinanceError::WebSocket(WebSocketError::Disconnected)),

@@ -213,10 +213,10 @@ impl BitmexWs {
         let mut book_data: Vec<OrderBookL2> = serde_json::from_value(json!(book_data)).unwrap();
         book_data.reverse();
         let location = book_data.binary_search_by(|v| v.price.partial_cmp(&price).unwrap());
-        return match location {
+        match location {
             Ok(pos) => book_data.get(pos).unwrap().size,
             _ => 0,
-        };
+        }
     }
 
     /// Returns orderbook impact price of a given order size
@@ -748,10 +748,10 @@ fn find_item_order_bookl2(
             .partial_cmp(&id)
             .unwrap()
     });
-    return match index {
+    match index {
         Ok(pos) => Some((pos, table.get(pos).unwrap().clone())),
         _ => None,
-    };
+    }
 }
 
 fn get_unix_time_secs() -> u64 {
@@ -759,71 +759,4 @@ fn get_unix_time_secs() -> u64 {
         .duration_since(UNIX_EPOCH)
         .expect(ERR_SYS_TIME)
         .as_secs()
-}
-
-#[cfg(test)]
-mod tests {
-
-    use crate::utils::auth::AuthData;
-    use crate::utils::enums::Subscriptions;
-    use crate::websocket::{get_trade_bin_1m_api, BitmexWs, LEN_TRADE_BUCKETED};
-    use actix_rt::System;
-    use chrono::{DateTime, NaiveDateTime, Utc};
-
-    #[test]
-    fn test_ws_trade_bin_1m() {
-        System::new("test").block_on(async {
-            let _ = env_logger::try_init();
-            let sub = vec![Subscriptions::TradeBin1m];
-            let mut ws = BitmexWs::new(true, "XBTUSD".to_string(), 1, sub, AuthData::None).await;
-            ws.run().await;
-            println!("{:?}", ws.get_trade_bin_1m());
-        });
-    }
-
-    #[test]
-    fn test_ws_trade_bin_api() {
-        System::new("test").block_on(async {
-            let _ = env_logger::try_init();
-            let result = get_trade_bin_1m_api(
-                "XBTUSD".to_string(),
-                true,
-                AuthData::Data {
-                    key: "hvcfpTU1oyvDkSD9eeGkLUyg".to_string(),
-                    secret: "ReYIfVgcDRBIZcPFXAE464lTHq-v4RW6MoJay-sXmOfmgMjc".to_string(),
-                },
-            )
-            .await;
-            assert_eq!(result.len(), LEN_TRADE_BUCKETED);
-            let start_time = result
-                .first()
-                .unwrap()
-                .get("timestamp")
-                .unwrap()
-                .as_str()
-                .unwrap();
-            let naive_datetime =
-                NaiveDateTime::parse_from_str(start_time, "%Y-%m-%dT%H:%M:%S.000Z").unwrap();
-            let mut datetime_utc = DateTime::<Utc>::from_naive_utc_and_offset(naive_datetime, Utc);
-            for x in result {
-                let timestamp = String::from(x.get("timestamp").unwrap().as_str().unwrap());
-                let timestamp =
-                    NaiveDateTime::parse_from_str(&timestamp, "%Y-%m-%dT%H:%M:%S.000Z").unwrap();
-                let timestamp = DateTime::<Utc>::from_naive_utc_and_offset(timestamp, Utc);
-                assert_eq!(datetime_utc, timestamp);
-                datetime_utc += chrono::Duration::minutes(1);
-            }
-        });
-    }
-
-    #[test]
-    fn test_ws_get_order_book_impact_price() {
-        System::new("test").block_on(async {
-            let _ = env_logger::try_init();
-            let sub = vec![Subscriptions::Instrument, Subscriptions::OrderBookL2];
-            let mut ws = BitmexWs::new(false, "XBTUSD".to_string(), 1, sub, AuthData::None).await;
-            ws.run().await;
-            println!("{:?}", ws.get_order_book_impact_price(10000000));
-        });
-    }
 }

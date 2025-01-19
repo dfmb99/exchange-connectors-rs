@@ -1,6 +1,6 @@
 use dotenv::dotenv;
 use okex::commons::config::Config;
-use okex::commons::errors::*;
+use okex::commons::errors::Error;
 use okex::commons::utils::{Side, TradeMode};
 use okex::rest::api::Okx;
 use okex::rest::market_data::{MarketData, TickerParams};
@@ -20,8 +20,8 @@ fn market_data() {
         inst_id: "BTC-USD-SWAP".to_string(),
     }) {
         Ok(answer) => println!("{:?}", answer.data),
-        Err(e) => match e.0 {
-            ErrorKind::OkxError(e) => println!("API error: {} {}", e.code, e.msg),
+        Err(e) => match e {
+            Error::OkxError(e) => println!("API error: {} {}", e.code, e.msg),
             _ => println!("Error: {:?}", e),
         },
     }
@@ -46,8 +46,8 @@ fn trade() {
         ..Default::default()
     }) {
         Ok(answer) => println!("{:?}", answer.data),
-        Err(e) => match e.0 {
-            ErrorKind::OkxError(e) => println!("API error: {} {}", e.code, e.msg),
+        Err(e) => match e {
+            Error::OkxError(e) => println!("API error: {} {}", e.code, e.msg),
             _ => println!("Error: {:?}", e),
         },
     }

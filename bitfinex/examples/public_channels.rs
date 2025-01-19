@@ -61,16 +61,16 @@ fn main() {
     web_socket.connect().unwrap(); // check error
 
     // TICKER
-    web_socket.subscribe_ticker(BTCUSD);
+    let _ = web_socket.subscribe_ticker(BTCUSD);
 
     // TRADES
-    web_socket.subscribe_trades(BTCUSD);
+    let _ = web_socket.subscribe_trades(BTCUSD);
 
     // BOOKS
-    web_socket.subscribe_books(BTCUSD, P0, "F0", 25);
+    let _ = web_socket.subscribe_books(BTCUSD, P0, "F0", 25);
 
     // CANDLES
-    web_socket.subscribe_candles(BTCUSD, "1m");
+    let _ = web_socket.subscribe_candles(BTCUSD, "1m");
 
-    web_socket.event_loop().unwrap(); // check error
+    let _ = web_socket.event_loop().unwrap(); // check error
 }

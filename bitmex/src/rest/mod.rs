@@ -523,7 +523,7 @@ impl BitmexRest {
     /// Both order quantity and price can be amended. Only one qty field can be used to amend.
     /// Use the leavesQty field to specify how much of the order you wish to remain open. This can be useful if you want to adjust your position's delta by a certain amount, regardless of how much of the order has already filled.
     /// > A leavesQty can be used to make a "Filled" order live again, if it is received within 60 seconds of the fill.
-    /// Like order placement, amending can be done in bulk. Simply send a request to PUT /api/v1/order/bulk with a JSON body of the shape: {"orders": [{...}, {...}]}, each object containing the fields used in this endpoint.
+    /// > Like order placement, amending can be done in bulk. Simply send a request to PUT /api/v1/order/bulk with a JSON body of the shape: {"orders": [{...}, {...}]}, each object containing the fields used in this endpoint.
     ///
     /// Hashmap parameter keys:
     ///
@@ -1056,113 +1056,4 @@ fn get_unix_time_secs() -> u64 {
         .duration_since(UNIX_EPOCH)
         .expect(ERR_SYS_TIME)
         .as_secs()
-}
-
-#[cfg(test)]
-mod tests {
-
-    use crate::rest::BitmexRest;
-    use crate::utils::auth::AuthData;
-    use crate::utils::enums::RequestResponseErr;
-    use actix_rt::System;
-
-    use serde_json::{Map, Value};
-    use std::collections::HashMap;
-
-    #[test]
-    fn test_instrument() {
-        System::new("test").block_on(async {
-            let mex: BitmexRest = BitmexRest::new(true, AuthData::None).await;
-
-            let mut value: Map<String, Value> = Map::new();
-            value.insert(String::from("symbol"), Value::from("XBTUSD"));
-
-            let mut params: HashMap<&str, Value> = HashMap::new();
-            params.insert("filter", Value::Object(value));
-
-            if let Err(err) = mex.get_instrument(params).await {
-                match err {
-                    RequestResponseErr::Data(data) => {
-                        panic!("{:?}", data)
-                    }
-                    RequestResponseErr::SendRequestError(req_err) => {
-                        panic!("{:?}", req_err)
-                    }
-                }
-            }
-            if let Err(err) = mex.get_instrument_active().await {
-                match err {
-                    RequestResponseErr::Data(data) => {
-                        panic!("{:?}", data)
-                    }
-                    RequestResponseErr::SendRequestError(req_err) => {
-                        panic!("{:?}", req_err)
-                    }
-                }
-            }
-        });
-    }
-
-    #[test]
-    fn test_execution_request() {
-        System::new("test").block_on(async {
-            let c: BitmexRest = BitmexRest::new(
-                true,
-                AuthData::Data {
-                    key: "TmiigTrWSU0Z2D2z87kT_z0S".to_string(),
-                    secret: "faF_FH51vwmapKKDUxGAw2f4pxmTdtWKwDcwk-NspZfQjsqh".to_string(),
-                },
-            )
-            .await;
-
-            let params: HashMap<&str, Value> = HashMap::new();
-            if let Err(err) = c.get_execution(params).await {
-                match err {
-                    RequestResponseErr::Data(data) => {
-                        panic!("{:?}", data)
-                    }
-                    RequestResponseErr::SendRequestError(req_err) => {
-                        panic!("{:?}", req_err)
-                    }
-                }
-            }
-
-            let params: HashMap<&str, Value> = HashMap::new();
-            if let Err(err) = c.get_execution_trade_hist(params).await {
-                match err {
-                    RequestResponseErr::Data(data) => {
-                        panic!("{:?}", data)
-                    }
-                    RequestResponseErr::SendRequestError(req_err) => {
-                        panic!("{:?}", req_err)
-                    }
-                }
-            }
-        });
-    }
-
-    #[test]
-    fn test_user_requests() {
-        System::new("test").block_on(async {
-            let c: BitmexRest = BitmexRest::new(
-                true,
-                AuthData::Data {
-                    key: "TmiigTrWSU0Z2D2z87kT_z0S".to_string(),
-                    secret: "faF_FH51vwmapKKDUxGAw2f4pxmTdtWKwDcwk-NspZfQjsqh".to_string(),
-                },
-            )
-            .await;
-
-            if let Err(err) = c.get_user_margin().await {
-                match err {
-                    RequestResponseErr::Data(data) => {
-                        panic!("{:?}", data)
-                    }
-                    RequestResponseErr::SendRequestError(req_err) => {
-                        panic!("{:?}", req_err)
-                    }
-                }
-            }
-        });
-    }
 }

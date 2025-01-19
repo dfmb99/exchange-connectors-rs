@@ -68,7 +68,7 @@ impl Default for WebSockets {
 impl WebSockets {
     pub fn connect(&mut self) -> Result<(), WebSocketError> {
         let url = Url::parse(WEBSOCKET_URL)?;
-        self.socket = Some(connect(url)?);
+        self.socket = Some(connect(url.as_str())?);
         Ok(())
     }
 
@@ -174,7 +174,7 @@ impl WebSockets {
                 // Handle pending messages
                 while let Ok(msg) = self.rx.try_recv() {
                     match msg {
-                        WsMessage::Text(text) => socket.0.write_message(Message::Text(text))?,
+                        WsMessage::Text(text) => socket.0.send(Message::Text(text.into()))?,
                         WsMessage::Close => {
                             return socket.0.close(None).map_err(WebSocketError::from)
                         }
@@ -191,7 +191,7 @@ impl WebSockets {
                     Ok(_) => {}
                 }
 
-                let message = socket.0.read_message()?;
+                let message = socket.0.read()?;
 
                 if let Some(ref mut handler) = self.event_handler {
                     match message {

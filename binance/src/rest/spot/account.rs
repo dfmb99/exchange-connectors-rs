@@ -462,18 +462,6 @@ impl Account {
 
     /// Create a stop limit buy order for the given symbol, price and stop price.
     /// Returning a `Transaction` value with the same parameters sent on the order.
-    ///
-    ///```no_run
-    /// use binance::rest::api::Binance;
-    /// use binance::rest::spot::account::{Account, TimeInForce};
-    ///
-    /// fn main() {
-    /// let api_key = Some("api_key".into());
-    ///     let secret_key = Some("secret_key".into());
-    ///     let account: Account = Binance::new(api_key, secret_key);
-    ///     let result = account.stop_limit_buy_order("LTCBTC", 1, 0.1, 0.09, TimeInForce::GTC);
-    /// }
-    /// ```
     pub fn stop_limit_buy_order<S, F>(
         &self,
         symbol: S,
@@ -505,18 +493,6 @@ impl Account {
     /// Returning a `Transaction` value with the same parameters sent on the order.
     ///
     /// This order is sandboxed: it is validated, but not sent to the matching engine.
-    ///
-    ///```no_run
-    /// use binance::rest::api::Binance;
-    /// use binance::rest::spot::account::*;
-    ///
-    /// fn main() {
-    /// let api_key = Some("api_key".into());
-    ///     let secret_key = Some("secret_key".into());
-    ///     let account: Account = Binance::new(api_key, secret_key);
-    ///     let result = account.test_stop_limit_buy_order("LTCBTC", 1, 0.1, 0.09, TimeInForce::GTC);
-    /// }
-    /// ```
     pub fn test_stop_limit_buy_order<S, F>(
         &self,
         symbol: S,
@@ -548,18 +524,6 @@ impl Account {
 
     /// Create a stop limit sell order for the given symbol, price and stop price.
     /// Returning a `Transaction` value with the same parameters sent on the order.
-    ///
-    ///```no_run
-    /// use binance::rest::api::Binance;
-    /// use binance::rest::spot::account::*;
-    ///
-    /// fn main() {
-    /// let api_key = Some("api_key".into());
-    ///     let secret_key = Some("secret_key".into());
-    ///     let account: Account = Binance::new(api_key, secret_key);
-    ///     let result = account.stop_limit_sell_order("LTCBTC", 1, 0.1, 0.09, TimeInForce::GTC);
-    /// }
-    /// ```
     pub fn stop_limit_sell_order<S, F>(
         &self,
         symbol: S,
@@ -591,18 +555,6 @@ impl Account {
     /// Returning a `Transaction` value with the same parameters sent on the order.
     ///
     /// This order is sandboxed: it is validated, but not sent to the matching engine.
-    ///
-    ///```no_run
-    /// use binance::rest::api::Binance;
-    /// use binance::rest::spot::account::*;
-    ///
-    /// fn main() {
-    ///     let api_key = Some("api_key".into());
-    ///     let secret_key = Some("secret_key".into());
-    ///     let account: Account = Binance::new(api_key, secret_key);
-    ///     let result = account.test_stop_limit_sell_order("LTCBTC", 1, 0.1, 0.09, TimeInForce::GTC);
-    /// }
-    /// ```
     pub fn test_stop_limit_sell_order<S, F>(
         &self,
         symbol: S,
