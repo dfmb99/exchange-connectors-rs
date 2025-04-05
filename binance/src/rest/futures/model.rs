@@ -30,6 +30,7 @@ pub struct Symbol {
     pub base_asset_precision: u64,
     pub quote_precision: u64,
     pub filters: Vec<Filters>,
+    #[serde(rename = "OrderType", default)]
     pub order_types: Vec<String>,
     pub time_in_force: Vec<String>,
 }
