@@ -167,7 +167,7 @@ impl BitmexWs {
                                     .await;
                                 });
                             } else if data_memory.read().unwrap().contains_key(&table)
-                                || (l2_data_memory.read().unwrap().len() > 0
+                                || (!l2_data_memory.read().unwrap().is_empty()
                                     && table == "orderBookL2")
                             {
                                 handle_data_msg(

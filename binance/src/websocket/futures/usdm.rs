@@ -155,7 +155,11 @@ fn user_stream_websocket(
                                     ws_data.update_position(positions[0].to_owned())
                                 }
 
-                                let asset = if symbol.contains("USDC") { "USDC" } else { "USDT" };
+                                let asset = if symbol.contains("USDC") {
+                                    "USDC"
+                                } else {
+                                    "USDT"
+                                };
 
                                 let balances: Vec<EventBalance> = account_update
                                     .data
