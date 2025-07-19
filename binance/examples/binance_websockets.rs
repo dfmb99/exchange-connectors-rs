@@ -1,21 +1,31 @@
+use binance::commons::config::Config;
 use binance::rest::api::Binance;
-use binance::websocket::spot::userstream::UserStream;
+use binance::websocket::futures::userstream::FuturesUserStream;
+use binance::websocket::futures::{FuturesMarket, FuturesWebSockets, FuturesWebsocketEvent};
 use binance::websocket::spot::{WebSockets, WebsocketEvent};
+use dotenv::dotenv;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 fn main() {
+    dotenv().ok();
+    env_logger::init();
     //user_stream();
-    //user_stream_websocket();
+    user_stream_websocket();
     //market_websocket();
     //kline_websocket();
     //all_trades_websocket();
     //last_price_for_one_symbol();
-    multiple_streams();
+    //multiple_streams();
 }
 
 fn user_stream() {
-    let api_key_user = Some("YOUR_API_KEY".into());
-    let user_stream: UserStream = Binance::new(api_key_user, None);
+    let api_key_user =
+        Some("f7349ef10fed52e0282e9c66d7269acfb046d70d8b48f0ca34733e67322471c9".into());
+    let api_secret_user =
+        Some("7dedd32206a93e7d86f84372940a74e762711cd0800833a1e5fe56e6ed059cc1".into());
+    let config = Config::testnet();
+    let user_stream: FuturesUserStream =
+        Binance::new_with_config(api_key_user, api_secret_user, &config);
 
     if let Ok(answer) = user_stream.start() {
         println!("Data Stream Started ...");
@@ -37,38 +47,49 @@ fn user_stream() {
 
 fn user_stream_websocket() {
     let keep_running = AtomicBool::new(true); // Used to control the event loop
-    let api_key_user = Some("YOUR_KEY".into());
-    let user_stream: UserStream = Binance::new(api_key_user, None);
+    let api_key_user =
+        Some("f7349ef10fed52e0282e9c66d7269acfb046d70d8b48f0ca34733e67322471c9".into());
+    let api_secret_user =
+        Some("7dedd32206a93e7d86f84372940a74e762711cd0800833a1e5fe56e6ed059cc1".into());
+    let config = Config::testnet();
+    let user_stream: FuturesUserStream =
+        Binance::new_with_config(api_key_user, api_secret_user, &config);
 
     if let Ok(answer) = user_stream.start() {
         let listen_key = answer.listen_key;
 
-        let mut web_socket: WebSockets<'_> = WebSockets::new(|event: WebsocketEvent| {
-            match event {
-                WebsocketEvent::AccountUpdate(account_update) => {
-                    for balance in &account_update.data.balances {
-                        println!(
+        let mut web_socket: FuturesWebSockets<'_> =
+            FuturesWebSockets::new(|event: FuturesWebsocketEvent| {
+                match event {
+                    FuturesWebsocketEvent::AccountUpdate(account_update) => {
+                        for balance in &account_update.data.balances {
+                            println!(
                             "Asset: {}, wallet_balance: {}, cross_wallet_balance: {}, balance: {}",
                             balance.asset,
                             balance.wallet_balance,
                             balance.cross_wallet_balance,
                             balance.balance_change
                         );
+                        }
                     }
-                }
-                WebsocketEvent::OrderTrade(trade) => {
-                    println!(
-                        "Symbol: {}, Side: {}, Price: {}, Execution Type: {}",
-                        trade.symbol, trade.side, trade.price, trade.execution_type
-                    );
-                }
-                _ => (),
-            };
+                    FuturesWebsocketEvent::OrderTrade(trade) => {
+                        println!(
+                            "Symbol: {}, Side: {}, Price: {}, Execution Type: {}",
+                            trade.order.symbol,
+                            trade.order.side,
+                            trade.order.price,
+                            trade.order.execution_type
+                        );
+                    }
+                    _ => (),
+                };
 
-            Ok(())
-        });
+                Ok(())
+            });
 
-        web_socket.connect(&listen_key).unwrap(); // check error
+        web_socket
+            .connect_with_config(FuturesMarket::USDM, &listen_key, &config)
+            .unwrap();
         if let Err(e) = web_socket.event_loop(&keep_running) {
             println!("Error: {e}");
         }

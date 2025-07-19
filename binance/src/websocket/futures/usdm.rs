@@ -183,7 +183,7 @@ fn user_stream_websocket(
                                     user_stream_expired
                                 );
                                 let err = BinanceContentError {
-                                    code: -32768,
+                                    code: -9999,
                                     msg: "User data listen key is expired".to_string(),
                                 };
                                 return Err(BinanceError::BinanceError { response: err });

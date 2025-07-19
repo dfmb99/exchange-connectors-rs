@@ -395,6 +395,8 @@ pub struct UserDataStreamExpiredEvent {
 
     #[serde(rename = "E")]
     pub event_time: u64,
+
+    pub listen_key: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
