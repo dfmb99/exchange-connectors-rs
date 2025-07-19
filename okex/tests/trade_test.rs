@@ -6,7 +6,6 @@ use okex::rest::trade::{
     AmendOrderParams, CancelOrderParams, ClosePositionParams, FillsParams, OrderDetailsParams,
     OrderListParams, PlaceOrderParams, Trade,
 };
-use std::env::var;
 
 #[cfg(test)]
 mod tests {

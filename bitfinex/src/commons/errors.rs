@@ -35,7 +35,7 @@ pub enum BitfinexError {
 #[derive(Error, Debug)]
 pub enum WebSocketError {
     #[error("WebSocket error: {0}")]
-    WsError(#[from] tungstenite::Error),
+    WsError(#[from] Box<tungstenite::Error>),
 
     #[error("Channel send error: {0}")]
     SendError(String),
@@ -51,6 +51,12 @@ pub enum WebSocketError {
 
     #[error("Auth error: {0}")]
     AuthError(String),
+}
+
+impl From<tungstenite::Error> for WebSocketError {
+    fn from(err: tungstenite::Error) -> Self {
+        WebSocketError::WsError(Box::new(err))
+    }
 }
 
 pub type Result<T> = std::result::Result<T, BitfinexError>;

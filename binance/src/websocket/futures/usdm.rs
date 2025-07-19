@@ -144,7 +144,7 @@ fn user_stream_websocket(
                     FuturesWebSockets::new(|event: FuturesWebsocketEvent| {
                         match event {
                             FuturesWebsocketEvent::AccountUpdate(account_update) => {
-                                debug!("Received AccountUpdateEvent : {:?}", account_update);
+                                debug!("Received AccountUpdateEvent : {account_update:?}");
                                 let positions: Vec<EventPosition> = account_update
                                     .data
                                     .positions
@@ -155,32 +155,32 @@ fn user_stream_websocket(
                                     ws_data.update_position(positions[0].to_owned())
                                 }
 
-                                let asset = if symbol.contains("USDC") {
-                                    "USDC"
+                                let mut assets = vec!["BNFCR"];
+                                if symbol.contains("USDC") {
+                                    assets.push("USDC");
                                 } else {
-                                    "USDT"
+                                    assets.push("USDT");
                                 };
 
                                 let balances: Vec<EventBalance> = account_update
                                     .data
                                     .balances
                                     .into_iter()
-                                    .filter(|event| event.asset == asset)
+                                    .filter(|event| assets.contains(&event.asset.as_str()))
                                     .collect();
                                 if !balances.is_empty() {
                                     ws_data.update_balance(balances[0].to_owned())
                                 }
                             }
                             FuturesWebsocketEvent::OrderTrade(trade) => {
-                                debug!("Received OrderTradeEvent : {:?}", trade);
+                                debug!("Received OrderTradeEvent : {trade:?}");
                                 ws_data.add_order(trade.order);
                             }
                             FuturesWebsocketEvent::UserDataStreamExpiredEvent(
                                 user_stream_expired,
                             ) => {
                                 debug!(
-                                    "Received UserDataStreamExpiredEvent : {:?}",
-                                    user_stream_expired
+                                    "Received UserDataStreamExpiredEvent : {user_stream_expired:?}"
                                 );
                                 let err = BinanceContentError {
                                     code: -9999,
@@ -189,7 +189,7 @@ fn user_stream_websocket(
                                 return Err(BinanceError::BinanceError { response: err });
                             }
                             _ => {
-                                warn!("Received unhandled event : {:?}", event)
+                                warn!("Received unhandled event : {event:?}")
                             }
                         };
 
@@ -200,13 +200,13 @@ fn user_stream_websocket(
                     .connect_with_config(FuturesMarket::USDM, &listen_key, &config)
                     .unwrap(); // check error
                 if let Err(e) = web_socket.event_loop(&keep_running) {
-                    error!("Error: {}", e);
+                    error!("Error: {e}");
                 }
                 if let Err(e) = user_stream.close(&listen_key) {
-                    error!("Error closing user stream: {}", e);
+                    error!("Error closing user stream: {e}");
                 }
                 if let Err(e) = web_socket.disconnect() {
-                    error!("Error disconnecting from websocket: {}", e);
+                    error!("Error disconnecting from websocket: {e}");
                 }
                 let _ = tx.send(());
                 debug!("User stream closed and disconnected");
@@ -229,8 +229,8 @@ fn user_stream_keep_alive(rx: Receiver<()>, user_stream: FuturesUserStream, list
             }
 
             match user_stream.keep_alive(&listen_key) {
-                Ok(msg) => debug!("Keepalive user data stream: {:?}", msg),
-                Err(e) => warn!("Error: {}", e),
+                Ok(msg) => debug!("Keepalive user data stream: {msg:?}"),
+                Err(e) => warn!("Error: {e}"),
             }
         }
     });
@@ -251,19 +251,19 @@ fn market_websocket(symbol: String, config: Config, ws_data: WsData) {
                 FuturesWebSockets::new(|event: FuturesWebsocketEvent| {
                     match event {
                         FuturesWebsocketEvent::AggrTrades(trade) => {
-                            debug!("Received AggrTradesEvent : {:?}", trade);
+                            debug!("Received AggrTradesEvent : {trade:?}");
                             ws_data.add_aggr_trades(trade);
                         }
                         FuturesWebsocketEvent::IndexPrice(mark_price) => {
-                            debug!("Received IndexPrice : {:?}", mark_price);
+                            debug!("Received IndexPrice : {mark_price:?}");
                             ws_data.update_mark_price(mark_price);
                         }
                         FuturesWebsocketEvent::Liquidation(liquidation) => {
-                            debug!("Received LiquidationEvent : {:?}", liquidation);
+                            debug!("Received LiquidationEvent : {liquidation:?}");
                             ws_data.add_liquidation(liquidation.liquidation_order);
                         }
                         _ => {
-                            warn!("Received unhandled event : {:?}", event)
+                            warn!("Received unhandled event : {event:?}")
                         }
                     };
 
@@ -273,10 +273,10 @@ fn market_websocket(symbol: String, config: Config, ws_data: WsData) {
                 .connect_multiple_streams(FuturesMarket::USDM, &streams, &config)
                 .unwrap(); // check error
             if let Err(e) = web_socket.event_loop(&keep_running) {
-                error!("Error: {}", e);
+                error!("Error: {e}");
             }
             if let Err(e) = web_socket.disconnect() {
-                error!("Error disconnecting from websocket: {}", e);
+                error!("Error disconnecting from websocket: {e}");
             }
             debug!("Market websocket disconnected");
         }
@@ -288,7 +288,7 @@ fn fill_mark_price_snaps(ws_data: WsData) {
         match ws_data.get_mark_price_event() {
             Some(index_price) => {
                 ws_data.add_mark_price_snap(index_price.clone());
-                debug!("Added mark price snap {:?}", index_price);
+                debug!("Added mark price snap {index_price:?}");
                 thread::sleep(Duration::from_millis(5000));
             }
             None => {

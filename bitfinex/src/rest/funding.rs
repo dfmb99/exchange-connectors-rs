@@ -119,7 +119,7 @@ impl Funding {
         let payload: String = "{}".to_string();
         let data = self
             .client
-            .post_signed_read(format!("funding/offers/{}", value), payload)?;
+            .post_signed_read(format!("funding/offers/{value}"), payload)?;
 
         let offers: Vec<FundingOfferData> = from_str(data.as_str())?;
 

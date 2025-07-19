@@ -331,7 +331,7 @@ impl Orders {
         if value.is_empty() {
             self.orders_read("orders/hist".into(), payload)
         } else {
-            let request: String = format!("orders/{}/hist", value);
+            let request: String = format!("orders/{value}/hist");
             self.orders_read(request, payload)
         }
     }

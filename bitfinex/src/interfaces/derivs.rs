@@ -349,7 +349,7 @@ fn update_derivs_data(mut derivs: Derivs) {
                 derivs.data.set_last_day_candles(candles);
             }
             Err(err) => {
-                error!("{:?}", err);
+                error!("{err:?}");
             }
         }
         thread::sleep(Duration::from_millis(1000));

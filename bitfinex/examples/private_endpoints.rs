@@ -38,7 +38,7 @@ fn main() {
                 order.order_data[0].symbol, order.order_data[0].amount, order.order_data[0].price
             );
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     let params = OrderUpdateParams {
@@ -55,7 +55,7 @@ fn main() {
                 order.order_data.symbol, order.order_data.amount, order.order_data.price
             );
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     match api.orders.active_orders() {
@@ -67,7 +67,7 @@ fn main() {
                 );
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     let params = OrderCancelParams {
@@ -79,7 +79,7 @@ fn main() {
         Ok(order) => {
             println!("Order canceled => Id: {:?}", order.order_data.id);
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     let params = OrderSubmitParams {
@@ -98,7 +98,7 @@ fn main() {
                 order.order_data[0].symbol, order.order_data[0].amount, order.order_data[0].price
             );
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     let params = OrderMultiCancelParams {
@@ -110,7 +110,7 @@ fn main() {
         Ok(order) => {
             println!("Order canceled => Id: {:?}", order.order_data[0].id);
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     let order_history = api.orders.history(BTCUSD.to_owned()); // Use None if you don't want a pair
@@ -123,7 +123,7 @@ fn main() {
                 );
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     // WALLET
@@ -136,7 +136,7 @@ fn main() {
                 );
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     match api.account.get_active_positions() {
@@ -148,7 +148,7 @@ fn main() {
                 );
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     match api.account.margin_symbol(ETHUSD) {
@@ -158,7 +158,7 @@ fn main() {
                 info.margin.gross_balance
             );
         }
-        Err(e) => println!("Error: {}", e),
+        Err(e) => println!("Error: {e}"),
     }
 
     // FUNDING INFO
@@ -169,7 +169,7 @@ fn main() {
                 info.funding.yield_loan, info.funding.yield_lend
             );
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     // LEDGER
@@ -186,7 +186,7 @@ fn main() {
                 );
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     let params = OrderSubmitParams {
@@ -203,7 +203,7 @@ fn main() {
                 order.order_data[0].symbol, order.order_data[0].amount, order.order_data[0].price
             );
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     // DERIVS
@@ -218,7 +218,7 @@ fn main() {
                 limits.min_collateral, limits.max_collateral
             );
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     match api
@@ -232,7 +232,7 @@ fn main() {
                 println!("Derivs pos collaterall => {}", s.status);
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     let params = OrderSubmitParams {
@@ -249,7 +249,7 @@ fn main() {
                 order.order_data[0].symbol, order.order_data[0].amount, order.order_data[0].price
             );
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     match api.orders.trades(
@@ -268,7 +268,7 @@ fn main() {
                 );
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     // FUNDING
@@ -293,7 +293,7 @@ fn main() {
                 offer.funding_offer_data.period
             );
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     match api.funding.active_offers(None) {
@@ -305,14 +305,14 @@ fn main() {
                 );
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     match api.funding.cancel_offer(&CancelOfferParams { id }) {
         Ok(offer) => {
             println!("Cancel funding offer => id {}", offer.funding_offer_data.id);
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     match api.funding.submit_offer(&SubmitOfferParams {
@@ -332,7 +332,7 @@ fn main() {
                 offer.funding_offer_data.period
             );
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     match api.funding.cancel_all_offers(&CancelAllOffersParams {
@@ -341,7 +341,7 @@ fn main() {
         Ok(offer) => {
             println!("Cancel all funding offers => status {}", offer.status);
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     match api.account.transfer_between_wallets(&TransferWalletParams {
@@ -355,7 +355,7 @@ fn main() {
         Ok(response) => {
             println!("Transfer between wallets => status {}", response.status);
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     match api.account.movements(TESTUSDT, &MovementParams::default()) {
@@ -367,7 +367,7 @@ fn main() {
                 );
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     match api.account.available_balance(&AvailableBalanceParams {
@@ -383,7 +383,7 @@ fn main() {
                 balance.amount_available
             );
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     match api.account.fee_summary() {
@@ -393,15 +393,15 @@ fn main() {
                 fee_summary.data.0.deriv_rebate, fee_summary.data.1.deriv_taker_fee
             );
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     match api.derivs.list_derivs_pairs() {
         Ok(pairs) => {
             for p in &pairs {
-                println!("List derivs pairs => symbol {}", p);
+                println!("List derivs pairs => symbol {p}");
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 }

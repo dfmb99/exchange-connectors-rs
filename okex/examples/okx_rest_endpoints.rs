@@ -22,7 +22,7 @@ fn market_data() {
         Ok(answer) => println!("{:?}", answer.data),
         Err(e) => match e {
             Error::OkxError(e) => println!("API error: {} {}", e.code, e.msg),
-            _ => println!("Error: {:?}", e),
+            _ => println!("Error: {e:?}"),
         },
     }
 }
@@ -48,7 +48,7 @@ fn trade() {
         Ok(answer) => println!("{:?}", answer.data),
         Err(e) => match e {
             Error::OkxError(e) => println!("API error: {} {}", e.code, e.msg),
-            _ => println!("Error: {:?}", e),
+            _ => println!("Error: {e:?}"),
         },
     }
 }

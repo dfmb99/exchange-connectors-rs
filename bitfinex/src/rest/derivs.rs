@@ -146,14 +146,14 @@ impl Derivs {
         let mut request = String::new();
         for symbol in symbols {
             if !request.is_empty() {
-                request = format!("{},{}", request, symbol);
+                request = format!("{request},{symbol}");
             } else {
                 request = symbol.to_string();
             }
         }
         let data = self
             .client
-            .get("status/deriv".into(), format!("keys={}", request))?;
+            .get("status/deriv".into(), format!("keys={request}"))?;
 
         let ticker: Vec<DerivStatus> = from_str(data.as_str())?;
 

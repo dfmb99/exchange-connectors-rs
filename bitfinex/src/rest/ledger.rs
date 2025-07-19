@@ -47,8 +47,8 @@ impl Ledger {
         let payload: String = "{}".to_string();
         let request: String = format!("ledgers/{}/hist", symbol.into());
         let params = HistoryParams {
-            start: format!("{}", start),
-            end: format!("{}", end),
+            start: format!("{start}"),
+            end: format!("{end}"),
             limit,
         };
 

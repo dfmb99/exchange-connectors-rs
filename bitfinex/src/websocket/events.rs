@@ -42,7 +42,7 @@ pub enum DataEvent {
     CandlesUpdateEvent(i32, Candle),
     HeartbeatEvent(i32, String),
     OrdersSnapshotEvent(i32, String, Vec<OrderData>),
-    OrdersUpdateEvent(i32, String, OrderData),
+    OrdersUpdateEvent(i32, String, Box<OrderData>),
     PositionsSnapshotEvent(i32, String, Vec<Position>),
     PositionsUpdateEvent(i32, String, Position),
     TradesUpdateEvent(i32, String, Trade),

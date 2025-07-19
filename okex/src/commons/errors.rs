@@ -36,13 +36,19 @@ pub enum Error {
     JsonError(#[from] serde_json::Error),
 
     #[error("WebSocket error: {0}")]
-    WebSocketError(#[from] tungstenite::Error),
+    WebSocketError(#[from] Box<tungstenite::Error>),
 
     #[error("Timestamp error: {0}")]
     TimestampError(#[from] std::time::SystemTimeError),
 
     #[error("Unkown status code {0}")]
     UnkownStatusCode(StatusCode),
+}
+
+impl From<tungstenite::Error> for Error {
+    fn from(err: tungstenite::Error) -> Self {
+        Error::WebSocketError(Box::new(err))
+    }
 }
 
 // Type alias for Result with our custom error type

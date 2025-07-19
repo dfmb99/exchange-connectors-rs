@@ -35,9 +35,9 @@ impl Client {
 
     pub fn get(&self, endpoint: String, request: String) -> Result<String, BitfinexError> {
         let url = if request.is_empty() {
-            format!("{}{}", API_HOST, endpoint)
+            format!("{API_HOST}{endpoint}")
         } else {
-            format!("{}{}?{}", API_HOST, endpoint, request)
+            format!("{API_HOST}{endpoint}?{request}")
         };
 
         let response = self.inner_client.get(&url).send()?;
@@ -45,7 +45,7 @@ impl Client {
     }
 
     pub fn post_signed(&self, request: String, payload: String) -> Result<String, BitfinexError> {
-        let url = format!("{}auth/{}", API_HOST, request);
+        let url = format!("{API_HOST}auth/{request}");
         let headers = self.build_headers(&request, &payload, API_SIGNATURE_PATH)?;
 
         let response = self
@@ -72,7 +72,7 @@ impl Client {
         payload: String,
         params: &P,
     ) -> Result<String, BitfinexError> {
-        let url = format!("{}auth/r/{}", API_HOST, request);
+        let url = format!("{API_HOST}auth/r/{request}");
         let headers = self.build_headers(&request, &payload, API_SIGNATURE_READ_PATH)?;
 
         let response = self
@@ -100,7 +100,7 @@ impl Client {
         payload: String,
         params: &P,
     ) -> Result<String, BitfinexError> {
-        let url = format!("{}auth/w/{}", API_HOST, request);
+        let url = format!("{API_HOST}auth/w/{request}");
         let headers = self.build_headers(&request, &payload, API_SIGNATURE_WRITE_PATH)?;
 
         let response = self
@@ -122,7 +122,7 @@ impl Client {
         sig_path: &str,
     ) -> Result<HeaderMap, BitfinexError> {
         let nonce = auth::generate_nonce()?;
-        let signature_path = format!("{}{}{}{}", sig_path, request, nonce, payload);
+        let signature_path = format!("{sig_path}{request}{nonce}{payload}");
         let signature = auth::sign_payload(self.secret_key.as_bytes(), signature_path.as_bytes())?;
 
         let mut headers = HeaderMap::new();

@@ -135,7 +135,7 @@ impl BitmexWs {
             let mut socket = socket_clone.lock().unwrap();
             match socket.read_message() {
                 Ok(msg) => {
-                    debug!("Received ws message: {:?}", msg);
+                    debug!("Received ws message: {msg:?}");
                     let map_msg: Map<String, Value> =
                         serde_json::from_str(&msg.to_string()[..]).unwrap_or_default();
                     if let Some(data) = map_msg.get("data") {
@@ -189,13 +189,13 @@ impl BitmexWs {
                         debug!("{}", info.as_str().unwrap());
                     } else if let Some(error) = map_msg.get("error") {
                         let status = map_msg.get("status").unwrap().as_i64().unwrap();
-                        error!("Code: {}, Error: {}", status, error);
+                        error!("Code: {status}, Error: {error}");
                     } else {
-                        debug!("Unknown message: {:?}", msg);
+                        debug!("Unknown message: {msg:?}");
                     }
                 }
                 Err(err) => {
-                    error!("Error reading ws message: {}", err);
+                    error!("Error reading ws message: {err}");
                     *socket = connect_ws(
                         if testnet { URL_TEST } else { URL_MAIN },
                         symbol.to_string(),

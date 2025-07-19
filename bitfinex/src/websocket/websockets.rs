@@ -90,7 +90,7 @@ impl WebSockets {
         S: AsRef<str>,
     {
         let nonce = auth::generate_nonce().map_err(|e| WebSocketError::AuthError(e.to_string()))?;
-        let auth_payload = format!("AUTH{}", nonce);
+        let auth_payload = format!("AUTH{nonce}");
         let signature = auth::sign_payload(api_secret.as_ref().as_bytes(), auth_payload.as_bytes())
             .map_err(|e| WebSocketError::AuthError(e.to_string()))?;
 
@@ -211,8 +211,7 @@ impl WebSockets {
                         }
                         Message::Close(e) => {
                             return Err(WebSocketError::Disconnected(format!(
-                                "Connection closed: {:?}",
-                                e
+                                "Connection closed: {e:?}"
                             )))
                         }
                         _ => {}

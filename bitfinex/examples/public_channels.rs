@@ -21,11 +21,11 @@ impl EventHandler for WebSocketHandler {
 
     fn on_subscribed(&mut self, event: NotificationEvent) {
         if let NotificationEvent::TradingSubscribed(msg) = event {
-            println!("Subscribed: {:?}", msg);
+            println!("Subscribed: {msg:?}");
         } else if let NotificationEvent::CandlesSubscribed(msg) = event {
-            println!("Subscribed: {:?}", msg);
+            println!("Subscribed: {msg:?}");
         } else if let NotificationEvent::RawBookSubscribed(msg) = event {
-            println!("Subscribed: {:?}", msg);
+            println!("Subscribed: {msg:?}");
         }
     }
 
@@ -50,7 +50,7 @@ impl EventHandler for WebSocketHandler {
     }
 
     fn on_error(&mut self, message: WebSocketError) {
-        println!("{:?}", message);
+        println!("{message:?}");
     }
 }
 
@@ -72,5 +72,5 @@ fn main() {
     // CANDLES
     let _ = web_socket.subscribe_candles(BTCUSD, "1m");
 
-    let _ = web_socket.event_loop().unwrap(); // check error
+    web_socket.event_loop().unwrap(); // check error
 }

@@ -1024,7 +1024,7 @@ fn update_usdm_data(mut usdm_int: UsdmInterface) {
                 thread::sleep(Duration::from_millis(usdm_int.config.rest_update_interval));
             }
             Err(err) => {
-                error!("{:?}", err);
+                error!("{err:?}");
                 thread::sleep(Duration::from_millis(usdm_int.config.retry_timeout));
             }
         }

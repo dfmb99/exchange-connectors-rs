@@ -18,7 +18,7 @@ fn main() {
             "Trading pair => bid: {:?}  ask: {:?}",
             answer.bid, answer.ask
         ),
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     let funding_currency = api.ticker.funding_currency(USD);
@@ -27,7 +27,7 @@ fn main() {
             "Funding currency => bid: {:?}  ask: {:?}",
             answer.bid, answer.ask
         ),
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     let funding_stats = api.ticker.funding_stats(
@@ -47,7 +47,7 @@ fn main() {
                 );
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     // TRADES
@@ -61,7 +61,7 @@ fn main() {
                 );
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     let funding_currency = api.trades.funding_currency(USD);
@@ -74,7 +74,7 @@ fn main() {
                 );
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     // BOOK
@@ -88,7 +88,7 @@ fn main() {
                 );
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     let funding_currency = api.book.funding_currency(USD, P0);
@@ -98,7 +98,7 @@ fn main() {
                 println!("Funding => rate: {:?} amount: {:?}", book.rate, book.amount);
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     // CANDLES
@@ -108,7 +108,7 @@ fn main() {
             "Candle Last => High: {:?} low: {:?}",
             answer.high, answer.low
         ),
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     let history = api
@@ -123,7 +123,7 @@ fn main() {
                 );
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     // DERIVS
@@ -137,7 +137,7 @@ fn main() {
                 );
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     let derivs_status = api.derivs.derivs_status(vec!["ALL"]);
@@ -150,7 +150,7 @@ fn main() {
                 );
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 
     let derivs_hist = api.derivs.derivs_status_hist(
@@ -172,6 +172,6 @@ fn main() {
                 );
             }
         }
-        Err(e) => panic!("Error: {}", e),
+        Err(e) => panic!("Error: {e}"),
     }
 }

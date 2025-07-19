@@ -57,7 +57,7 @@ impl DerivsWs {
                     .unwrap();
 
                 if let Err(err) = web_socket.event_loop() {
-                    error!("Websocket error: {}", err);
+                    error!("Websocket error: {err}");
                 }
             }
         });
@@ -117,7 +117,7 @@ fn fill_price_snaps(ws_data: DerivsWsData) {
         match ws_data.get_trading_pair() {
             Some(trading_pair) => {
                 ws_data.add_price_snap(trading_pair.clone());
-                debug!("Added price snap {:?}", trading_pair);
+                debug!("Added price snap {trading_pair:?}");
                 thread::sleep(Duration::from_millis(5000));
             }
             None => {
@@ -148,18 +148,18 @@ impl EventHandler for WebSocketHandler {
     fn on_data_event(&mut self, event: DataEvent) {
         match event {
             DataEvent::TickerTradingEvent(_, trading_pair) => {
-                debug!("Ticker event => {:?}", trading_pair);
+                debug!("Ticker event => {trading_pair:?}");
                 self.ws_data.update_trading_pair(trading_pair);
             }
             DataEvent::TickerFundingEvent(_, _) => {}
             DataEvent::TradesTradingSnapshotEvent(_, trades) => {
-                debug!("Trades snapshot event => {:?}", trades);
+                debug!("Trades snapshot event => {trades:?}");
                 for t in &trades {
                     self.ws_data.add_trade(t.clone());
                 }
             }
             DataEvent::TradesTradingUpdateEvent(_, _, trade) => {
-                debug!("Trades update event => {:?}", trade);
+                debug!("Trades update event => {trade:?}");
                 self.ws_data.add_trade(trade);
             }
             DataEvent::TradesFundingSnapshotEvent(_, _) => {}
@@ -171,49 +171,49 @@ impl EventHandler for WebSocketHandler {
             DataEvent::RawBookEvent(_, _) => {}
             DataEvent::RawBookUpdateEvent(_, _) => {}
             DataEvent::CandlesSnapshotEvent(_, candles) => {
-                debug!("Candles snapshot event => {:?}", candles);
+                debug!("Candles snapshot event => {candles:?}");
                 for c in &candles {
                     self.ws_data.add_candle(c.clone());
                 }
             }
             DataEvent::CandlesUpdateEvent(_, candle) => {
-                debug!("Candles update event => {:?}", candle);
+                debug!("Candles update event => {candle:?}");
                 self.ws_data.add_candle(candle);
             }
             DataEvent::HeartbeatEvent(_, _) => {}
             DataEvent::OrdersSnapshotEvent(_, _, orders) => {
-                debug!("Orders snapshot event => {:?}", orders);
+                debug!("Orders snapshot event => {orders:?}");
                 for o in &orders {
                     self.ws_data.add_order(o.clone());
                 }
             }
             DataEvent::OrdersUpdateEvent(_, _, order) => {
-                debug!("Orders update event => {:?}", order);
-                self.ws_data.add_order(order);
+                debug!("Orders update event => {order:?}");
+                self.ws_data.add_order(*order);
             }
             DataEvent::PositionsSnapshotEvent(_, _, positions) => {
-                debug!("Positions snapshot event => {:?}", positions);
+                debug!("Positions snapshot event => {positions:?}");
                 for p in &positions {
                     self.ws_data.add_position(p.clone());
                 }
             }
             DataEvent::PositionsUpdateEvent(_, _, position) => {
-                debug!("Positions update event => {:?}", position);
+                debug!("Positions update event => {position:?}");
                 self.ws_data.add_position(position);
             }
             DataEvent::TradesUpdateEvent(_, _, _) => {}
             DataEvent::WalletsSnapshotEvent(_, _, wallets) => {
-                debug!("Wallets snapshot event => {:?}", wallets);
+                debug!("Wallets snapshot event => {wallets:?}");
                 for w in &wallets {
                     self.ws_data.add_wallet(w.clone());
                 }
             }
             DataEvent::WalletsUpdateEvent(_, _, wallet) => {
-                debug!("Wallets update event => {:?}", wallet);
+                debug!("Wallets update event => {wallet:?}");
                 self.ws_data.add_wallet(wallet);
             }
             DataEvent::BalanceInfoUpdateEvent(_, _, balance) => {
-                debug!("Balance info update event => {:?}", balance);
+                debug!("Balance info update event => {balance:?}");
                 self.ws_data.update_balance(balance);
             }
             DataEvent::Other(_) => {}
@@ -221,6 +221,6 @@ impl EventHandler for WebSocketHandler {
     }
 
     fn on_error(&mut self, message: WebSocketError) {
-        error!("{:?}", message);
+        error!("{message:?}");
     }
 }

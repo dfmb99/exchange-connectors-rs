@@ -35,7 +35,7 @@ pub enum BinanceError {
     Json(#[from] serde_json::Error),
 
     #[error("WebSocket error: {0}")]
-    Websocket(#[from] tungstenite::Error),
+    Websocket(#[from] Box<tungstenite::Error>),
 
     #[error("Timestamp error: {0}")]
     Timestamp(#[from] std::time::SystemTimeError),
@@ -65,6 +65,12 @@ pub enum BinanceError {
     WebSocket(#[from] WebSocketError),
 }
 
+impl From<tungstenite::Error> for BinanceError {
+    fn from(err: tungstenite::Error) -> Self {
+        BinanceError::Websocket(Box::new(err))
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum WebSocketError {
     #[error("WebSocket connection error: {0}")]
@@ -83,7 +89,7 @@ pub enum WebSocketError {
     UrlError(#[from] url::ParseError),
 
     #[error("WebSocket error: {0}")]
-    WsError(#[from] tungstenite::Error),
+    WsError(#[from] Box<tungstenite::Error>),
 
     #[error("Loop closed")]
     LoopClosed,

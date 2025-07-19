@@ -82,7 +82,7 @@ impl EventHandler for WebSocketHandler {
     }
 
     fn on_error(&mut self, message: WebSocketError) {
-        println!("{:?}", message);
+        println!("{message:?}");
     }
 }
 
