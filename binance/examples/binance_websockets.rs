@@ -9,13 +9,13 @@ use std::sync::atomic::{AtomicBool, Ordering};
 fn main() {
     dotenv().ok();
     env_logger::init();
-    //user_stream();
+    user_stream();
     user_stream_websocket();
-    //market_websocket();
-    //kline_websocket();
-    //all_trades_websocket();
-    //last_price_for_one_symbol();
-    //multiple_streams();
+    market_websocket();
+    kline_websocket();
+    all_trades_websocket();
+    last_price_for_one_symbol();
+    multiple_streams();
 }
 
 fn user_stream() {
