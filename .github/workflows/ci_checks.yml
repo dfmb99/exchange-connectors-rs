@@ -5,107 +5,71 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
-  build_and_test_binance:
+  fmt:
+    name: Rustfmt (${{ matrix.pkg }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pkg: [binance, bitmex, okex, bitfinex]
     steps:
-      - uses: actions/checkout@v2
-      - name: Build and Test Binance
-        run: |
-          cargo build -p binance
-          cargo clippy -p binance -- -D warnings
-          cargo test -p binance
+      - uses: actions/checkout@v4
 
-  fmt_binance:
-    name: Format Binance
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      # Install Rust toolchain (stable) + rustfmt
+      - name: Set up Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
-          override: true
-          profile: minimal
           components: rustfmt
-      - uses: actions-rs/cargo@v1
+
+      # Speed up builds across jobs
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
         with:
-          command: fmt
-          args: --package binance -- --check
+          workspaces: |
+            . -> target
+          key: fmt-${{ matrix.pkg }}
 
-  build_and_test_bitmex:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build and Test Bitmex
-        run: |
-          cargo build -p bitmex
-          cargo clippy -p bitmex -- -D warnings
-          cargo test -p bitmex
+      - name: Check formatting
+        run: cargo fmt --package ${{ matrix.pkg }} -- --check
 
-  fmt_bitmex:
-    name: Format Bitmex
+  build_test_clippy:
+    name: Build/Test/Clippy (${{ matrix.pkg }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pkg: [binance, bitmex, okex, bitfinex]
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v4
+
+      # Install Rust toolchain (stable) + clippy
+      - name: Set up Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
-          override: true
-          profile: minimal
-          components: rustfmt
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --package bitmex -- --check
+          components: clippy
 
-  build_and_test_okex:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build and Test Okex
-        run: |
-          cargo build -p okex
-          cargo clippy -p okex -- -D warnings
-          cargo test -p okex
+      # Speed up builds across jobs
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            . -> target
+          key: build-${{ matrix.pkg }}
 
-  fmt_okex:
-    name: Format Okex
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-          components: rustfmt
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --package okex -- --check
+      - name: Build ${{ matrix.pkg }}
+        run: cargo build -p ${{ matrix.pkg }} --locked
 
-  build_and_test_bitfinex:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build and Test Bitfinex
-        run: |
-          cargo build -p bitfinex
-          cargo clippy -p bitfinex -- -D warnings
-          cargo test -p bitfinex
+      - name: Clippy ${{ matrix.pkg }}
+        run: cargo clippy -p ${{ matrix.pkg }} -- -D warnings
 
-  fmt_bitfinex:
-    name: Format Bitfinex
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-          components: rustfmt
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --package bitfinex -- --check
+      - name: Test ${{ matrix.pkg }}
+        run: cargo test -p ${{ matrix.pkg }} --locked
