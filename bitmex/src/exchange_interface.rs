@@ -96,6 +96,16 @@ impl BitmexInterface {
         self.ws.get_instrument().first().unwrap().tick_size
     }
 
+    /// Gets lot size of instrument
+    pub fn get_lot_size(&self) -> f64 {
+        self.ws.get_instrument().first().unwrap().lot_size
+    }
+
+    /// Gets max order quantity of instrument
+    pub fn get_max_order_qty(&self) -> f64 {
+        self.ws.get_instrument().first().unwrap().max_order_qty
+    }
+
     /// Gets margin balance XBT
     pub fn get_margin_balance_xbt(&self) -> u64 {
         for x in self.ws.get_margin() {
