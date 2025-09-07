@@ -66,10 +66,10 @@ jobs:
           key: build-${{ matrix.pkg }}
 
       - name: Build ${{ matrix.pkg }}
-        run: cargo build -p ${{ matrix.pkg }} --locked
+        run: cargo build -p ${{ matrix.pkg }}
 
       - name: Clippy ${{ matrix.pkg }}
         run: cargo clippy -p ${{ matrix.pkg }} -- -D warnings
 
       - name: Test ${{ matrix.pkg }}
-        run: cargo test -p ${{ matrix.pkg }} --locked
+        run: cargo test -p ${{ matrix.pkg }}
