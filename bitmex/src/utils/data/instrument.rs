@@ -17,6 +17,10 @@ pub struct Instrument {
     pub underlying_settle_multiplier: Option<i64>,
     #[serde(rename = "tickSize")]
     pub tick_size: f64,
+    #[serde(rename = "lotSize")]
+    pub lot_size: f64,
+    #[serde(rename = "maxOrderQty")]
+    pub max_order_qty: f64,
     #[serde(rename = "maxPrice")]
     pub max_price: f64,
     #[serde(rename = "maintMargin")]
