@@ -3,8 +3,8 @@ use binance::websocket::futures::{FuturesMarket, FuturesWebSockets, FuturesWebso
 use std::sync::atomic::{AtomicBool, Ordering};
 
 fn main() {
-    //market_websocket();
-    //get_trades_btc_usdt();
+    market_websocket();
+    get_trades_btc_usdt();
     btc_usdt_websocket();
 }
 

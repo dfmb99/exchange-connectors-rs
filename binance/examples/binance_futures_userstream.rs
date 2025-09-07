@@ -5,7 +5,7 @@ use binance::websocket::futures::{FuturesMarket, FuturesWebSockets, FuturesWebso
 use std::sync::atomic::AtomicBool;
 
 fn main() {
-    //user_stream();
+    user_stream();
     user_stream_websocket();
 }
 
